@@ -13,7 +13,7 @@ class ConfigSquareController extends AbstractActionController
     {
         $this->authorize('admin.config');
 
-        $squareManager = @$this->getServiceLocator()->get('Square\Manager\SquareManager');
+        $squareManager = $this->getServiceLocator()->get('Square\Manager\SquareManager');
         $squares = $squareManager->getAll();
 
         return array(
@@ -25,7 +25,7 @@ class ConfigSquareController extends AbstractActionController
     {
         $this->authorize('admin.config');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $formElementManager = $serviceManager->get('FormElementManager');
 
@@ -91,6 +91,19 @@ class ConfigSquareController extends AbstractActionController
                     $nameVisibility = null;
                 }
 
+                /*
+                 * Patch database structure on the fly
+                 */
+                if ($square->get('min_range_book') === null) {
+                    $dbAdapter = $serviceManager->get('Zend\Db\Adapter\Adapter');
+                    $dbAdapter->query('ALTER TABLE `bs_squares` ADD `min_range_book` INT UNSIGNED NOT NULL DEFAULT \'0\' AFTER `time_block_bookable_max`;', 'execute');
+                }
+
+                if ($square->get('max_active_bookings') === null) {
+                    $dbAdapter = $serviceManager->get('Zend\Db\Adapter\Adapter');
+                    $dbAdapter->query('ALTER TABLE `bs_squares` ADD `max_active_bookings` INT UNSIGNED NOT NULL DEFAULT \'0\' AFTER `range_book`;', 'execute');
+                }
+
                 $editForm->setData(array(
                     'cf-name' => $square->get('name'),
                     'cf-status' => $square->get('status'),
@@ -142,7 +155,7 @@ class ConfigSquareController extends AbstractActionController
     {
         $this->authorize('admin.config');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $formElementManager = $serviceManager->get('FormElementManager');
 
@@ -214,7 +227,7 @@ class ConfigSquareController extends AbstractActionController
     {
         $this->authorize('admin.config');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $optionManager = $serviceManager->get('Base\Manager\OptionManager');
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
@@ -283,7 +296,7 @@ class ConfigSquareController extends AbstractActionController
     {
         $this->authorize('admin.config');
 
-        $squareProductManager = @$this->getServiceLocator()->get('Square\Manager\SquareProductManager');
+        $squareProductManager = $this->getServiceLocator()->get('Square\Manager\SquareProductManager');
         $squareProducts = $squareProductManager->getAll('priority ASC');
 
         return array(
@@ -295,7 +308,7 @@ class ConfigSquareController extends AbstractActionController
     {
         $this->authorize('admin.config');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $squareProductManager = $serviceManager->get('Square\Manager\SquareProductManager');
         $formElementManager = $serviceManager->get('FormElementManager');
 
@@ -398,7 +411,7 @@ class ConfigSquareController extends AbstractActionController
 
         $spid = $this->params()->fromRoute('spid');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $squareProductManager = $serviceManager->get('Square\Manager\SquareProductManager');
 
         $squareProduct = $squareProductManager->get($spid);
@@ -428,7 +441,7 @@ class ConfigSquareController extends AbstractActionController
 
         $sid = $this->params()->fromRoute('sid');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
 

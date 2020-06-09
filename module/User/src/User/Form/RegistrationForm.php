@@ -471,14 +471,14 @@ class RegistrationForm extends Form
                     array(
                         'name' => 'StringLength',
                         'options' => array(
-                            'min' => 2,
+                            'min' => 3,
                             'message' => 'This street name is somewhat short ...',
                         ),
                     ),
                     array(
                         'name' => 'Regex',
                         'options' => array(
-                            'pattern' => '/^([ \.\'\-\x{00c0}-\x{01ff}a-zA-Z0-9])+$/u',
+                            'pattern' => '/^([ \.\'\-\x{00c0}-\x{01ff}a-zA-Z])+$/u',
                             'message' => 'This street name contains invalid characters - sorry',
                         ),
                     ),

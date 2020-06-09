@@ -15,7 +15,7 @@ class BookingController extends AbstractActionController
     {
         $this->authorize('admin.booking');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
         $userManager = $serviceManager->get('User\Manager\UserManager');
@@ -69,7 +69,7 @@ class BookingController extends AbstractActionController
 
     protected function complexFilterBookings($bookings, $filters)
     {
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         foreach ($filters['filterParts'] as $filterPart) {
 
@@ -123,7 +123,7 @@ class BookingController extends AbstractActionController
             }
         }
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $formElementManager = $serviceManager->get('FormElementManager');
 
         $editForm = $formElementManager->get('Backend\Form\Booking\EditForm');
@@ -215,17 +215,10 @@ class BookingController extends AbstractActionController
             $editForm->get('bf-quantity')->setLabelOption('disable_html_escape', true);
 
             $playerNameNotes = '';
-            $playerNames = $booking->getMeta('player-names');
 
-            if ($playerNames) {
-                $playerNamesUnserialized = @unserialize($booking->getMeta('player-names'));
-
-                if ($playerNamesUnserialized && is_array($playerNamesUnserialized)) {
-                    foreach ($playerNamesUnserialized as $i => $playerName) {
-                        $playerNameNotes .= sprintf('<div>%s. %s</div>',
-                            $i + 1, $playerName['value']);
-                    }
-                }
+            foreach (unserialize($booking->getMeta('player-names')) as $i => $playerName) {
+                $playerNameNotes .= sprintf('<div>%s. %s</div>',
+                    $i + 1, $playerName['value']);
             }
 
             $editForm->get('bf-quantity')->setOption('notes', $playerNameNotes);
@@ -257,7 +250,7 @@ class BookingController extends AbstractActionController
     {
         $this->authorize('admin.booking, calendar.create-subscription-bookings + calendar.cancel-subscription-bookings');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
         $formElementManager = $serviceManager->get('FormElementManager');
@@ -360,7 +353,7 @@ class BookingController extends AbstractActionController
             'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
             'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings']);
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
 
@@ -425,7 +418,7 @@ class BookingController extends AbstractActionController
     {
         $this->authorize('admin.booking');
 
-        $db = @$this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+        $db = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
 
         $stats = $db->query(sprintf('SELECT status, COUNT(status) AS count FROM %s GROUP BY status', BookingTable::NAME),
             Adapter::QUERY_MODE_EXECUTE)->toArray();
@@ -441,7 +434,7 @@ class BookingController extends AbstractActionController
 
         $bid = $this->params()->fromRoute('bid');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
@@ -599,7 +592,7 @@ class BookingController extends AbstractActionController
 
         $bid = $this->params()->fromRoute('bid');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $userManager = $serviceManager->get('User\Manager\UserManager');
 

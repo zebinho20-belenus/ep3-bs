@@ -15,7 +15,7 @@ class UserController extends AbstractActionController
     {
         $this->authorize('admin.user');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $userManager = $serviceManager->get('User\Manager\UserManager');
 
         $users = array();
@@ -53,7 +53,7 @@ class UserController extends AbstractActionController
     {
         $sessionUser = $this->authorize('admin.user');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $userManager = $serviceManager->get('User\Manager\UserManager');
         $formElementManager = $serviceManager->get('FormElementManager');
 
@@ -65,6 +65,8 @@ class UserController extends AbstractActionController
         } else {
             $user = null;
         }
+        //for activation mail get current Userstatus
+        $currentUserStatus = $user->get('status');
 
         $editUserForm = $formElementManager->get('Backend\Form\User\EditForm');
 
@@ -156,6 +158,13 @@ class UserController extends AbstractActionController
 
                 $this->flashMessenger()->addSuccessMessage('User has been saved');
 
+                // send activiation mail for manual activation
+                if ($currentUserStatus == 'disabled' && $status != 'disabled') {
+                    $mailMessage = $this->t('Your user account has been activated. You can now login with your email address and password. Have fun!');
+                    $userMailService = $serviceManager->get('User\Service\MailService');
+                    $userMailService->send($user, $this->t('Your account has been activated'), $mailMessage);
+                }
+
                 if ($search) {
                     return $this->redirect()->toRoute('backend/user', [], ['query' => ['usf-search' => $search]]);
                 } else {
@@ -205,7 +214,7 @@ class UserController extends AbstractActionController
         $uid = $this->params()->fromRoute('uid');
         $search = $this->params()->fromQuery('search');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $userManager = $serviceManager->get('User\Manager\UserManager');
 
@@ -248,7 +257,7 @@ class UserController extends AbstractActionController
     {
         $this->authorize('admin.user, admin.booking, calendar.see-data');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $userManager = $serviceManager->get('User\Manager\UserManager');
 
         $term = $this->params()->fromQuery('term');
@@ -274,7 +283,7 @@ class UserController extends AbstractActionController
     {
         $this->authorize('admin.user');
 
-        $db = @$this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+        $db = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
 
         $stats = $db->query(sprintf('SELECT status, COUNT(status) AS count FROM %s GROUP BY status', UserTable::NAME),
             Adapter::QUERY_MODE_EXECUTE)->toArray();

@@ -63,7 +63,7 @@ class BookingService extends AbstractService
                 'uid' => $user->need('uid'),
                 'sid' => $square->need('sid'),
                 'status' => 'single',
-                'status_billing' => 'pending',
+                'status_billing' => 'mitglied',
                 'visibility' => 'public',
                 'quantity' => $quantity,
             ), $meta);

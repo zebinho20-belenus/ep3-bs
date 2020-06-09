@@ -259,4 +259,11 @@ return array(
     'Sincerely' => 'Viele Grüße',
     'Your' => 'Ihr',
 
+    // User activation Email notification
+    
+
+    'Your account has been activated' => 'Ihr Benutzerkonto wurde aktiviert',
+    
+    
+
 );

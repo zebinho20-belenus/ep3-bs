@@ -28,7 +28,7 @@ class IndexController extends AbstractActionController
 
             $sqlContent = file_get_contents($sqlFile);
 
-            $dbAdapter = @$this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
+            $dbAdapter = $this->getServiceLocator()->get('Zend\Db\Adapter\Adapter');
             $db = $dbAdapter->getDriver()->getConnection()->getResource();
 
             if ($db instanceof \PDO) {
@@ -80,7 +80,7 @@ class IndexController extends AbstractActionController
 
                 /* Setup options */
 
-                $optionManager = @$this->getServiceLocator()->get('Base\Manager\OptionManager');
+                $optionManager = $this->getServiceLocator()->get('Base\Manager\OptionManager');
 
                 foreach (TextForm::$definitions as $key => $value) {
                     $formKey = str_replace('.', '_', $key);
@@ -114,7 +114,7 @@ class IndexController extends AbstractActionController
 
                 /* Setup default squares */
 
-                $squareManager = @$this->getServiceLocator()->get('Square\Manager\SquareManager');
+                $squareManager = $this->getServiceLocator()->get('Square\Manager\SquareManager');
                 $squares = $squareManager->getAll();
 
                 if (! $squares) {
@@ -129,9 +129,7 @@ class IndexController extends AbstractActionController
                         'time_block' => 3600,
                         'time_block_bookable' => 1800,
                         'time_block_bookable_max' => 10800,
-                        'min_range_book' => 0,
                         'range_book' => 4838400,
-                        'max_active_bookings' => 0,
                         'range_cancel' => 86400,
                     ));
 
@@ -189,7 +187,7 @@ class IndexController extends AbstractActionController
                     $firstname,
                     $lastname);
 
-                $userManager = @$this->getServiceLocator()->get('User\Manager\UserManager');
+                $userManager = $this->getServiceLocator()->get('User\Manager\UserManager');
 
                 $user = $userManager->create($alias, 'admin', $email, $pw);
 
