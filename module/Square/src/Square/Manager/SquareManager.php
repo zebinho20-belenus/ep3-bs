@@ -36,14 +36,12 @@ class SquareManager extends AbstractManager
         $this->squareTable = $squareTable;
         $this->squareMetaTable = $squareMetaTable;
 
-        $select = $squareTable->getSql()->select();
-        $select->order('priority ASC');
+        $loadSquares = function () {
+            $select = $this->squareTable->getSql()->select();
+            $select->order('priority ASC');
 
-        $resultSet = $squareTable->selectWith($select);
+            $resultSet = $this->squareTable->selectWith($select);
 
-<<<<<<< HEAD
-        $this->squares = SquareFactory::fromResultSet($resultSet);
-=======
             $this->squares = SquareFactory::fromResultSet($resultSet);
         };
 
@@ -55,11 +53,6 @@ class SquareManager extends AbstractManager
         if ($this->squares) {
             $referenceSquare = current($this->squares);
 
-            if ($referenceSquare->get('allow_notes') === null) {
-                $this->squareTable->getAdapter()->query('ALTER TABLE `bs_squares` ADD `allow_notes` tinyint(1) NOT NULL DEFAULT \'0\' AFTER `capacity_heterogenic`;', 'execute');
-                $loadSquares();
-            }
-
             if ($referenceSquare->get('min_range_book') === null) {
                 $this->squareTable->getAdapter()->query('ALTER TABLE `bs_squares` ADD `min_range_book` INT UNSIGNED NOT NULL DEFAULT \'0\' AFTER `time_block_bookable_max`;', 'execute');
                 $loadSquares();
@@ -70,7 +63,6 @@ class SquareManager extends AbstractManager
                 $loadSquares();
             }
         }
->>>>>>> 11493eb974eedb2f559145d98bcecf83b372a3aa
 
         /* Load square meta data */
 
