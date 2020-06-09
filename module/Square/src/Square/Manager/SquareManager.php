@@ -41,7 +41,36 @@ class SquareManager extends AbstractManager
 
         $resultSet = $squareTable->selectWith($select);
 
+<<<<<<< HEAD
         $this->squares = SquareFactory::fromResultSet($resultSet);
+=======
+            $this->squares = SquareFactory::fromResultSet($resultSet);
+        };
+
+        $loadSquares();
+
+        /*
+         * Patch database structure on the fly
+         */
+        if ($this->squares) {
+            $referenceSquare = current($this->squares);
+
+            if ($referenceSquare->get('allow_notes') === null) {
+                $this->squareTable->getAdapter()->query('ALTER TABLE `bs_squares` ADD `allow_notes` tinyint(1) NOT NULL DEFAULT \'0\' AFTER `capacity_heterogenic`;', 'execute');
+                $loadSquares();
+            }
+
+            if ($referenceSquare->get('min_range_book') === null) {
+                $this->squareTable->getAdapter()->query('ALTER TABLE `bs_squares` ADD `min_range_book` INT UNSIGNED NOT NULL DEFAULT \'0\' AFTER `time_block_bookable_max`;', 'execute');
+                $loadSquares();
+            }
+
+            if ($referenceSquare->get('max_active_bookings') === null) {
+                $this->squareTable->getAdapter()->query('ALTER TABLE `bs_squares` ADD `max_active_bookings` INT UNSIGNED NOT NULL DEFAULT \'0\' AFTER `range_book`;', 'execute');
+                $loadSquares();
+            }
+        }
+>>>>>>> 11493eb974eedb2f559145d98bcecf83b372a3aa
 
         /* Load square meta data */
 
