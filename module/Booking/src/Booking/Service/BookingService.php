@@ -134,6 +134,7 @@ class BookingService extends AbstractService
 
             if ($transaction) {
                 $this->connection->commit();
+                $transaction = false;
             }
 
             if (!$booking->getMeta('directpay') == true) { 
