@@ -219,6 +219,7 @@ class Klarna_Checkout_Order
      *
      * @return mixed data
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($key)
     {
         if (!is_string($key)) {
@@ -236,6 +237,7 @@ class Klarna_Checkout_Order
      *
      * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($key, $value)
     {
         if (!is_string($key)) {
@@ -255,6 +257,7 @@ class Klarna_Checkout_Order
      *
      * @return boolean
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($key)
     {
         return array_key_exists($key, $this->_data);
@@ -267,6 +270,7 @@ class Klarna_Checkout_Order
      *
      * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($key)
     {
         throw new RuntimeException(

@@ -41,22 +41,36 @@ class Identity implements IdentityInterface
         return $this->id;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function serialize()
-    {
-        return serialize(array($this->id, $this->class));
-    }
+    public function __serialize()                              
+    {                                                        
+        return [
+            'id' => $this->id,
+            'class' => $this->class,
+        ];
+    }                                                         
 
-    /**
-     * {@inheritDoc}
-     */
-    public function unserialize($serialized)
-    {
-        list($this->id, $this->class) = unserialize($serialized);
-    }
+    /**                                                           
+     *  * {@inheritDoc}                                              
+     *   */                                                           
+    public function serialize()                                 
+    {                                                             
+            return serialize(array($this->id, $this->class));         
+    }                                                
 
+    public function __unserialize($serialized)                         
+    {                                                                
+        $this->id = $serialized['id'];
+        $this->class = $serialized['class'];   
+    }                                                                
+                                                                  
+    /**                                                           
+     *  * {@inheritDoc}                                              
+     *   */                                                           
+    public function unserialize($serialized)                    
+    {                                                             
+            list($this->id, $this->class) = unserialize($serialized); 
+    }                                                             
+                                                                  
     /**
      * @return string
      */

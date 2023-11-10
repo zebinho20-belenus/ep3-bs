@@ -321,6 +321,7 @@ class Query implements ComponentInterface, Countable, IteratorAggregate
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return count($this->pairs);
@@ -329,6 +330,7 @@ class Query implements ComponentInterface, Countable, IteratorAggregate
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function getIterator()
     {
         return new ArrayIterator($this->pairs);

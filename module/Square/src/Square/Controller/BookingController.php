@@ -299,8 +299,12 @@ class BookingController extends AbstractActionController
                    $model = $storage->create();
                    $booking->setMeta('paymentMethod', $payservice);
                    $booking->setMeta('hasBudget', $byproducts['hasBudget']);
-                   $booking->setMeta('newbudget', $byproducts['newbudget']);
-                   $booking->setMeta('budget', $byproducts['budget']); 
+                   if(array_key_exists('newbudget', $byproducts)) {
+                       $booking->setMeta('newbudget', $byproducts['newbudget']);
+                   }
+                   if(array_key_exists('budget', $byproducts)) {
+                       $booking->setMeta('budget', $byproducts['budget']);
+                   } 
                    $bookingManager->save($booking);
                    $userName = $user->getMeta('firstname') . ' ' . $user->getMeta('lastname');
                    $companyName = $this->option('client.name.full');
@@ -517,7 +521,7 @@ class BookingController extends AbstractActionController
         // syslog(LOG_EMERG, $payment['status']);
         // syslog(LOG_EMERG, json_encode($payment));
 
-        if (($payment['status'] == "requires_action" && !(array_key_exists('error',$payment)))) {
+        if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
             
           // syslog(LOG_EMERG, "confirm success");
           $payment['doneAction'] = $token->getTargetUrl();
@@ -546,7 +550,7 @@ class BookingController extends AbstractActionController
 
         }
    
-        if ($payment['status'] != "requires_action" || array_key_exists('error',$payment)) {
+        if ($payment['status'] != "requires_action" || array_key_exists('error', (array)$payment)) {
            // syslog(LOG_EMERG, json_encode($payment)); 
            // syslog(LOG_EMERG, $payment['status']); 
            // syslog(LOG_EMERG, "confirm error");
