@@ -9,15 +9,6 @@ use Zend\Mvc\Controller\AbstractActionController;
 use Zend\ServiceManager\ServiceLocator;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\View\Model\JsonModel;
-use Zend\Http\Response;
-use Payum\Core\Request\GetHumanStatus;
-use Payum\Core\Reply\HttpResponse;
-use Payum\Core\Reply\HttpRedirect;
-use Payum\Core\Reply\ReplyInterface;
-use Payum\Stripe\Request\Confirm;
-use Stripe;
-use GuzzleHttp\Client; 
-
 
 class BookingController extends AbstractActionController
 {
@@ -280,110 +271,21 @@ class BookingController extends AbstractActionController
 
             $booking = $bookingService->createSingle($user, $square, $quantityParam, $byproducts['dateStart'], $byproducts['dateEnd'], $bills, $meta);
             
+            $booking->setMeta('hasBudget', $byproducts['hasBudget']);
+            if(array_key_exists('newbudget', $byproducts)) {
+               $booking->setMeta('newbudget', $byproducts['newbudget']);
+            }
+            if(array_key_exists('budget', $byproducts)) {
+               $booking->setMeta('budget', $byproducts['budget']);
+            }
+            $bookingManager->save($booking);
+
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
-            # payment checkout
+                # payment checkout
                 if($payable) {
-                   // $paymentService = $serviceManager->get('Payment\Service\PaymentService'); 
-                   // $paymentService->initBookingPayment($booking, $user, $payservice, $total, $byproducts); 
-                    
-                   $basepath = $this->config('basepath');
-                   if (isset($basepath) && $basepath != '' && $basepath != ' ') {
-                       $basepath = '/'.$basepath;  
-                   } 
-                   $projectShort = $this->option('client.name.short');
-                   $baseurl = $this->config('baseurl');
-                   $proxyurl = $this->config('proxyurl');
-		           $storage = $this->getServiceLocator()->get('payum')->getStorage('Application\Model\PaymentDetails');
-                   $tokenStorage = $this->getServiceLocator()->get('payum.options')->getTokenStorage(); 
-                   $captureToken = null;
-                   $model = $storage->create();
-                   $booking->setMeta('paymentMethod', $payservice);
-                   $booking->setMeta('hasBudget', $byproducts['hasBudget']);
-                   if(array_key_exists('newbudget', $byproducts)) {
-                       $booking->setMeta('newbudget', $byproducts['newbudget']);
-                   }
-                   if(array_key_exists('budget', $byproducts)) {
-                       $booking->setMeta('budget', $byproducts['budget']);
-                   } 
-                   $bookingManager->save($booking);
-                   $userName = $user->getMeta('firstname') . ' ' . $user->getMeta('lastname');
-                   $companyName = $this->option('client.name.full');
-
-                   $locale = $this->config('i18n.locale');
-
-                   $description = $projectShort.' booking-'.$booking->get('bid');
-                   if (isset($locale) && ($locale == 'de-DE' || $locale == 'de_DE')) {
-                        $description = $projectShort.' Buchung-'.$booking->get('bid');
-                   }
-
-                   #paypal checkout            
-                   if ($payservice == 'paypal') {
-    		           $model['PAYMENTREQUEST_0_CURRENCYCODE'] = 'EUR';
-    		           $model['PAYMENTREQUEST_0_AMT'] = $total/100;
-                       $model['PAYMENTREQUEST_0_BID'] = $booking->get('bid');
-                       $model['PAYMENTREQUEST_0_DESC'] = $description;
-                       $model['PAYMENTREQUEST_0_EMAIL'] = $user->get('email');
-                       $storage->update($model);
-     		           $captureToken = $this->getServiceLocator()->get('payum.security.token_factory')->createCaptureToken(
-                           'paypal_ec', $model, $proxyurl.$basepath.'/square/booking/payment/done');
-                   }				    
-                   #paypal checkout
-                   #stripe checkout
-                   if ($payservice == 'stripe') {
-                       $model["payment_method_types"] = $this->config('stripePaymentMethods');                       
-                       // nur zusammen mit stripe customer objekt
-                       // $model["payment_method_options"] = $this->config('stripePaymentMethodOptions');
-                       
-                       $model["amount"] = $total;
-                       $model["currency"] = 'EUR';
-                       $model["description"] = $description;
-                       $model["receipt_email"] = $user->get('email');
-                       $model["metadata"] = array('bid' => $booking->get('bid'), 'productName' => $this->option('subject.type'), 'locale' => $locale, 'instance' => $basepath, 'projectShort' => $projectShort, 'userName' => $userName, 'companyName' => $companyName, 'stripeDefaultPaymentMethod' => $this->config('stripeDefaultPaymentMethod'), 'stripeAutoConfirm' => var_export($this->config('stripeAutoConfirm'), true), 'stripePaymentRequest' => var_export($this->config('stripePaymentRequest'), true));
-                       $storage->update($model);
-                       $captureToken = $this->getServiceLocator()->get('payum.security.token_factory')->createCaptureToken(
-                           'stripe', $model, $proxyurl.$basepath.'/square/booking/payment/confirm');
-                   }
-                   #stripe checkout
-                   #klarna checkout
-                   if ($payservice == 'klarna') {
-                       $model['purchase_country'] = 'DE';
-                       $model['purchase_currency'] = 'EUR';
-                       $model['locale'] = 'de-DE';
-                       $storage->update($model); 
-                       $captureToken = $this->getServiceLocator()->get('payum.security.token_factory')->createAuthorizeToken('klarna_checkout', $model, $proxyurl.$basepath.'/square/booking/payment/done');
-                       $notifyToken = $this->getServiceLocator()->get('payum.security.token_factory')->createNotifyToken('klarna_checkout', $model);
-                   }
-                   #klarna checkout
-                   
-                   $targetUrl = str_replace($baseurl, $proxyurl, $captureToken->getTargetUrl());
-                   $captureToken->setTargetUrl($targetUrl);
-                   $tokenStorage->update($captureToken);
-
-                   #klarna checkout update merchant details
-                   if ($payservice == 'klarna') {
-                       $model['merchant'] = array(
-                           'terms_uri' => 'http://example.com/terms',
-                           'checkout_uri' => $captureToken->getTargetUrl(),
-                           'confirmation_uri' => $captureToken->getTargetUrl(),
-                           'push_uri' => $notifyToken->getTargetUrl()
-                       );
-                       $model['cart'] = array(
-                           'items' => array(
-                                array(
-                                   'reference' => $booking->get('bid'),
-                                   'name' => $description,
-                                   'quantity' => 1,
-                                   'unit_price' => $total,
-                                )
-                           )
-                       );
-                       $storage->update($model);
-                   }
-                   #klarna checkout
-
-                   return $this->redirect()->toUrl($captureToken->getTargetUrl());
-                   }
-                else {
+                   $paymentService = $serviceManager->get('Payment\Service\PaymentService');
+                   return $this->redirect()->toUrl($paymentService->initBookingPayment($booking, $user, $payservice, $total, $byproducts));
+                } else {
                    $bookingService->cancelSingle($booking);
                    $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sSorry online booking not possible at the moment!%s'),
                        '<b>', '</b>'));
@@ -507,185 +409,4 @@ class BookingController extends AbstractActionController
             'origin' => $origin,
         ));
     }
-
-    public function confirmAction()
-    {
-
-        $token = $this->getServiceLocator()->get('payum.security.http_request_verifier')->verify($this);
-        $gateway = $this->getServiceLocator()->get('payum')->getGateway($token->getGatewayName());
-        $tokenStorage = $this->getServiceLocator()->get('payum.options')->getTokenStorage();
-        $gateway->execute($status = new GetHumanStatus($token));
-
-        $payment = $status->getFirstModel();
-
-        // syslog(LOG_EMERG, $payment['status']);
-        // syslog(LOG_EMERG, json_encode($payment));
-
-        if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
-            
-          // syslog(LOG_EMERG, "confirm success");
-          $payment['doneAction'] = $token->getTargetUrl();
-
-           try {
-               // syslog(LOG_EMERG, "executing confirm");
-
-               $gateway->execute(new Confirm($payment));
-
-               // syslog(LOG_EMERG, $payment['status']);
-               // syslog(LOG_EMERG, json_encode($payment));
-
-           } catch (ReplyInterface $reply) {
-               if ($reply instanceof HttpRedirect) {
-                   return $this->redirect()->toUrl($reply->getUrl());
-               }
-               if ($reply instanceof HttpResponse) {
-                  $this->getResponse()->setContent($reply->getContent());
-                  $response = new Response();
-                  $response->setStatusCode(200);
-                  $response->setContent($reply->getContent());
-                  return $response;
-               }
-            throw new \LogicException('Unsupported reply', null, $reply);
-            }
-
-        }
-   
-        if ($payment['status'] != "requires_action" || array_key_exists('error', (array)$payment)) {
-           // syslog(LOG_EMERG, json_encode($payment)); 
-           // syslog(LOG_EMERG, $payment['status']); 
-           // syslog(LOG_EMERG, "confirm error");
-           $doneAction = str_replace("confirm", "done", $token->getTargetUrl());
-
-           $token->setTargetUrl($doneAction);
-           $tokenStorage->update($token);
-           return $this->redirect()->toUrl($doneAction);
-        }
-
-    }    
-
-    public function doneAction()
-    {
-        // syslog(LOG_EMERG, 'doneAction');
-        
-        $serviceManager = $this->getServiceLocator();
-        $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
-        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
-
-        $bookingService = $serviceManager->get('Booking\Service\BookingService');
-
-        $token = $serviceManager->get('payum.security.http_request_verifier')->verify($this);
-
-        $gateway = $serviceManager->get('payum')->getGateway($token->getGatewayName());
-
-        $gateway->execute($status = new GetHumanStatus($token));
-
-        $payment = $status->getFirstModel();
-
-        // syslog(LOG_EMERG, json_encode($status));
-        // syslog(LOG_EMERG, json_encode($payment));
-
-        $origin = $this->redirectBack()->getOriginAsUrl();
-
-        $bid = -1;  
-        $paymentNotes = '';        
-#paypal
-        if ($token->getGatewayName() == 'paypal_ec') {
-            $bid = $payment['PAYMENTREQUEST_0_BID'];
-            $paymentNotes = ' direct pay with paypal - ';
-        }
-#paypal
-#stripe
-        if ($token->getGatewayName() == 'stripe') {
-            $bid = $payment['metadata']['bid'];
-            $paymentNotes = ' direct pay with stripe ' . $payment['charges']['data'][0]['payment_method_details']['type'] . ' - ';
-        }
-#stripe
-#klarna
-        if ($token->getGatewayName() == 'klarna') {
-            $bid = $payment['items']['reference'];
-            $paymentNotes = ' direct pay with klarna - ';
-        }
-#klarna
-        
-        if (! (is_numeric($bid) && $bid > 0)) {
-            throw new RuntimeException('This booking does not exist');
-        }
-
-        $booking = $bookingManager->get($bid);
-        $notes = $booking->getMeta('notes');
-
-        $notes = $notes . $paymentNotes;
-
-        $square = $squareManager->get($booking->need('sid'));
-
-
-        if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
-
-            // syslog(LOG_EMERG, 'doneAction - success');
-            
-            if (!$booking->getMeta('directpay_pending') == 'true') {
-                if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
-                   $doorCode = $booking->getMeta('doorCode');  
-                   $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService'); 
-                   if ($squareControlService->createDoorCode($bid, $doorCode) == true) {
-                       $this->flashMessenger()->addSuccessMessage(sprintf($this->t('Your %s has been booked! The doorcode is: %s'),
-                           $this->option('subject.square.type'), $doorCode));
-                   } else {
-                       $this->flashMessenger()->addErrorMessage(sprintf($this->t('Your %s has been booked! But the doorcode could not be send. Please contact admin by phone - %s'),
-                           $this->option('subject.square.type'), $this->option('client.contact.phone')));
-                   }
-                }
-                else {
-                    // syslog(LOG_EMERG, 'success not pending');
-                    $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sCongratulations:%s Your %s has been booked!'),
-                        '<b>', '</b>',$this->option('subject.square.type')));
-                }
-            }
-
-            if($status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing')) {
-                // syslog(LOG_EMERG, 'success pending/processing');
-                $booking->set('status_billing', 'pending');
-                $booking->setMeta('directpay', 'false');
-                $booking->setMeta('directpay_pending', 'true');
-            }
-            else {
-                // syslog(LOG_EMERG, 'success paid');
-                $booking->set('status_billing', 'paid');
-                $booking->setMeta('directpay', 'true');
-                $booking->setMeta('directpay_pending', 'false');
-            }
-
-            # redefine user budget
-            if ($booking->getMeta('hasBudget')) {
-                $userManager = $serviceManager->get('User\Manager\UserManager');
-                $user = $userManager->get($booking->get('uid'));
-                $user->setMeta('budget', $booking->getMeta('newbudget'));
-                $userManager->save($user);
-                # set booking to paid
-                $notes = $notes . " payment with user budget | ";
-            }
-
-            $notes = $notes . " payment_status: " . $status->getValue() . ' ' . $payment['status'];
-            $booking->setMeta('notes', $notes);
-            $bookingService->updatePaymentSingle($booking);
-	    }
-	    else
-        {
-            // syslog(LOG_EMERG, 'doneAction - error');
-            
-            if (!$booking->getMeta('directpay_pending') == 'true') {
-                if(isset($payment['error']['message'])) {
-                    $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
-                                            '<b>', '</b>'));
-                }
-                $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sError during payment: Your booking has been cancelled.%s'),
-                    '<b>', '</b>'));
-            }
-            $bookingService->cancelSingle($booking);
-        }  
-
-        return $this->redirectBack()->toOrigin();
-   
-    }
-
 }
