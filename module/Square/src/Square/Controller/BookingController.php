@@ -200,24 +200,19 @@ class BookingController extends AbstractActionController
         $budgetpayment = false;
 
         // calculate end total from user budget
-        if ($user != null && $user->getMeta('budget') != null && $user->getMeta('budget') > 0 && $total > 0) {
+        if ($user != null && $user->hasBudget() && $total > 0) {
             $byproducts['hasBudget'] = true;
-            $budget = $user->getMeta('budget');
-            $byproducts['budget'] = $budget;
-            // syslog(LOG_EMERG, 'budget: ' . $budget);
-            $newtotal = $total - ($budget*100);
+            $byproducts['budget'] = $user->getBudget();
+            $newtotal = $total - ($user->getBudget()*100);
             if ($newtotal <= 0) {
                 $budgetpayment = true;
             }
             $byproducts['newtotal'] = $newtotal;
-            // syslog(LOG_EMERG, 'newtotal: ' . $newtotal);
-            $newbudget = ($budget*100-$total)/100;
+            $newbudget = ($user->getBudget()*100-$total)/100;
             if ($newbudget < 0) { 
                 $newbudget = 0;
             }
             $byproducts['newbudget'] = $newbudget;
-            // syslog(LOG_EMERG, 'newbudget: ' . $newbudget);
-
             $total = $newtotal;
         }
 
@@ -298,7 +293,7 @@ class BookingController extends AbstractActionController
                 # redefine user budget
                 if ($budgetpayment) { 
                     $userManager = $serviceManager->get('User\Manager\UserManager');
-                    $user->setMeta('budget', $newbudget);
+                    $user->setBudget($newbudget);
                     $userManager->save($user);
                     $booking->setMeta('budget', $budget);
                     $booking->setMeta('newbudget', $newbudget);
@@ -368,35 +363,10 @@ class BookingController extends AbstractActionController
         if ($confirmed == 'true') {
 
             $bookingService = $serviceManager->get('Booking\Service\BookingService');
-
-            $userManager = $serviceManager->get('User\Manager\UserManager');
-            $user = $userManager->get($booking->get('uid'));
-
             $bookingService->cancelSingle($booking);
 
-            # redefine user budget if status paid
-            if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && !$booking->getMeta('refunded') == 'true') {
-                $booking->setMeta('refunded', 'true');
-                $bookingManager->save($booking);
-                $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                $total = 0;
-                if ($bills) {
-                    foreach ($bills as $bill) {
-                        $total += $bill->need('price');
-                    }
-                }
-            
-                $olduserbudget = $user->getMeta('budget');
-                if ($olduserbudget == null || $olduserbudget == '') {
-                    $olduserbudget = 0;
-                }
-
-                $newbudget = ($olduserbudget*100+$total)/100;
-
-                $user->setMeta('budget', $newbudget);
-                $userManager->save($user);
-            }
-
+            # reset user budget if status paid
+            $bookingService->refundPayment($booking);
 
             $this->flashMessenger()->addErrorMessage(sprintf($this->t('Your booking has been %scancelled%s.'),
                 '<b>', '</b>'));

@@ -402,6 +402,7 @@ class BookingController extends AbstractActionController
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
+        $bookingService = $serviceManager->get('Booking\Service\BookingService');
 
         $rid = $this->params()->fromRoute('rid');
         $editMode = $this->params()->fromQuery('edit-mode');
@@ -428,9 +429,12 @@ class BookingController extends AbstractActionController
 
                 $this->flashMessenger()->addSuccessMessage('Reservation has been deleted');
             } else {
-
+                # storno
                 if ($this->params()->fromQuery('cancel') == 'true') {
                     $this->authorize(['calendar.cancel-single-bookings', 'calendar.cancel-subscription-bookings']);
+
+                    # reset user budget if status paid
+                    $bookingService->refundPayment($booking);
 
                     $booking->set('status', 'cancelled');
                     $booking->setMeta('cancellor', $sessionUser->get('alias'));
@@ -439,40 +443,14 @@ class BookingController extends AbstractActionController
 
                     if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
                         $squareControlService->deactivateDoorCode($bid);
-                    }
-
-                    # redefine user budget if status paid
-                    if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && !$booking->getMeta('refunded') == 'true') {
-                        $booking->setMeta('refunded', 'true');
-                        $bookingManager->save($booking);
-
-                        $userManager = $serviceManager->get('User\Manager\UserManager');
-                        $user = $userManager->get($booking->get('uid'));
-
-                        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager'); 
-
-                        $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                        $total = 0;
-                        if ($bills) {
-                            foreach ($bills as $bill) {
-                                $total += $bill->need('price');
-                            }
-                        }
-
-                        $olduserbudget = $user->getMeta('budget');
-                        if ($olduserbudget == null || $olduserbudget == '') {
-                            $olduserbudget = 0;
-                        }
-
-                        $newbudget = ($olduserbudget*100+$total)/100;
-
-                        $user->setMeta('budget', $newbudget);
-                        $userManager->save($user);
-                    }
+                    }                    
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
                 } else {
                     $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
+
+                    # reset user budget if status paid
+                    $bookingService->refundPayment($booking);
 
                     $bookingManager->delete($booking);
 

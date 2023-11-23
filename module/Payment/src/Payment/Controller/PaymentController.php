@@ -170,9 +170,9 @@ class PaymentController extends AbstractActionController
             if ($booking->getMeta('hasBudget')) {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $user = $userManager->get($booking->get('uid'));
-                $user->setMeta('budget', $booking->getMeta('newbudget'));
+                $user->setBudget($booking->getMeta('newbudget'));
                 $userManager->save($user);
-                # set booking to paid
+                # set note for budget payment
                 $notes = $notes . " payment with user budget | ";
             }
 
