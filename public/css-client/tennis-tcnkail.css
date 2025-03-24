@@ -1,0 +1,302 @@
+.no-border,
+.tennis-tcnkail #header,
+.tennis-tcnkail #footer {
+  border: none;
+}
+body.tennis-tcnkail {
+  # qs;
+  # background: #1e73be;
+  # qs new hellbraun;
+  background: #313b3f;
+  # prod;
+  # background: #a4b6c4;
+  # background: #fff;
+
+  min-width: 320px;
+  padding: 6px;
+}
+@media (min-width: 1024px) {
+  body.tennis-tcnkail {
+    padding: 16px;
+  }
+}
+body.tennis-tcnkail > div.panel:first-child {
+  padding: 6px;
+}
+@media (min-width: 480px) {
+  s-rudolstadt body.tennis-tcnkail > div.panel:first-child {
+    padding: 16px;
+  }
+}
+.tennis-tcnkail #label-client {
+  color: #fff;
+  margin-top: 0px;
+}
+.tennis-tcnkail #label-service-phone {
+  margin-left: 80px;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  padding-top: 3px;
+  display: none;
+}
+.tennis-tcnkail #topbar-phone,
+.tennis-tcnkail #topbar-i18n {
+  margin-top: 0px;
+}
+.tennis-tcnkail #header {
+  margin-bottom: 0px;
+  padding-bottom: 0px;
+}
+@media (max-width: 1024px) {
+  .tennis-tcnkail #header #label {
+    float: left;
+  }
+  .tennis-tcnkail #header #topbar {
+    float: right;
+    margin: 0px;
+  }
+  .tennis-tcnkail #header #topbar #topbar-i18n,
+  .tennis-tcnkail #header #topbar #topbar-phone {
+    float: right;
+    margin-top: 0px;
+  }
+}
+@media (max-width: 679px) {
+  .tennis-tcnkail #header #topbar #topbar-phone {
+    display: none !important;
+  }
+  .tennis-tcnkail #header #label-service-phone {
+    display: block;
+  }
+}
+@media (max-width: 512px) {
+  .tennis-tcnkail #header #label-client,
+  .tennis-tcnkail #header #label-service {
+    text-align: left;
+    text-indent: 80px;
+  }
+  .tennis-tcnkail #header #topbar-i18n {
+    position: relative;
+    padding: 0px;
+  }
+}
+.tennis-tcnkail #footer,
+.tennis-tcnkail #footer a {
+  color: #fff;
+  font-size: 12px;
+}
+.tennis-tcnkail #logo {
+  height: 50px;
+}
+.tennis-tcnkail #calendar.panel {
+  padding: 6px;
+}
+#.tennis-tcnkail #calendar-toolbar .panel {
+#  padding: 6px;
+#  margin-bottom: 6px;
+#}
+.tennis-tcnkail #calendar-toolbar-userpanel {
+  padding: 6px;
+  margin-bottom: 6px;
+}
+
+.tennis-tcnkail #calendar-toolbar-datepicker {
+  padding: 6px;
+  margin-bottom: 6px;
+}
+
+@media (min-width: 480px) {
+  .tennis-tcnkail #calendar-toolbar .panel {
+    margin-bottom: 16px;
+  }
+}
+@media (max-width: 1100px) {
+  /*
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-4 {
+    display: none;
+  }
+  */
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-table-cell {
+    display: table-cell;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-block {
+    display: block;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-inline-block {
+    display: inline-block;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-inline {
+    display: inline;
+  }
+}
+@media (max-width: 870px) {
+  .tennis-tcnkail .symbolic-label {
+    display: none;
+  }
+  .tennis-tcnkail .first-letter-only {
+    width: 10px;
+    font-size: 0px;
+  }
+  .tennis-tcnkail .first-letter-only:first-letter {
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-booking::before,
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-user::before,
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-off::before {
+    content: " ";
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-booking {
+    padding-left: 12px;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-user {
+    padding-left: 10px;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-off {
+    padding-left: 11px;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-config {
+    padding-left: 12px;
+  }
+}
+@media (min-width: 700px) {
+  /*  
+  .tennis-tcnkail #calendar .calendar-table .calendar-date-col {
+    display: table-cell;
+  }
+  */
+}
+@media (max-width: 699px) and (min-width: 480px) {
+  /*
+  .tennis-tcnkail #calendar .calendar-table .calendar-date-col.responsive-pass-4,
+  .tennis-tcnkail #calendar .calendar-table .calendar-date-col.responsive-pass-3,
+  .tennis-tcnkail #calendar .calendar-table .calendar-date-col.responsive-pass-2,
+  .tennis-tcnkail #calendar .calendar-table .calendar-date-col.responsive-pass-1:nth-of-type(6) {
+    display: table-cell;
+  }
+  */
+}
+@media (max-width: 699px) and (min-width: 320px) {
+  .tennis-tcnkail #calendar-toolbar-datepicker {
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+  /*
+  .tennis-tcnkail #calendar .calendar-table .calendar-date-col.responsive-pass-4 {
+    display: table-cell;
+  }
+  */
+}
+@media (max-width: 320px) {
+  body.tennis-tcnkail {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .tennis-tcnkail #calendar-toolbar-datepicker {
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+  /*
+    .tennis-tcnkail #calendar .calendar-table .calendar-date-col.responsive-pass-4 {
+    display: table-cell;
+  }
+  */
+  
+}
+@media (max-width: 410px) {
+  .tennis-tcnkail form#euf table td
+  {
+    display: block;
+  }
+  .tennis-tcnkail form#euf table td.default-form-label-row,
+  .tennis-tcnkail form#euf table td.right-text
+  {
+    text-align: left;
+  }
+  .tennis-tcnkail form#euf table td input#daf-why
+  {
+    width: 250px !important;
+  }
+} 
+@media (max-width: 480px) {
+  .tennis-tcnkail form#rf table td,
+  .tennis-tcnkail form#lf table td,
+  .tennis-tcnkail form#pf table td,
+  .tennis-tcnkail form#epf table td,
+  .tennis-tcnkail form#eef table td,
+  .tennis-tcnkail form#enf table td,
+  .tennis-tcnkail form#daf table td,
+  .tennis-tcnkail form#usf table td,
+  .tennis-tcnkail form#bsf table td,
+  .tennis-tcnkail form#esf table td,
+  .tennis-tcnkail form#cf table td,
+  .tennis-tcnkail form#ef table td
+  {
+    display: block;
+  }
+  .tennis-tcnkail form#rf table td.default-form-label-row,
+  .tennis-tcnkail form#lf table td.default-form-label-row,
+  .tennis-tcnkail form#pf table td.default-form-label-row,
+  .tennis-tcnkail form#epf table td.default-form-label-row,
+  .tennis-tcnkail form#eef table td.default-form-label-row,
+  .tennis-tcnkail form#enf table td.default-form-label-row,
+  .tennis-tcnkail form#daf table td.default-form-label-row,
+  .tennis-tcnkail form#usf table td.default-form-label-row,
+  .tennis-tcnkail form#bsf table td.default-form-label-row,
+  .tennis-tcnkail form#esf table td.default-form-label-row,
+  .tennis-tcnkail form#cf table td.default-form-label-row,
+  .tennis-tcnkail form#ef table td.default-form-label-row
+  {
+    text-align: left;
+  }
+  .tennis-tcnkail form#rf table td input#daf-why,
+  .tennis-tcnkail form#lf table td input#daf-why,
+  .tennis-tcnkail form#pf table td input#daf-why,
+  .tennis-tcnkail form#epf table td input#daf-why,
+  .tennis-tcnkail form#eef table td input#daf-why,
+  .tennis-tcnkail form#enf table td input#daf-why,
+  .tennis-tcnkail form#daf table td input#daf-why,
+  .tennis-tcnkail form#usf table td input#daf-why,
+  .tennis-tcnkail form#bsf table td input#daf-why,
+  .tennis-tcnkail form#esf table td input#daf-why,
+  .tennis-tcnkail form#cf table td input#daf-why,
+  .tennis-tcnkail form#ef table td input#daf-why
+  {
+    width: 250px !important;
+  }
+}
+/*@media screen and (-webkit-min-device-pixel-ratio:0) { 
+  select:focus,
+  textarea,
+  input {
+    font-size: 16px;
+  }
+}
+*/
+
+/* HIDE RADIO */
+.payment_radio > input { 
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* IMAGE STYLES */
+.payment_radio {
+  cursor: pointer;
+}
+
+.payment_radio > input + img {
+  padding: 5px;
+}
+
+.payment_radio:hover > input + img {
+  outline: 2px solid orange;
+}
+
+/* CHECKED STYLES */
+.payment_radio > input:checked + img {
+  outline: 2px solid gray;
+}
+

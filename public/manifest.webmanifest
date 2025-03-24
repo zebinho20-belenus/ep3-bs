@@ -1,11 +1,11 @@
 {
-    "name": "TVaS court booking dev",
-    "short_name": "TVaS Booking dev",
+    "name": "TCN-Kail court booking dev",
+    "short_name": "TCN-Kail Booking dev",
     "start_url": "./",
     "display": "fullscreen",
     "theme_color": "#4a3827",
     "background_color": "#4a3827",
-    "description": "book indoor Tennis court at TV am Saalebogen Rudolstadt",
+    "description": "book indoor Tennis court at TC Neuperlach-Kail",
     "icons": [
         {
             "src": "imgs-client/layout/logo_48.png",
@@ -20,16 +20,6 @@
         {
             "src": "imgs-client/icons/fav.ico",
             "sizes": "16x16"
-        },
-        {
-            "src": "imgs-client/layout/logo_192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "imgs-client/layout/logo_512.png",
-            "sizes": "512x512",
-            "type": "image/png"
         }
     ]
 }

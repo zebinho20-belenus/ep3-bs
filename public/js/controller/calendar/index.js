@@ -76,11 +76,11 @@
         $(window).resize(updateCalendarCols);
         $(document).on("updateLayout", updateCalendarCols);
 
-        /* Update calendar groups */
-        var groups = [".cc-event", ".cc-single", ".cc-own", ".cc-multiple", ".cc-multiple-14", ".cc-conflict"];
-        groupCalendarCols(groups);
-        $(window).resize(function(evt) { groupCalendarCols(groups); });
-        $(document).on("updateLayout", function(evt) { groupCalendarCols(groups); });
+        /* Update calendar events */
+
+        updateCalendarEvents();
+        $(window).resize(updateCalendarEvents);
+        $(document).on("updateLayout", updateCalendarEvents);
 
     });
 
@@ -143,27 +143,49 @@
         });
     }
 
-    function prepareSquarebox()
-    {
-        if (! squareboxOverlay) {
-            squareboxOverlay = $('<div id="squarebox-overlay"></div>').css({
-                "position": "absolute",
-                "z-index": 1532,
-                "opacity": 0.00,
-                "width": $(document).width(), "height": $(document).height(),
-                "left": 0, "top": 0,
-                "background": "#333"
-            });
 
-            $("body").prepend(squareboxOverlay);
-        }
+     function prepareSquarebox()
+        {
+            if (! squareboxOverlay) {
+                if (window.matchMedia('(min-width: 1024px)').matches) {
+                    squareboxOverlay = $('<div id="squarebox-overlay"></div>').css({
+                        "position": "absolute",
+                        "z-index": 1532,
+                        "opacity": 0.00,
+                        "width": $(document).width(), "height": $(document).height(),
+                        "left": 0, "top": 0,
+                        "background": "#333"
+                    });
+                } else {
+                    squareboxOverlay = $('<div id="squarebox-overlay"></div>').css({
+                        "position": "absolute",
+                        "z-index": 1532,
+                        "opacity": 0.00,
+                        "width": $(document).width(), "height": $(document).height(),
+                        "left": 0, "top": 0,
+                        "background": "#333"
+                    });
+                }
+                $("body").prepend(squareboxOverlay);
+            }
+
 
         if (! squarebox) {
-            squarebox = $('<div class="panel"></div>').css({
-                "position": "absolute",
-                "z-index": 1536
-            });
-
+            if (window.matchMedia('(min-width: 1024px)').matches) {
+                squarebox = $('<div class="panel"></div>').css({
+                    "position": "absolute",
+                    "z-index": 1536
+                });
+            } else {
+                squarebox = $('<div class="panel"></div>').css({
+                    "position": "absolute",
+                    "top": "0!important",
+                    "left": 0,
+                    "width": "90%",
+                    "max-width": "90%",
+                    "z-index": 1536
+                });
+            }
             $("body").prepend(squarebox);
         }
     }
@@ -251,91 +273,80 @@
         }
     }
 
-    function groupCalendarCols(groups)
+    function updateCalendarEvents()
     {
-        setTimeout(function(){ 
-        groups.forEach(function(group, index) {
-           $(".calendar-date-col").each(function(dateIndex) {
-               var calendarDateCol = $(this);
-   
-               var groupCols = [];
-   
-               calendarDateCol.find(group).each(function() {
-                   var classes = $(this).attr("class");
-                   var groupCol = classes.match(/cc-group-\d+/);
-   
-                   if (groupCol) {
-                       if ($.inArray(groupCol, groupCols) === -1) {
-                           groupCols.push(groupCol);
-                       }
-                   }
-               });
-   
-               var groupColsLength = groupCols.length;
-   
-               var diffy = 0;
-   
-               for (var i = 0; i <= groupColsLength; i++) {
-                   var groupCol = groupCols[i] + "";
-   
-                   var groupColCellFirst = calendarDateCol.find("." + groupCol + ":first");
-                   var groupColCellLast = calendarDateCol.find("." + groupCol + ":last");
-   
-                   var posFirst = groupColCellFirst.position();
-                   var posLast = groupColCellLast.position();
-   
-                   if (posFirst && posLast) {
-                       var startX = Math.floor(posFirst.left) - 1;
-                       var startY = Math.floor(posFirst.top) - 1;
-   
-                       var endX = Math.ceil(posLast.left) + 1;
-                       var endY = Math.ceil(posLast.top) + 1;
-   
-                       var groupWidth = Math.round((endX + groupColCellLast.outerWidth()) - startX);
-                       var groupHeight = Math.round((endY + groupColCellLast.outerHeight()) - startY);
-   
-                       /* Create group overlay */
-   
-                       var groupColOverlay = $("#" + groupCol + "-overlay-" + dateIndex);
-   
-                       if (! groupColOverlay.length) {
-                           // var diffy = 29;
-                           groupColOverlay = groupColCellFirst.clone();
-                           groupColOverlay.appendTo( groupColCellFirst.closest("td") );
-                           groupColOverlay.attr("id", groupCol + "-overlay-" + dateIndex);
-                           groupColOverlay.removeClass(groupCol);
-                           // get te from  groupColCellLast
-                           var te = groupColCellLast.attr("href").match(/te=\d+:\d+/);
-                           groupColOverlay.attr("href", groupColOverlay.attr("href").replace(/te=\d+:\d+/,te));                          
-                       }
-   
-                       var groupColOverlayLabel = groupColOverlay.find(".cc-label");
-   
-                       groupColOverlay.css({
-                           "position": "absolute",
-                           "z-index": 128,
-                           "left": startX+1, 
-                           "top": startY+1,
-                           "width": groupWidth-2,
-                           "height": groupHeight-2,
-                           "padding": 0
-                       });
-   
-                       groupColOverlayLabel.css({
-                           "height": "auto",
-                           "font-size": "12px",
-                           "line-height": 1.2
-                       });
-   
-                       groupColOverlayLabel.css({
-                           "position": "relative",
-                           "top": Math.round((groupHeight / 2) - (groupColOverlayLabel.height() / 2)-2)
-                       });
-                   }
-               }
-           });
+        $(".calendar-date-col").each(function(dateIndex) {
+            var calendarDateCol = $(this);
+
+            var eventGroups = [];
+
+            calendarDateCol.find(".cc-event").each(function() {
+                var classes = $(this).attr("class");
+                var eventGroup = classes.match(/cc-group-\d+/);
+
+                if (eventGroup) {
+                    if ($.inArray(eventGroup, eventGroups) === -1) {
+                        eventGroups.push(eventGroup);
+                    }
+                }
+            });
+
+            var eventGroupsLength = eventGroups.length;
+
+            for (var i = 0; i <= eventGroupsLength; i++) {
+                var eventGroup = eventGroups[i] + "";
+
+                var eventGroupCellFirst = calendarDateCol.find("." + eventGroup + ":first");
+                var eventGroupCellLast = calendarDateCol.find("." + eventGroup + ":last");
+
+                var posFirst = eventGroupCellFirst.position();
+                var posLast = eventGroupCellLast.position();
+
+                if (posFirst && posLast) {
+                    var startX = Math.floor(posFirst.left) - 1;
+                    var startY = Math.floor(posFirst.top) - 1;
+
+                    var endX = Math.ceil(posLast.left) + 1;
+                    var endY = Math.ceil(posLast.top) + 1;
+
+                    var eventWidth = Math.round((endX + eventGroupCellLast.outerWidth()) - startX);
+                    var eventHeight = Math.round((endY + eventGroupCellLast.outerHeight()) - startY);
+
+                    /* Create event group overlay */
+
+                    var eventGroupOverlay = $("#" + eventGroup + "-overlay-" + dateIndex);
+
+                    if (! eventGroupOverlay.length) {
+                        eventGroupOverlay = eventGroupCellFirst.clone();
+                        eventGroupOverlay.appendTo( eventGroupCellFirst.closest("td") );
+                        eventGroupOverlay.attr("id", eventGroup + "-overlay-" + dateIndex);
+                        eventGroupOverlay.removeClass(eventGroup);
+                    }
+
+                    var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
+
+                    eventGroupOverlay.css({
+                        "position": "absolute",
+                        "z-index": 128,
+                        "left": startX, "top": startY,
+                        "width": eventWidth,
+                        "height": eventHeight,
+                        "padding": 0
+                    });
+
+                    eventGroupOverlayLabel.css({
+                        "height": "auto",
+                        "font-size": "12px",
+                        "line-height": 1.5
+                    });
+
+                    eventGroupOverlayLabel.css({
+                        "position": "relative",
+                        "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
+                    });
+                }
+            }
         });
-        }, 1); 
     }
 
 })();

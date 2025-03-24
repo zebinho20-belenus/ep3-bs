@@ -1,0 +1,36 @@
+version: "3"
+services:
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    ports:
+      - 1025:1025
+      - 8025:8025
+    volumes:
+      - ./tmp/mail:/maildir
+
+  mariadb:
+    image: mariadb:latest
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mycourt
+      MYSQL_USER: mycourt
+      MYSQL_PASSWORD: mycourt
+    volumes:
+      - ./tmp/db:/var/lib/mysql
+
+  court:
+    image: court
+    build:
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+        - ./:/var/www/html
+    links:
+      - mailhog
+      - mariadb

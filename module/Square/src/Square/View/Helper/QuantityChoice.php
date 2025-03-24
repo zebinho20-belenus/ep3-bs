@@ -35,13 +35,28 @@ class QuantityChoice extends AbstractHelper
         $html .= sprintf($view->t('How many %s?'), $this->optionManager->need('subject.square.unit.plural'));
         $html .= '</label>';
 
-        $html .= '<select id="sb-quantity" style="min-width: 64px;  visibility:' . $quantityChoiceSelect  . '" >';
+        // Add onchange event to toggle the guest player checkbox
+        $html .= '<select id="sb-quantity" name="sb-quantity" style="min-width: 64px;  visibility:' . $quantityChoiceSelect  . '" onchange="toggleGuestPlayerCheckbox(this.value)">';
+        //$html .= '<select id="sb-quantity" style="min-width: 64px;  visibility:' . $quantityChoiceSelect  . '" >';
 
         for ($i = 1; $i <= $quantityAvailable; $i++) {
             $html .= sprintf('<option value="%1$s">%1$s</option>', $i);
         }
 
         $html .= '</select>';
+
+        // Define the guest player checkbox, initially hidden
+        $guestPlayerCheckbox = '<div id="guest-player-checkbox" style="margin-top: 8px; display: none;">
+                                    <label for="guest-player">
+                                        <input type="checkbox" id="guest-player" name="guest-player" value="1" onchange="togglePaymentNotice(this)">
+                                        ' . $view->t('Guest player') . '
+                                    </label>
+                                </div>';
+
+        // Define the payment notice, initially hidden
+        $paymentNotice = '<div id="payment-notice" style="margin-top: 8px; display: none; border: 1px solid red; padding: 8px;">
+                              ' . $view->t('Please transfer the amount as a PayPal friends payment to cy@xy.de.') . '
+                          </div>';
 
         $quantityOccupied = $square->need('capacity') - $quantityAvailable;
 
@@ -92,7 +107,32 @@ class QuantityChoice extends AbstractHelper
 
             $html .= '</div>';
         }
+        // Append the guest player checkbox and payment notice to the main HTML
+        $html .= $guestPlayerCheckbox;
+        $html .= $paymentNotice;
 
+        // JavaScript to handle showing/hiding the guest player checkbox and payment notice
+        $html .= '<script>
+                    function toggleGuestPlayerCheckbox(quantity) {
+                        var checkboxDiv = document.getElementById("guest-player-checkbox");
+                        if (quantity >= 2 && quantity <= 4) {
+                            checkboxDiv.style.display = "block";
+                        } else {
+                            checkboxDiv.style.display = "none";
+                            document.getElementById("guest-player").checked = false;
+                            togglePaymentNotice({checked: false});
+                        }
+                    }
+
+                    function togglePaymentNotice(checkbox) {
+                        var paymentNotice = document.getElementById("payment-notice");
+                        if (checkbox.checked) {
+                            paymentNotice.style.display = "block";
+                        } else {
+                            paymentNotice.style.display = "none";
+                        }
+                    }
+                  </script>';
         return $html;
     }
 
