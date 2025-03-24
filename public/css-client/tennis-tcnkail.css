@@ -4,13 +4,8 @@
   border: none;
 }
 body.tennis-tcnkail {
-  # qs;
-  # background: #1e73be;
-  # qs new hellbraun;
   background: #313b3f;
-  # prod;
-  # background: #a4b6c4;
-  # background: #fff;
+
 
   min-width: 320px;
   padding: 6px;
@@ -91,10 +86,10 @@ body.tennis-tcnkail > div.panel:first-child {
 .tennis-tcnkail #calendar.panel {
   padding: 6px;
 }
-#.tennis-tcnkail #calendar-toolbar .panel {
-#  padding: 6px;
-#  margin-bottom: 6px;
-#}
+.tennis-tcnkail #calendar-toolbar .panel {
+  padding: 6px;
+  margin-bottom: 6px;
+}
 .tennis-tcnkail #calendar-toolbar-userpanel {
   padding: 6px;
   margin-bottom: 6px;
