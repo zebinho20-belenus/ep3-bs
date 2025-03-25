@@ -6,7 +6,7 @@ use Booking\Entity\Booking\Bill;
 use RuntimeException;
 use Zend\Json\Json;
 use Zend\Mvc\Controller\AbstractActionController;
-use Zend\ServiceManager\ServiceLocator;
+use Zend\ServiceManager\ServiceManager;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\View\Model\JsonModel;
 use Zend\Http\Response;
@@ -147,8 +147,10 @@ class BookingController extends AbstractActionController
         if ($playerNamesParam) {
             $playerNames = Json::decode($playerNamesParam, Json::TYPE_ARRAY);
 
+            /* Check if player names are valid  remove check for first an lastname no space is needed */
             foreach ($playerNames as $playerName) {
-                if (strlen(trim($playerName['value'])) < 5 || strpos(trim($playerName['value']), ' ') === false) {
+                $trimmedName = trim($playerName['value']);
+                if (strlen($trimmedName) <= 3) {
                     throw new \RuntimeException('Die <b>vollständigen Vor- und Nachnamen</b> der anderen Spieler sind erforderlich');
                 }
             }
