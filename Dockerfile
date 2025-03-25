@@ -1,4 +1,4 @@
-FROM php:7.4-cli-alpine AS composer
+FROM php:8.1-cli-alpine AS composer
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -10,9 +10,9 @@ RUN apk add --no-cache icu-dev git zip unzip \
 WORKDIR /var/www/html
 COPY . /var/www/html
 RUN git config --global --add safe.directory /var/www/html
-RUN composer install --no-dev --optimize-autoloader
+#RUN composer install --no-dev --optimize-autoloader
 
-FROM php:7.4-apache
+FROM php:8.1-apache
 RUN apt update
 RUN apt install -y libicu-dev libsodium-dev git unzip libzip-dev libxml2-dev zlib1g-dev wget
 RUN docker-php-ext-install mysqli pdo pdo_mysql
@@ -21,6 +21,8 @@ RUN docker-php-ext-configure intl && docker-php-ext-install intl
 RUN docker-php-ext-enable mysqli intl pdo_mysql sodium
 RUN docker-php-ext-install zip
 RUN docker-php-ext-install soap
+
+# Install the xdebug extension
 RUN pecl install xdebug-2.9.8 && docker-php-ext-enable xdebug && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
 && echo "xdebug.remote_host = host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && echo "xdebug.remote_port = 9000" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
 && echo "xdebug.remote_autostart = on" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && echo "xdebug.idekey = PHPSTORM" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
@@ -50,7 +52,10 @@ WORKDIR /var/www/html/
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 COPY . /var/www/html
-RUN cd /var/www/html/ && composer install
+RUN cd /var/www/html/  \
+
+
+#RUN composer install
 
 #COPY install/. /var/www/html
 
