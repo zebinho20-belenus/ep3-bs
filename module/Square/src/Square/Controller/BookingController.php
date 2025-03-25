@@ -64,6 +64,9 @@ class BookingController extends AbstractActionController
         $productsParam = $this->params()->fromQuery('p', 0);
         $playerNamesParam = $this->params()->fromQuery('pn', 0);
 
+        // Retrieve the guest player checkbox value from the query parameters
+        $guestPlayerCheckbox = $this->params()->fromQuery('guest-player', 0); // Default to 0 if not provided
+
         $serviceManager = $this->getServiceLocator();
         $squareValidator = $serviceManager->get('Square\Service\SquareValidator');
 
@@ -99,6 +102,32 @@ class BookingController extends AbstractActionController
         }
 
         $byproducts['quantityChoosen'] = $quantityParam;
+
+        // Handle guest player checkbox logic
+        if ($guestPlayerCheckbox) {
+            // Set billing status to pending
+            $statusBilling = 'pending';
+
+            // Calculate half price of the court
+            $courtPrice = $square->getPrice();
+            $halfPrice = $courtPrice / 2;
+
+            // Display the half price (store this in the byproducts or another relevant variable)
+            $byproducts['halfPrice'] = $halfPrice;
+
+            // Example of how to log this information or add it to a view model (depending on your application structure)
+            if (property_exists($this, 'logger')) {
+                $this->logger->info("Guest player checkbox is checked. Billing status set to pending and half price calculated: $halfPrice");
+            }
+        } else {
+            // If not a guest player, set billing status to the default
+            $statusBilling = 'pending'; // Set this to whatever the default billing status should be
+        }
+        // Prepare metadata for the booking
+        $meta = array(
+            'guest-player' => $guestPlayerCheckbox,
+            'billing-status' => $statusBilling,
+        );
 
         /* Check passed products */
 
@@ -150,7 +179,7 @@ class BookingController extends AbstractActionController
             /* Check if player names are valid  remove check for first an lastname no space is needed */
             foreach ($playerNames as $playerName) {
                 $trimmedName = trim($playerName['value']);
-                if (strlen($trimmedName) <= 3) {
+                if (strlen($trimmedName) <= 2) {
                     throw new \RuntimeException('Die <b>vollständigen Vor- und Nachnamen</b> der anderen Spieler sind erforderlich');
                 }
             }
