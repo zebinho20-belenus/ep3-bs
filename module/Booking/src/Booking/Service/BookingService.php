@@ -64,12 +64,18 @@ class BookingService extends AbstractService
         }
 
         try {
+            // Determine if the user is a member
+            $member = $user ? $user->getMeta('member') : 0;
 
+            // Set status_billing to 'paid' if a member is booking
+            $statusBilling = $member ? 'paid' : 'pending';
+
+            // Create a new booking
             $booking = new Booking(array(
                 'uid' => $user->need('uid'),
                 'sid' => $square->need('sid'),
                 'status' => 'single',
-                'status_billing' => 'pending',
+                'status_billing' => $statusBilling,
                 'visibility' => 'public',
                 'quantity' => $quantity,
             ), $meta);
