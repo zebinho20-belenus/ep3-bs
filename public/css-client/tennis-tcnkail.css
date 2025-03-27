@@ -60,6 +60,18 @@ body.tennis-tcnkail {
   color: #d9534f;
 
 }
+
+.guest-player-badge {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #d9534f;
+  border-radius: 3px;
+}
+
 /* Responsive Header Styles */
 
 @media (max-width: 1024px) {

@@ -113,26 +113,107 @@ class QuantityChoice extends AbstractHelper
 
         // JavaScript to handle showing/hiding the guest player checkbox and payment notice
         $html .= '<script>
-                    function toggleGuestPlayerCheckbox(quantity) {
-                        var checkboxDiv = document.getElementById("guest-player-checkbox");
-                        if (quantity >= 2 && quantity <= 4) {
-                            checkboxDiv.style.display = "block";
-                        } else {
-                            checkboxDiv.style.display = "none";
-                            document.getElementById("guest-player").checked = false;
-                            togglePaymentNotice({checked: false});
-                        }
-                    }
+            // Function to toggle the guest player checkbox visibility
+            function toggleGuestPlayerCheckbox(quantity) {
+                var checkboxDiv = document.getElementById("guest-player-checkbox");
+                if (quantity >= 2 && quantity <= 4) {
+                    checkboxDiv.style.display = "block";
+                } else {
+                    checkboxDiv.style.display = "none";
+                    var guestCheckbox = document.getElementById("guest-player");
+                    guestCheckbox.checked = false;
+                    togglePaymentNotice(guestCheckbox);
+                }
+            }
 
-                    function togglePaymentNotice(checkbox) {
-                        var paymentNotice = document.getElementById("payment-notice");
-                        if (checkbox.checked) {
-                            paymentNotice.style.display = "block";
-                        } else {
-                            paymentNotice.style.display = "none";
+            // Function to toggle payment notice visibility
+            function togglePaymentNotice(checkbox) {
+                var paymentNotice = document.getElementById("payment-notice");
+                paymentNotice.style.display = checkbox.checked ? "block" : "none";
+                
+                // Update booking URL when guest player status changes
+                updateBookingUrl(checkbox.checked);
+            }
+            
+            // Function to update the booking URL with player names and guest player flag
+            function updateBookingUrl(isGuestPlayer) {
+                var sbButton = document.getElementById("sb-button");
+                if (!sbButton) return;
+                
+                var quantity = document.getElementById("sb-quantity").value;
+                var playerData = [];
+                
+                // Collect player name data
+                for (var i = 2; i <= quantity; i++) {
+                    var nameInput = document.getElementById("sb-name-" + i);
+                    if (nameInput && nameInput.value.trim()) {
+                        var playerName = nameInput.value.trim();
+                        
+                        // Add "Gastspieler" suffix if guest player is checked
+                        if (isGuestPlayer && !playerName.endsWith(" Gastspieler")) {
+                            playerName += " Gastspieler";
                         }
+                        
+                        playerData.push({
+                            "name": "sb-player-name-" + i,
+                            "value": playerName
+                        });
                     }
-                  </script>';
+                }
+                
+                // Create player names JSON
+                var playerNamesJson = JSON.stringify(playerData);
+                console.log("Player data:", playerData); // Debug output
+                
+                // Get current URL
+                var currentHref = sbButton.getAttribute("href");
+                var newHref = currentHref;
+                
+                // Update player names parameter
+                if (newHref.includes("pn=")) {
+                    newHref = newHref.replace(/pn=[^&]+/, "pn=" + encodeURIComponent(playerNamesJson));
+                } else {
+                    newHref += (newHref.includes("?") ? "&" : "?") + "pn=" + encodeURIComponent(playerNamesJson);
+                }
+                
+                // Update guest player parameter
+                if (newHref.includes("gp=")) {
+                    newHref = newHref.replace(/gp=[^&]+/, "gp=" + (isGuestPlayer ? "1" : "0"));
+                } else {
+                    newHref += "&gp=" + (isGuestPlayer ? "1" : "0");
+                }
+                
+                // Update the href
+                sbButton.setAttribute("href", newHref);
+                console.log("Updated URL:", newHref); // Debug output
+            }
+            
+            // Function to handle player name input changes
+            function handlePlayerNameChange() {
+                var guestCheckbox = document.getElementById("guest-player");
+                updateBookingUrl(guestCheckbox.checked);
+            }
+            
+            // Initialize everything when the page loads
+            document.addEventListener("DOMContentLoaded", function() {
+                // Set initial state based on quantity
+                var quantity = document.getElementById("sb-quantity").value;
+                toggleGuestPlayerCheckbox(quantity);
+                
+                // Add event listeners to player name inputs
+                var playerInputs = document.querySelectorAll(".sb-player-names input[type=\'text\']");
+                playerInputs.forEach(function(input) {
+                    input.addEventListener("input", handlePlayerNameChange);
+                });
+                
+                // Initial URL update
+                var guestCheckbox = document.getElementById("guest-player");
+                updateBookingUrl(guestCheckbox.checked);
+                
+                // Log initial setup for debugging
+                console.log("DOM loaded, initialized with quantity:", quantity);
+            });
+          </script>';
         return $html;
     }
 
