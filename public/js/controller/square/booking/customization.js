@@ -81,40 +81,38 @@
         }
     }
     function onGuestCheckboxChange() {
-        var isChecked = $("#with_guest").is(":checked");
-        console.log("Guest checkbox is checked:", isChecked);  // Debugging line
-
+        var isChecked = $("#guest-player").is(":checked");
         var sbButton = $("#sb-button");
+        // Debugging
+        console.log("isChecked: " + isChecked);
+
 
         if (sbButton.length) {
             var oldHref = sbButton.attr("href");
             var withGuest = isChecked ? "1" : "0";
-            console.log("withGuest value:", withGuest);  // Debugging line
 
-            // Check if with_guest parameter already exists in the URL
-            if (oldHref.indexOf("with_guest=") > -1) {
+            // Update the guest parameter (gp) in the URL
+            if (oldHref.indexOf("gp=") > -1) {
                 // Replace existing parameter
-                var newHref = oldHref.replace(/with_guest=[01]/, "with_guest=" + withGuest);
+                var newHref = oldHref.replace(/gp=[01]/, "gp=" + withGuest);
                 sbButton.attr("href", newHref);
+                // Debugging
+                console.log("newHref: " + newHref);
+
             } else {
                 // Add new parameter
-                sbButton.attr("href", oldHref + "&with_guest=" + withGuest);
+                sbButton.attr("href", oldHref + "&gp=" + withGuest);
             }
-
-            console.log("Updated href:", sbButton.attr("href"));  // Debugging line
         }
     }
+    // Debugging
+    console.log("guest player: " + $("#guest-player").is(":checked"));
 
     $(document).ready(function() {
-        // Other initialization code...
-
         // Add event handler for the with_guest checkbox
-        $("#with_guest").on("change", function() {
-            console.log("Checkbox changed, new state:", $(this).is(":checked"));  // Debugging line
-            onGuestCheckboxChange();
-        });
+        $("#guest-player").on("change", onGuestCheckboxChange);
 
-        // Also trigger it once on page load to set initial state
+        // Trigger it once on page load to set initial state
         onGuestCheckboxChange();
     });
     function onProductChange() {

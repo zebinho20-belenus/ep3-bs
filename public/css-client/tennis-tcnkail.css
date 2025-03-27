@@ -51,6 +51,15 @@ body.tennis-tcnkail {
   margin-top: 0;
 }
 
+/*  Added by TCN-Kail Tennis Club zebinho20-belenus  */
+.guest-payment-instructions {
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #d9534f;
+
+}
 /* Responsive Header Styles */
 
 @media (max-width: 1024px) {

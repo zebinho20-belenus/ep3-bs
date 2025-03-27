@@ -65,7 +65,7 @@ class BookingController extends AbstractActionController
         $playerNamesParam = $this->params()->fromQuery('pn', 0);
 
         // Retrieve the guest player checkbox value from the query parameters
-        $guestPlayerCheckbox = $this->params()->fromQuery('guest-player', 0); // Default to 0 if not provided
+        $guestPlayerCheckbox = $this->params()->fromQuery('gp', 0); // Default to 0 if not provided
 
         $serviceManager = $this->getServiceLocator();
         $squareValidator = $serviceManager->get('Square\Service\SquareValidator');
@@ -104,30 +104,30 @@ class BookingController extends AbstractActionController
         $byproducts['quantityChoosen'] = $quantityParam;
 
         // Handle guest player checkbox logic
-        if ($guestPlayerCheckbox) {
+        if ($guestPlayerCheckbox == 1) {
             // Set billing status to pending
             $statusBilling = 'pending';
-
-            // Calculate half price of the court
-            $courtPrice = $square->getPrice();
-            $halfPrice = $courtPrice / 2;
-
-            // Display the half price (store this in the byproducts or another relevant variable)
-            $byproducts['halfPrice'] = $halfPrice;
-
-            // Example of how to log this information or add it to a view model (depending on your application structure)
-            if (property_exists($this, 'logger')) {
-                $this->logger->info("Guest player checkbox is checked. Billing status set to pending and half price calculated: $halfPrice");
-            }
+//
+//            // Calculate half price of the court
+//            $courtPrice = $square->getPrice();
+//            $halfPrice = $courtPrice / 2;
+//
+//            // Display the half price (store this in the byproducts or another relevant variable)
+//            $byproducts['halfPrice'] = $halfPrice;
+//
+//            // Example of how to log this information or add it to a view model (depending on your application structure)
+//            if (property_exists($this, 'logger')) {
+//                $this->logger->info("Guest player checkbox is checked. Billing status set to pending and half price calculated: $halfPrice");
+//            }
         } else {
             // If not a guest player, set billing status to the default
-            $statusBilling = 'pending'; // Set this to whatever the default billing status should be
+            $statusBilling = 'paid'; // Set this to whatever the default billing status should be
         }
-        // Prepare metadata for the booking
-        $meta = array(
-            'guest-player' => $guestPlayerCheckbox,
-            'billing-status' => $statusBilling,
-        );
+//        // Prepare metadata for the booking
+//        $meta = array(
+//            'gp' => $guestPlayerCheckbox,
+//            'billing-status' => $statusBilling,
+//        );
 
         /* Check passed products */
 
@@ -303,7 +303,7 @@ class BookingController extends AbstractActionController
             } 
 
             $payservice = $this->params()->fromPost('paymentservice');
-            $meta = array('player-names' => serialize($playerNames), 'notes' => $notes); 
+            $meta = array('player-names' => serialize($playerNames), 'notes' => $notes, 'gp' => $guestPlayerCheckbox, 'status_billing' => $statusBilling);
             
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
                    $meta['directpay'] = 'true';
