@@ -58,6 +58,9 @@ class DetermineFilters extends AbstractPlugin
                         strtolower($controller->t('Waiting for activation')),
                         strtolower($controller->t('Enabled user')),
                         strtolower($controller->t('Assist')),
+                        strtolower($controller->t('Verein')),
+                        strtolower($controller->t('gastgruppe')),
+                        strtolower($controller->t('einzelgast')),
                         strtolower($controller->t('Admin'))),
                     array('placeholder', 'deleted', 'blocked', 'disabled', 'enabled', 'assist', 'admin'),
                     $value);
