@@ -3,17 +3,25 @@
 namespace Square\View\Helper;
 
 use Base\Manager\OptionManager;
+use Event\Manager\EventManager;
 use Square\Entity\Square;
 use Zend\View\Helper\AbstractHelper;
+use User\Manager\UserSessionManager;
+
+
 
 class QuantityChoice extends AbstractHelper
 {
 
-    protected $optionManager;
+    protected  $optionManager;
+    protected  $user;
 
-    public function __construct(OptionManager $optionManager)
+
+    public function __construct(OptionManager $optionManager, UserSessionManager $userSessionManager)
     {
         $this->optionManager = $optionManager;
+        $this->user = $userSessionManager->getSessionUser();
+
     }
 
     public function __invoke(Square $square, array $bookings)
@@ -29,7 +37,7 @@ class QuantityChoice extends AbstractHelper
 
         $quantityChoiceSelect = "visible";
 
-        if ($quantityAvailable == 1) { $quantityChoiceSelect = "hidden"; } 
+        if ($quantityAvailable == 1) { $quantityChoiceSelect = "hidden"; }
 
         $html .= '<label for="sb-quantity" style="margin-right: 8px; visibility:' . $quantityChoiceSelect  . '" >';
         $html .= sprintf($view->t('How many %s?'), $this->optionManager->need('subject.square.unit.plural'));
@@ -45,7 +53,20 @@ class QuantityChoice extends AbstractHelper
 
         $html .= '</select>';
 
-        // Define the guest player checkbox, initially hidden
+
+//        $member = 0;
+//        if ($this->user != null && $this->user->getMeta('member') != null) {
+//            $member = $this->user->getMeta('member');}
+//
+//// Define the guest player checkbox, initially hidden and only for members
+//        if ($member == 1) {
+//
+//        // Define the guest player checkbox, initially hidden
+        if ($this->user && !$this->user->getMeta('member')) {
+            echo 'Guest player checkbox not available for non-members';
+            $guestPlayerCheckbox = '';
+            $paymentNotice = '';
+        } elseif ($this->user && $this->user->getMeta('member')) {
         $guestPlayerCheckbox = '<div id="guest-player-checkbox" style="margin-top: 8px; display: none;">
                                     <label for="guest-player">
                                         <input type="checkbox" id="guest-player" name="guest-player" value="1" onchange="togglePaymentNotice(this)">
@@ -57,6 +78,14 @@ class QuantityChoice extends AbstractHelper
         $paymentNotice = '<div id="payment-notice" style="margin-top: 8px; display: none; border: 1px solid red; padding: 8px;">
                               ' . $view->t('Please transfer the amount as a PayPal friends payment to cy@xy.de.') . '
                           </div>';
+    } else {
+        $guestPlayerCheckbox = '';
+        $paymentNotice = '';
+        }
+//    } else {
+//        $guestPlayerCheckbox = '';
+//        $paymentNotice = '';
+//        }
 
         $quantityOccupied = $square->need('capacity') - $quantityAvailable;
 
@@ -113,27 +142,43 @@ class QuantityChoice extends AbstractHelper
 
         // JavaScript to handle showing/hiding the guest player checkbox and payment notice
         $html .= '<script>
-            // Function to toggle the guest player checkbox visibility
-            function toggleGuestPlayerCheckbox(quantity) {
-                var checkboxDiv = document.getElementById("guest-player-checkbox");
-                if (quantity >= 2 && quantity <= 4) {
-                    checkboxDiv.style.display = "block";
-                } else {
-                    checkboxDiv.style.display = "none";
-                    var guestCheckbox = document.getElementById("guest-player");
+    // Function to toggle the guest player checkbox visibility
+    function toggleGuestPlayerCheckbox(quantity) {
+        var checkboxDiv = document.getElementById("guest-player-checkbox");
+        if (checkboxDiv) {
+            if (quantity >= 2 && quantity <= 4) {
+                checkboxDiv.style.display = "block";
+            } else {
+                checkboxDiv.style.display = "none";
+                var guestCheckbox = document.getElementById("guest-player");
+                if (guestCheckbox) {
                     guestCheckbox.checked = false;
                     togglePaymentNotice(guestCheckbox);
                 }
             }
+        }
+    }
 
-            // Function to toggle payment notice visibility
-            function togglePaymentNotice(checkbox) {
-                var paymentNotice = document.getElementById("payment-notice");
-                paymentNotice.style.display = checkbox.checked ? "block" : "none";
-                
-                // Update booking URL when guest player status changes
-                updateBookingUrl(checkbox.checked);
-            }
+    // Function to toggle payment notice visibility
+    function togglePaymentNotice(checkbox) {
+        var paymentNotice = document.getElementById("payment-notice");
+        if (paymentNotice) {
+            paymentNotice.style.display = checkbox.checked ? "block" : "none";
+        }
+        
+        // Update booking URL when guest player status changes
+        updateBookingUrl(checkbox.checked);
+    }
+    
+    // Call toggleGuestPlayerCheckbox on page load to set initial state
+    document.addEventListener("DOMContentLoaded", function() {
+        var quantitySelect = document.getElementById("sb-quantity");
+        if (quantitySelect) {
+            toggleGuestPlayerCheckbox(parseInt(quantitySelect.value));
+        }
+    });
+
+    
             
             // Function to update the booking URL with player names and guest player flag
             function updateBookingUrl(isGuestPlayer) {
