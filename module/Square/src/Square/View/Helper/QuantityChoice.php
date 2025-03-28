@@ -3,7 +3,6 @@
 namespace Square\View\Helper;
 
 use Base\Manager\OptionManager;
-use Event\Manager\EventManager;
 use Square\Entity\Square;
 use Zend\View\Helper\AbstractHelper;
 use User\Manager\UserSessionManager;
