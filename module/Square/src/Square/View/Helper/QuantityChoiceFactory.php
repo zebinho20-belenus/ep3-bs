@@ -10,7 +10,10 @@ class QuantityChoiceFactory implements FactoryInterface
 
     public function createService(ServiceLocatorInterface $sm)
     {
-        return new QuantityChoice($sm->getServiceLocator()->get('Base\Manager\OptionManager'));
+        $optionManager = $sm->getServiceLocator()->get('Base\Manager\OptionManager');
+        $userSessionManager = $sm->getServiceLocator()->get('User\Manager\UserSessionManager');
+        return new QuantityChoice($optionManager, $userSessionManager);
+        //return new QuantityChoice($sm->getServiceLocator()->get('Base\Manager\OptionManager'));
     }
 
 }
