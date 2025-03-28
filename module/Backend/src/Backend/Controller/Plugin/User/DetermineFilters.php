@@ -62,7 +62,7 @@ class DetermineFilters extends AbstractPlugin
                         strtolower($controller->t('gastgruppe')),
                         strtolower($controller->t('einzelgast')),
                         strtolower($controller->t('Admin'))),
-                    array('placeholder', 'deleted', 'blocked', 'disabled', 'enabled', 'assist', 'admin'),
+                    array('placeholder', 'deleted', 'blocked', 'disabled', 'enabled', 'assist', 'admin', 'verein', 'gastgruppe', 'einzelgast'),
                     $value);
 
                 // Transform dates
