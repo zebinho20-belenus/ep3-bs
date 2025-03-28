@@ -78,9 +78,9 @@ class BookingService extends AbstractService
         // Get guest parameter value
         $guestParam = isset($_GET['gp']) ? $_GET['gp'] : '0';
 
-        // Set status_billing to 'member' if a mitglied is booking without a guest
+        // Set status_billing to 'member' if a member is booking without a guest
         // Otherwise set to 'pending' (non-member or member with guest)
-        $statusBilling = ($member && $guestParam !== '1') ? 'mitglied' : 'pending';
+        $statusBilling = ($member && $guestParam !== '1') ? 'member' : 'pending';
 
             // Create a new booking
             $booking = new Booking(array(
