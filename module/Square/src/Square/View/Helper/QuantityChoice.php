@@ -62,7 +62,8 @@ class QuantityChoice extends AbstractHelper
 //
 //        // Define the guest player checkbox, initially hidden
         if ($this->user && !$this->user->getMeta('member')) {
-            echo 'Guest player checkbox not available for non-members';
+            //debug message for non-members //todo: remove debug output
+            //echo 'Guest player checkbox not available for non-members';
             $guestPlayerCheckbox = '';
             $paymentNotice = '';
         } elseif ($this->user && $this->user->getMeta('member')) {
@@ -207,7 +208,8 @@ class QuantityChoice extends AbstractHelper
                 
                 // Create player names JSON
                 var playerNamesJson = JSON.stringify(playerData);
-                console.log("Player data:", playerData); // Debug output
+                //todo remove debug output
+                //console.log("Player data:", playerData); // Debug output
                 
                 // Get current URL
                 var currentHref = sbButton.getAttribute("href");
@@ -229,7 +231,8 @@ class QuantityChoice extends AbstractHelper
                 
                 // Update the href
                 sbButton.setAttribute("href", newHref);
-                console.log("Updated URL:", newHref); // Debug output
+                //todo: remove debug output
+                //console.log("Updated URL:", newHref); // Debug output
             }
             
             // Function to handle player name input changes
@@ -254,8 +257,8 @@ class QuantityChoice extends AbstractHelper
                 var guestCheckbox = document.getElementById("guest-player");
                 updateBookingUrl(guestCheckbox.checked);
                 
-                // Log initial setup for debugging
-                console.log("DOM loaded, initialized with quantity:", quantity);
+                // Log initial setup for debugging //todo: remove debug output
+                //console.log("DOM loaded, initialized with quantity:", quantity);
             });
           </script>';
         return $html;
