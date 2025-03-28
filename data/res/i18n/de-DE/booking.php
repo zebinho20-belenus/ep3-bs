@@ -14,6 +14,7 @@ return array(
     'Uncollectable' => 'Uneinbringlich',
     'Member' => 'Mitglied',
     'Guest' => 'Gast',
+    'Non-member' => 'Kein-Mitglied',
 
     'Public' => 'Sichtbar',
     'Private' => 'Unsichtbar',
