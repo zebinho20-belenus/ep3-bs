@@ -107,27 +107,11 @@ class BookingController extends AbstractActionController
         if ($guestPlayerCheckbox == 1) {
             // Set billing status to pending
             $statusBilling = 'pending';
-//
-//            // Calculate half price of the court
-//            $courtPrice = $square->getPrice();
-//            $halfPrice = $courtPrice / 2;
-//
-//            // Display the half price (store this in the byproducts or another relevant variable)
-//            $byproducts['halfPrice'] = $halfPrice;
-//
-//            // Example of how to log this information or add it to a view model (depending on your application structure)
-//            if (property_exists($this, 'logger')) {
-//                $this->logger->info("Guest player checkbox is checked. Billing status set to pending and half price calculated: $halfPrice");
-//            }
+
         } else {
             // If not a guest player, set billing status to the default
             $statusBilling = 'paid'; // Set this to whatever the default billing status should be
         }
-//        // Prepare metadata for the booking
-//        $meta = array(
-//            'gp' => $guestPlayerCheckbox,
-//            'billing-status' => $statusBilling,
-//        );
 
         /* Check passed products */
 
