@@ -10,14 +10,14 @@ $this->setup(array(
     ),
 ));
 //add variables for statistics
-$placeholder = $deleted = $blocked = $disabled = $enabled = $assist = $admin = $test= $team = 0;
+$placeholder = $deleted = $blocked = $disabled = $enabled = $assist = $admin = $test = $assistent = $team = 0;
 
 foreach ($this->stats as $stat) {
     $var = $stat['status'];
     $$var += $stat['count'];
 }
 
-$total = $deleted + $blocked + $disabled + $enabled + $assist + $admin + $team + $test + $placeholder;
+$total = $deleted + $blocked + $disabled + $enabled + $assist + $admin + $team + $test + $placeholder + $assistent;
 
 ?>
 
