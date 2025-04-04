@@ -52,7 +52,9 @@ WORKDIR /var/www/html/
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 COPY . /var/www/html
-RUN cd /var/www/html/  \
+RUN cd /var/www/html/
+
+RUN git config --global --add safe.directory /var/www/html
 
 
 #RUN composer install
