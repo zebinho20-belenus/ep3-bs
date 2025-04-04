@@ -100,7 +100,7 @@ abstract class CallExpression extends AbstractExpression
 
         if ($this->hasNode('arguments')) {
             $callable = $this->getAttribute('callable');
-            $arguments = $this->getArguments($callable, $this->getNode('arguments'));
+            $arguments = $this->getArguments($this->getNode('arguments'), $callable);
             foreach ($arguments as $node) {
                 if (!$first) {
                     $compiler->raw(', ');
@@ -113,7 +113,7 @@ abstract class CallExpression extends AbstractExpression
         $compiler->raw($isArray ? ']' : ')');
     }
 
-    protected function getArguments($callable = null, $arguments)
+    protected function getArguments($arguments, $callable = null)
     {
         $callType = $this->getAttribute('type');
         $callName = $this->getAttribute('name');

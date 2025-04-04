@@ -6,7 +6,7 @@ use Booking\Entity\Booking\Bill;
 use RuntimeException;
 use Zend\Json\Json;
 use Zend\Mvc\Controller\AbstractActionController;
-use Zend\ServiceManager\ServiceLocator;
+use Zend\ServiceManager\ServiceManager;
 use Zend\ServiceManager\ServiceManagerAwareInterface;
 use Zend\View\Model\JsonModel;
 use Zend\Http\Response;
@@ -64,6 +64,9 @@ class BookingController extends AbstractActionController
         $productsParam = $this->params()->fromQuery('p', 0);
         $playerNamesParam = $this->params()->fromQuery('pn', 0);
 
+        // Retrieve the guest player checkbox value from the query parameters
+        $guestPlayerCheckbox = $this->params()->fromQuery('gp', 0); // Default to 0 if not provided
+
         $serviceManager = $this->getServiceLocator();
         $squareValidator = $serviceManager->get('Square\Service\SquareValidator');
 
@@ -99,6 +102,16 @@ class BookingController extends AbstractActionController
         }
 
         $byproducts['quantityChoosen'] = $quantityParam;
+
+        // Handle guest player checkbox logic
+        if ($guestPlayerCheckbox == 1) {
+            // Set billing status to pending
+            $statusBilling = 'pending';
+
+        } else {
+            // If not a guest player, set billing status to the default
+            $statusBilling = 'paid'; // Set this to whatever the default billing status should be
+        }
 
         /* Check passed products */
 
@@ -147,8 +160,10 @@ class BookingController extends AbstractActionController
         if ($playerNamesParam) {
             $playerNames = Json::decode($playerNamesParam, Json::TYPE_ARRAY);
 
+            /* Check if player names are valid  remove check for first an lastname no space is needed */
             foreach ($playerNames as $playerName) {
-                if (strlen(trim($playerName['value'])) < 5 || strpos(trim($playerName['value']), ' ') === false) {
+                $trimmedName = trim($playerName['value']);
+                if (strlen($trimmedName) <= 2) {
                     throw new \RuntimeException('Die <b>vollständigen Vor- und Nachnamen</b> der anderen Spieler sind erforderlich');
                 }
             }
@@ -272,7 +287,7 @@ class BookingController extends AbstractActionController
             } 
 
             $payservice = $this->params()->fromPost('paymentservice');
-            $meta = array('player-names' => serialize($playerNames), 'notes' => $notes); 
+            $meta = array('player-names' => serialize($playerNames), 'notes' => $notes, 'gp' => $guestPlayerCheckbox, 'status_billing' => $statusBilling);
             
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
                    $meta['directpay'] = 'true';
@@ -299,8 +314,12 @@ class BookingController extends AbstractActionController
                    $model = $storage->create();
                    $booking->setMeta('paymentMethod', $payservice);
                    $booking->setMeta('hasBudget', $byproducts['hasBudget']);
-                   $booking->setMeta('newbudget', $byproducts['newbudget']);
-                   $booking->setMeta('budget', $byproducts['budget']); 
+                   if(array_key_exists('newbudget', $byproducts)) {
+                       $booking->setMeta('newbudget', $byproducts['newbudget']);
+                   }
+                   if(array_key_exists('budget', $byproducts)) {
+                       $booking->setMeta('budget', $byproducts['budget']);
+                   } 
                    $bookingManager->save($booking);
                    $userName = $user->getMeta('firstname') . ' ' . $user->getMeta('lastname');
                    $companyName = $this->option('client.name.full');
@@ -517,7 +536,7 @@ class BookingController extends AbstractActionController
         // syslog(LOG_EMERG, $payment['status']);
         // syslog(LOG_EMERG, json_encode($payment));
 
-        if (($payment['status'] == "requires_action" && !(array_key_exists('error',$payment)))) {
+        if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
             
           // syslog(LOG_EMERG, "confirm success");
           $payment['doneAction'] = $token->getTargetUrl();
@@ -546,7 +565,7 @@ class BookingController extends AbstractActionController
 
         }
    
-        if ($payment['status'] != "requires_action" || array_key_exists('error',$payment)) {
+        if ($payment['status'] != "requires_action" || array_key_exists('error', (array)$payment)) {
            // syslog(LOG_EMERG, json_encode($payment)); 
            // syslog(LOG_EMERG, $payment['status']); 
            // syslog(LOG_EMERG, "confirm error");

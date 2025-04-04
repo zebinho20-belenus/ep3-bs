@@ -43,6 +43,10 @@ $this->setup(array(
                         <div class="default-form-notes">
                             <div><?= $this->t('Status') ?>: <?= $this->t($user->getStatus()) ?></div>
 
+                            <?php if ($user->getMeta('member') !== null): ?>
+                                <div><?= $this->t('Membership') ?>: <?= $user->getMeta('member') == 1 ? $this->t('Member') : $this->t('Non-member') ?></div>
+                            <?php endif; ?>
+
                             <?php if ($user->get('email')): ?>
                                 <div><?= $this->t('Email') ?>: <?= $user->get('email') ?></div>
                             <?php endif; ?>

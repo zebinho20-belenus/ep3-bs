@@ -43,3 +43,12 @@ a.cc-conflict:hover { background-color: #334F6A; }
 /* Links */
 
 a:link, a:visited { color: #334F6A; }
+
+/*  Added by TCN-Kail Tennis Club zebinho20-belenus  */
+.guest-payment-instructions {
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    margin-top: 10px;
+    font-weight: bold;
+    color: #d9534f;
+}

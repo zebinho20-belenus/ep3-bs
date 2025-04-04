@@ -63,13 +63,31 @@ class BookingService extends AbstractService
             $transaction = false;
         }
 
-        try {
+//        try {
+//            // Determine if the user is a member
+//            $member = $user ? $user->getMeta('member') : 0;
+//
+//            // Set status_billing to 'paid' if a member is booking
+//            $statusBilling = $member ? 'paid' : 'pending';
 
+        //zebinho20 member status_billing to paid if played with guest status_billing to pending
+        try {
+        // Determine if the user is a member
+        $member = $user ? $user->getMeta('member') : 0;
+
+        // Get guest parameter value
+        $guestParam = isset($_GET['gp']) ? $_GET['gp'] : '0';
+
+        // Set status_billing to 'member' if a member is booking without a guest
+        // Otherwise set to 'pending' (non-member or member with guest)
+        $statusBilling = ($member && $guestParam !== '1') ? 'member' : 'pending';
+
+            // Create a new booking
             $booking = new Booking(array(
                 'uid' => $user->need('uid'),
                 'sid' => $square->need('sid'),
                 'status' => 'single',
-                'status_billing' => 'pending',
+                'status_billing' => $statusBilling,
                 'visibility' => 'public',
                 'quantity' => $quantity,
             ), $meta);
@@ -134,6 +152,7 @@ class BookingService extends AbstractService
 
             if ($transaction) {
                 $this->connection->commit();
+                $transaction = false;
             }
 
             if (!$booking->getMeta('directpay') == true) { 

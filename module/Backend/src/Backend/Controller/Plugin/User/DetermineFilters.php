@@ -58,8 +58,11 @@ class DetermineFilters extends AbstractPlugin
                         strtolower($controller->t('Waiting for activation')),
                         strtolower($controller->t('Enabled user')),
                         strtolower($controller->t('Assist')),
+                        strtolower($controller->t('Team')),
+                        strtolower($controller->t('Guest Group')),
+                        strtolower($controller->t('Singe Guest')),
                         strtolower($controller->t('Admin'))),
-                    array('placeholder', 'deleted', 'blocked', 'disabled', 'enabled', 'assist', 'admin'),
+                    array('placeholder', 'deleted', 'blocked', 'disabled', 'enabled', 'assist', 'team', 'guestgroup', 'singleguest','admin'),
                     $value);
 
                 // Transform dates

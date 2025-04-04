@@ -62,10 +62,35 @@ class Create extends AbstractPlugin
                 }
             }
 
+            // new feature
+            /* zebinho20_belenus only admin.user can create new users */
+            if (! ($user instanceof User)) {
+                try {
+                    // Prüfe ob der aktuelle Benutzer admin.user Rechte hat
+                    $controller->authorize('admin.user');
+
+                    // Wenn ja, erstelle den Benutzer
+                    $user = $this->userManager->create($user);
+                } catch (\Exception $e) {
+                    // Wenn keine Berechtigung vorhanden ist, zeige eine Fehlerbox an
+                    $controller->flashMessenger()->addErrorMessage('Nur Administratoren können neue Benutzer erstellen');
+
+                    // Transaktionen zurückrollen falls nötig
+                    if (isset($transaction) && $transaction) {
+                        $this->connection->rollback();
+                    }
+
+                    // Zur vorherigen Seite zurückleiten oder eine andere passende Aktion
+                    return $controller->redirect()->toRoute('backend/booking');
+                }
+            }
+
+            /* old code
+
             if (! ($user instanceof User)) {
                 $user = $this->userManager->create($user);
             }
-
+            */
             /* Determine square */
 
             if ($square instanceof Square) {

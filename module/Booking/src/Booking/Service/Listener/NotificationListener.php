@@ -113,7 +113,15 @@ class NotificationListener extends AbstractListenerAggregate
                 $dateRangerHelper($reservationStart, $reservationEnd),
                 $booking->get('bid'));
         }
-        
+
+        # guest player
+        $guestPlayer = $booking->getMeta('guest-player');
+
+        if ($guestPlayer) {
+            $message .= "\n\n" . $this->t('Guest player:') . ' ' . $guestPlayer;
+        }
+
+
         # player names
         $playerNames = $booking->getMeta('player-names');
 

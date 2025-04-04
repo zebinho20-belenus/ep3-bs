@@ -37,8 +37,10 @@ class FilesystemLoader implements LoaderInterface, ExistsLoaderInterface, Source
     public function __construct($paths = [], string $rootPath = null)
     {
         $this->rootPath = (null === $rootPath ? getcwd() : $rootPath).\DIRECTORY_SEPARATOR;
+        if(null !== $rootPath) {
         if (false !== $realPath = realpath($rootPath)) {
             $this->rootPath = $realPath.\DIRECTORY_SEPARATOR;
+        }
         }
 
         if ($paths) {

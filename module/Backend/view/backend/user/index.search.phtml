@@ -39,6 +39,9 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/user/inde
         <?= $this->backendUserFilterHelp('Status', '=', 'Enabled user') ?>
         <?= $this->backendUserFilterHelp('Status', '=', 'Assist') ?>
         <?= $this->backendUserFilterHelp('Status', '=', 'Admin') ?>
+        <?= $this->backendUserFilterHelp('Status', '=', 'Verein') ?>
+        <?= $this->backendUserFilterHelp('Status', '=', 'Gastgruppe') ?>
+        <?= $this->backendUserFilterHelp('Status', '=', 'Einzelgast') ?>
         <?= $this->backendUserFilterHelp('Email', '=', $this->option('client.contact.email')) ?>
         <?= $this->backendUserFilterHelp('Active', '>', new DateTime()) ?>
         <?= $this->backendUserFilterHelp('Active', '<', new DateTime()) ?>

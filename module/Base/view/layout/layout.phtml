@@ -22,13 +22,15 @@
         <link type="text/css" rel="stylesheet" href="<?= $this->basePath('css/default_2.2.min.css') ?>" media="all">
         <link type="text/css" rel="stylesheet" href="<?= $this->basePath('css-client/default.min.css') ?>" media="all">
         <link type="text/css" rel="stylesheet" href="<?= $this->basePath('css-client/font-awesome-4.7.0/css/font-awesome.min.css') ?>" media="screen">
-        <link type="text/css" rel="stylesheet" href="<?= $this->basePath('css-client/tennis-rudolstadt_2.2.min.css') ?>" media="all">
+        <link type="text/css" rel="stylesheet" href="<?= $this->basePath('css-client/tennis-tcnkail.min.css') ?>" media="all">
         <?= $this->headLink() ?>
         <?= $this->headTitle($this->option(['client.name.short', 'service.name.full']))->setSeparator(' &middot; ')->setAutoEscape(false) ?>
     </head>
 
-    <body class="tennis-rudolstadt">
-        <div id="header" class="no-wrap no-print" <?= $this->headerAttributes() ?>>
+    <body class="tennis-tcnkail">
+<!--    <body>-->
+
+    <div id="header" class="no-wrap no-print" <?= $this->headerAttributes() ?>>
             <div id="label">
                 <a href="<?= $this->basePath('/') ?>" id="logo"></a>
 
@@ -91,7 +93,7 @@
         <script type="text/javascript" src="<?= $this->basePath('js/jquery-ui/jquery-ui.min.js') ?>"></script>
         <script type="text/javascript" src="<?= $this->basePath('js/default.min.js') ?>"></script>
         <?= $this->headScript() ?>
-        <script type="text/javascript" src="<?= $this->basePath('js-client/tennis-rudolstadt.min.js') ?>"></script>
+        <script type="text/javascript" src="<?= $this->basePath('js-client/tennis-tcnkail.min.js') ?>"></script>
 
 <!-- swipe calendar with hammer.js -->
 

@@ -79,6 +79,12 @@ return array(
     'Enabled user' => 'Aktivierter Benutzer',
     'Assist' => 'Mitarbeiter',
     'Admin' => 'Verwaltung',
+    'Activated Guest' => 'Aktivierter Gast',
+    'Guest Group' => 'Gastgruppe',
+    'Single Guest' => 'Einzelgast',
+    'Team' => 'Verein',
+    'Assistent' => 'Assistent',
+    'Member' => 'Mitglied',
 
     'Mr.' => 'Herr',
     'Mrs' => 'Frau',

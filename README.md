@@ -1,11 +1,12 @@
+
 # ep-3 Bookingsystem with direct payment via payum  
-fork of 1.7.0 from tkrebs/ep3-bs
+fork of 1.8.1 from tkrebs/ep3-bs
 
 modified with payum / payumModule (https://github.com/Payum/PayumModule) for direct payment via paypal and stripe (credit cards, ( apple pay, google pay via PaymentRequest API), SEPA direct debit, iDEAL, Giropay) 
 
 you can combine it with classic behaviour book on billing too
 
-runnnig up to PHP 7.2 - not yet up to 7.4 as the orig project - more updates for modules necessary  
+runnnig with PHP 8.1 - at the moment only some fixes in the existing payum, stripe and twig module for php 8.1 compatibility
 
 vendor path completely from our instance (tennis-rudolstadt.de) with extended payumModule and payumStripe
 
@@ -59,4 +60,3 @@ can be changed via the twig templates of payumStripe - for other language suppor
 
 vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_js.html.twig
 vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_confirm.html.twig
- 

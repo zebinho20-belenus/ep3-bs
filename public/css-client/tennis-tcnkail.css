@@ -1,0 +1,252 @@
+/* Global Styles */
+
+.no-border,
+.tennis-tcnkail #header,
+.tennis-tcnkail #footer {
+  border: none;
+}
+
+body.tennis-tcnkail {
+  background-color: #313b3f;
+  min-width: 320px;
+  padding: 6px;
+}
+
+/* Responsive Design */
+
+@media (min-width: 1024px) {
+  body.tennis-tcnkail {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 480px) {
+  body.tennis-tcnkail > div.panel:first-child {
+    padding: 16px;
+  }
+}
+
+/* Header Styles */
+
+.tennis-tcnkail #header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.tennis-tcnkail #label-client {
+  color: #fff;
+  margin-top: 0;
+}
+
+.tennis-tcnkail #label-service-phone {
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  margin-left: 80px;
+  padding-top: 3px;
+  display: none;
+}
+
+.tennis-tcnkail #topbar-phone,
+.tennis-tcnkail #topbar-i18n {
+  margin-top: 0;
+}
+
+/*  Added by TCN-Kail Tennis Club zebinho20-belenus  */
+.guest-payment-instructions {
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #d9534f;
+
+}
+
+.guest-player-badge {
+  display: inline-block;
+  margin-left: 5px;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #d9534f;
+  border-radius: 3px;
+}
+
+/* Responsive Header Styles */
+
+@media (max-width: 1024px) {
+  .tennis-tcnkail #header #label {
+    float: left;
+  }
+  .tennis-tcnkail #header #topbar {
+    float: right;
+    margin: 0;
+  }
+  .tennis-tcnkail #header #topbar #topbar-i18n,
+  .tennis-tcnkail #header #topbar #topbar-phone {
+    float: right;
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 679px) {
+  .tennis-tcnkail #header #topbar #topbar-phone {
+    display: none !important;
+  }
+  .tennis-tcnkail #header #label-service-phone {
+    display: block;
+  }
+}
+
+@media (max-width: 512px) {
+  .tennis-tcnkail #header #label-client,
+  .tennis-tcnkail #header #label-service {
+    text-align: left;
+    text-indent: 80px;
+  }
+  .tennis-tcnkail #header #topbar-i18n {
+    padding: 0;
+    position: relative;
+  }
+}
+
+/* Footer Styles */
+
+.tennis-tcnkail #footer,
+.tennis-tcnkail #footer a {
+  color: #fff;
+  font-size: 12px;
+}
+
+/* Logo Styles */
+
+.tennis-tcnkail #logo {
+  height: 50px;
+}
+
+/* Calendar Styles */
+
+.tennis-tcnkail #calendar.panel {
+  padding: 6px;
+}
+
+.tennis-tcnkail #calendar-toolbar .panel {
+  margin-bottom: 6px;
+  padding: 6px;
+}
+
+.tennis-tcnkail #calendar-toolbar-userpanel {
+  margin-bottom: 6px;
+  padding: 6px;
+}
+
+.tennis-tcnkail #calendar-toolbar-datepicker {
+  margin-bottom: 6px;
+  padding: 6px;
+}
+
+/* Responsive Calendar Styles */
+
+@media (min-width: 480px) {
+  .tennis-tcnkail #calendar-toolbar .panel {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-table-cell {
+    display: table-cell;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-block {
+    display: block;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-inline-block {
+    display: inline-block;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .responsive-pass-up.never-hide-inline {
+    display: inline;
+  }
+}
+
+@media (max-width: 870px) {
+  .tennis-tcnkail .symbolic-label {
+    display: none;
+  }
+  .tennis-tcnkail .first-letter-only {
+    font-size: 0;
+    width: 10px;
+  }
+  .tennis-tcnkail .first-letter-only:first-letter {
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-booking::before,
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-user::before,
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-off::before {
+    content: " ";
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-booking {
+    padding-left: 12px;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-user {
+    padding-left: 10px;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-off {
+    padding-left: 11px;
+  }
+  .tennis-tcnkail #calendar-toolbar-userpanel .symbolic-config {
+    padding-left: 12px;
+  }
+}
+
+@media (max-width: 699px) and (min-width: 480px) {
+  /* Removed commented-out code */
+}
+
+@media (max-width: 699px) and (min-width: 320px) {
+  .tennis-tcnkail #calendar-toolbar-datepicker {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 320px) {
+  body.tennis-tcnkail {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .tennis-tcnkail #calendar-toolbar-datepicker {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 410px) {
+  .tennis-tcnkail form#euf table td {
+    display: block;
+  }
+  .tennis-tcnkail form#euf table td.default-form-label-row,
+  .tennis-tcnkail form#euf table td.right-text {
+    text-align: left;
+  }
+  .tennis-tcnkail form#euf table td input#daf-why {
+    width: 250px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .tennis-tcnkail form#rf table td,
+  .tennis-tcnkail form#lf table td,
+  .tennis-tcnkail form#pf table td,
+  .tennis-tcnkail form#epf table td,
+  .tennis-tcnkail form#eef table td,
+  .tennis-tcnkail form#enf table td,
+  .tennis-tcnkail form#daf table td,
+  .tennis-tcnkail form#usf table td,
+  .tennis-tcnkail form#bsf table td,
+  .tennis-tcnkail form#esf table td,
+  .tennis-tcnkail form#cf table td,
+  .tennis-tcnkail form#ef table td {
+    display: block
+  }
+}

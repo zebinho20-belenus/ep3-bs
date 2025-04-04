@@ -31,6 +31,9 @@ class User extends AbstractEntity
         'enabled' => 'Enabled user',
         'assist' => 'Assist',
         'admin' => 'Admin',
+        'guestgroup' => 'Guest Group',
+        'singleguest' => 'Single Guest',
+        'team' => 'Team',
     );
 
     /**

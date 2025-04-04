@@ -12,6 +12,9 @@ return array(
     'Pending' => 'Ausstehend',
     'Paid' => 'Bezahlt',
     'Uncollectable' => 'Uneinbringlich',
+    'Member' => 'Mitglied',
+    'Guest' => 'Gast',
+    'Non-member' => 'Kein-Mitglied',
 
     'Public' => 'Sichtbar',
     'Private' => 'Unsichtbar',

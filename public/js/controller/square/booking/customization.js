@@ -80,7 +80,41 @@
             sbButton.attr("href", newHref);
         }
     }
+    function onGuestCheckboxChange() {
+        var isChecked = $("#guest-player").is(":checked");
+        var sbButton = $("#sb-button");
+        // Debugging
+        console.log("isChecked: " + isChecked);
 
+
+        if (sbButton.length) {
+            var oldHref = sbButton.attr("href");
+            var withGuest = isChecked ? "1" : "0";
+
+            // Update the guest parameter (gp) in the URL
+            if (oldHref.indexOf("gp=") > -1) {
+                // Replace existing parameter
+                var newHref = oldHref.replace(/gp=[01]/, "gp=" + withGuest);
+                sbButton.attr("href", newHref);
+                // Debugging
+                console.log("newHref: " + newHref);
+
+            } else {
+                // Add new parameter
+                sbButton.attr("href", oldHref + "&gp=" + withGuest);
+            }
+        }
+    }
+    // Debugging
+    console.log("guest player: " + $("#guest-player").is(":checked"));
+
+    $(document).ready(function() {
+        // Add event handler for the with_guest checkbox
+        $("#guest-player").on("change", onGuestCheckboxChange);
+
+        // Trigger it once on page load to set initial state
+        onGuestCheckboxChange();
+    });
     function onProductChange() {
         var sbButton = $("#sb-button");
 
