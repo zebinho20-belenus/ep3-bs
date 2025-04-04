@@ -9,15 +9,15 @@ $this->setup(array(
         'Event-Statistic' => $this->url('backend/event/stats'),
     ),
 ));
-
-$placeholder = $deleted = $blocked = $disabled = $enabled = $assist = $admin = 0;
+//add variables for statistics
+$placeholder = $deleted = $blocked = $disabled = $enabled = $assist = $admin = $test= $team = 0;
 
 foreach ($this->stats as $stat) {
     $var = $stat['status'];
     $$var += $stat['count'];
 }
 
-$total = $deleted + $blocked + $disabled + $enabled + $assist + $admin;
+$total = $deleted + $blocked + $disabled + $enabled + $assist + $admin + $team + $test + $placeholder;
 
 ?>
 
