@@ -24,7 +24,7 @@ class PaymentService extends AbstractService
         $this->reservationManager = $reservationManager;
     }
 
-    public function initBookingPayment($booking, $user, $payservice, $total, $byproducts)
+    public function initBookingPayment($booking, $user, $payservice, $total, $byproducts, $bookingManager)
     {
         $basepath = $this->configManager->need('basepath');
         if (isset($basepath) && $basepath != '' && $basepath != ' ') {

@@ -323,12 +323,14 @@ class BookingController extends AbstractActionController
                    $bookingManager->save($booking);
                    $userName = $user->getMeta('firstname') . ' ' . $user->getMeta('lastname');
                    $companyName = $this->option('client.name.full');
+                   $courtNumber = $square->get('name');
+                   $booktime = $dateStartParam . ' - ' . ' um '. $timeStartParam . ' - ' . $timeEndParam . ' Uhr ';
 
                    $locale = $this->config('i18n.locale');
 
-                   $description = $projectShort.' booking-'.$booking->get('bid');
+                   $description = $projectShort.' booking-'.$booking->get('bid').' for '.$userName. ' on '.$this->option('subject.square.type').' - '.$courtNumber. ' at '.$booktime;
                    if (isset($locale) && ($locale == 'de-DE' || $locale == 'de_DE')) {
-                        $description = $projectShort.' Buchung-'.$booking->get('bid');
+                        $description = $projectShort.' Buchung-'.$booking->get('bid').' für '.$userName. ' auf '.$this->option('subject.square.type').' - '.$courtNumber. ' am '.$booktime;
                    }
 
                    #paypal checkout            
