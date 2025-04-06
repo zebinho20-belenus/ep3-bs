@@ -64,7 +64,8 @@ return array(
 
     'Due to too many login attempts, temporarily blocked until %s' => 'Aufgrund zu vieler Anmeldeversuche gesperrt bis %s',
     'This account is considered a placeholder and thus cannot login' => 'Leider wurde dieses Benutzerkonto als Platzhalter definiert.',
-    'Email address and/or password invalid' => 'E-Mail Adresse und/oder Passwort falsch',
+    'Invalid e-mail address and/or password. ' => 'E-Mail Adresse und/oder Passwort falsch. Wichtig! Gastspieler, auch wenn diese schon letztes Jahr angemeldet waren, müssen sich neu registrieren.',
+    'User not found Important! Guest players, even if they were registered last year, must register again.' => 'Benutzer nicht gefunden Wichtig! Gastspieler, auch wenn diese schon letztes Jahr angemeldet waren, müssen sich neu registrieren.',
     'This account is currently blocked' => 'Dieses Benutzerkonto ist derzeit gesperrt',
     'This account has not yet been activated' => 'Dieses Benutzerkonto wurde noch nicht aktiviert',
 

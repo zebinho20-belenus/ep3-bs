@@ -58,7 +58,7 @@ class SessionController extends AbstractActionController
                                 $loginMessage = 'This account is considered a placeholder and thus cannot login';
                                 break;
                             case 'deleted':
-                                $loginMessage = 'Email address and/or password invalid';
+                                $loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
                                 break;
                             case 'blocked':
                                 $loginMessage = 'This account is currently blocked';
@@ -71,17 +71,23 @@ class SessionController extends AbstractActionController
                         break;
 
                     case Result::FAILURE_IDENTITY_NOT_FOUND:
+                        $loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
+                        break;
                     case Result::FAILURE_IDENTITY_AMBIGUOUS:
                     case Result::FAILURE_CREDENTIAL_INVALID:
+                        $loginMessage = 'Email address and/or password invalid';
+                        break;
                     case Result::FAILURE_UNCATEGORIZED:
                     case Result::FAILURE:
                     default:
                         $loginMessage = 'Email address and/or password invalid';
+                        //$loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
                         break;
                 }
             } else {
                 if ($this->params()->fromPost('lf-email') || $this->params()->fromPost('lf-pw')) {
-                    $loginMessage = 'Email address and/or password invalid';
+                    //$loginMessage = 'Email address and/or password invalid';
+                    $loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
                 }
             }
 
