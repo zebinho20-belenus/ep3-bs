@@ -93,11 +93,7 @@ abstract class UriFactory
         }
 
         $uri    = new Uri($uriString);
-        /* alt
         $scheme = strtolower($uri->getScheme());
-        */
-        //neu
-        $scheme = strtolower($uriParts['scheme'] ?? '');
         if (! $scheme && $defaultScheme) {
             $scheme = $defaultScheme;
         }

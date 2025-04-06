@@ -452,9 +452,7 @@ class SessionConfig extends StandardConfig
         if (in_array($phpSaveHandler, $knownHandlers, true)) {
             $phpSaveHandler = strtolower($phpSaveHandler);
             set_error_handler([$this, 'handleError']);
-            if (session_status() === PHP_SESSION_NONE) {
-                session_module_name($phpSaveHandler);
-            }
+            session_module_name($phpSaveHandler);
             restore_error_handler();
             if ($this->phpErrorCode >= E_WARNING) {
                 throw new Exception\InvalidArgumentException(sprintf(

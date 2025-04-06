@@ -115,12 +115,7 @@ class PaymentController extends AbstractActionController
 
         $square = $squareManager->get($booking->need('sid'));
 
-        //zebinho20 change */
-        //if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
-        if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() ||
-            ($status->isUnknown() && isset($payment['status']) && $payment['status'] == 'processing') ||
-            $status->getValue() === "success" ||
-            (isset($payment['status']) && $payment['status'] === "succeeded")) {
+        if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
 
             if (!$booking->getMeta('directpay_pending') == 'true') {
                 if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {

@@ -17,5 +17,3 @@ class UserSessionManagerFactory implements FactoryInterface
     }
 
 }
-
-
