@@ -18,7 +18,7 @@ use Zend\Db\Sql\Predicate\NotIn;
 
 class UserManager extends AbstractManager
 {
-
+    //Test
     protected $userTable;
     protected $userMetaTable;
 
