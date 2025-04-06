@@ -15,36 +15,32 @@ class CustomSessionManagerFactory implements FactoryInterface
     {
         $config = new SessionConfig();
 
-        $appConfig = $sm->get('config');
-        $sessionOptions = $appConfig['session'] ?? [];
+        $options = [
+            'name' => 'platzbuchung',
+            'save_handler' => 'files',
+            'save_path' => '/tmp',
+            'use_cookies' => true,
+            'use_only_cookies' => true,
+            'cookie_httponly' => true,
+            'cookie_secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        ];
 
-        // Sicherstellen, dass save_path gültig ist
-        if (!empty($sessionOptions['save_path'])) {
-            if (!is_dir($sessionOptions['save_path']) || !is_writable($sessionOptions['save_path'])) {
-                // ungültiger Pfad => entfernen
-                unset($sessionOptions['save_path']);
-                error_log("⚠ Ungültiger session.save_path in CustomSessionManagerFactory, wird ignoriert");
+        // Nur wenn Session **noch NICHT** aktiv ist → Optionen setzen
+        if (session_status() === PHP_SESSION_NONE) {
+            // Nur save_path setzen, wenn gültig
+            if (!is_dir($options['save_path']) || !is_writable($options['save_path'])) {
+                unset($options['save_path']); // Sicher entfernen
             }
-        }
 
-        // Session-Optionen setzen
-        $config->setOptions($sessionOptions + [
-                'name' => 'platzbuchung',
-                'save_handler' => 'files',
-                'use_cookies' => true,
-                'use_only_cookies' => true,
-                'cookie_httponly' => true,
-                'cookie_secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-            ]);
+            $config->setOptions($options);
+        }
 
         $sessionManager = new SessionManager($config);
 
-        // Validatoren anhängen (optional aber empfohlen)
-        $sessionManager->getValidatorChain()->attach('session.validate', [new RemoteAddr(), 'isValid']);
-        $sessionManager->getValidatorChain()->attach('session.validate', [new HttpUserAgent(), 'isValid']);
-
-        // Session nur starten, wenn noch nicht aktiv
+        // Validatoren nur einmal registrieren
         if (session_status() === PHP_SESSION_NONE) {
+            $sessionManager->getValidatorChain()->attach('session.validate', [new RemoteAddr(), 'isValid']);
+            $sessionManager->getValidatorChain()->attach('session.validate', [new HttpUserAgent(), 'isValid']);
             $sessionManager->start();
         }
 
