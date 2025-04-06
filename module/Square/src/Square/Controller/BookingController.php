@@ -538,9 +538,11 @@ class BookingController extends AbstractActionController
         // syslog(LOG_EMERG, $payment['status']);
         // syslog(LOG_EMERG, json_encode($payment));
 
-        if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
-            
-          // syslog(LOG_EMERG, "confirm success");
+        /*change zebinho20 to check status and error*/
+        //if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
+        if (isset($payment['status']) && $payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment))) {
+
+            // syslog(LOG_EMERG, "confirm success");
           $payment['doneAction'] = $token->getTargetUrl();
 
            try {
@@ -635,9 +637,12 @@ class BookingController extends AbstractActionController
 
         $square = $squareManager->get($booking->need('sid'));
 
-
-        if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
-
+        //zebinho20 change to check status */
+        //if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
+        if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() ||
+            ($status->isUnknown() && isset($payment['status']) && $payment['status'] == 'processing') ||
+            $status->getValue() === "success" ||
+            (isset($payment['status']) && $payment['status'] === "succeeded")) {
             // syslog(LOG_EMERG, 'doneAction - success');
             
             if (!$booking->getMeta('directpay_pending') == 'true') {
