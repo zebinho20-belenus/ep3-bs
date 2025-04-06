@@ -538,9 +538,11 @@ class BookingController extends AbstractActionController
         // syslog(LOG_EMERG, $payment['status']);
         // syslog(LOG_EMERG, json_encode($payment));
 
-        if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
-            
-          // syslog(LOG_EMERG, "confirm success");
+        /*change zebinho20 to check status and error*/
+        //if (($payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment)))) {
+        if (isset($payment['status']) && $payment['status'] == "requires_action" && !(array_key_exists('error', (array)$payment))) {
+
+            // syslog(LOG_EMERG, "confirm success");
           $payment['doneAction'] = $token->getTargetUrl();
 
            try {
