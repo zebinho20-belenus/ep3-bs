@@ -27,7 +27,7 @@ class CustomSessionManagerFactory implements FactoryInterface
                     'use_cookies' => true,
                     'use_only_cookies' => true,
                     'cookie_httponly' => true,
-                    'cookie_secure' => isset($_SERVER['HTTPS']), // Nur true, wenn SSL aktiv
+                    'cookie_secure' => true,
                 ]);
             } else {
                 error_log("⚠ Ungültiger session.save_path: {$savePath}");
