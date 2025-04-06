@@ -159,7 +159,7 @@ return array(
 //            'Zend\Session\SessionManager' => 'User\Manager\CustomSessionManagerFactory',
         ),
     ),
-
+    //test
     'form_elements' => array(
         'factories' => array(
             'User\Form\EditEmailForm' => 'User\Form\EditEmailFormFactory',
