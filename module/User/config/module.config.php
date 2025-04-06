@@ -155,8 +155,8 @@ return array(
             'User\Service\MailService' => 'User\Service\MailServiceFactory',
 
             'Zend\Session\Config\ConfigInterface' => 'Zend\Session\Service\SessionConfigFactory',
-         //   'Zend\Session\SessionManager' => 'Zend\Session\Service\SessionManagerFactory',
-            'Zend\Session\SessionManager' => 'User\Manager\CustomSessionManagerFactory',
+            'Zend\Session\SessionManager' => 'Zend\Session\Service\SessionManagerFactory',
+          //  'Zend\Session\SessionManager' => 'User\Manager\CustomSessionManagerFactory',
         ),
     ),
 
