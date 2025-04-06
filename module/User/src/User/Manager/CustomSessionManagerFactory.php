@@ -14,7 +14,7 @@ class CustomSessionManagerFactory
         if (session_status() === PHP_SESSION_NONE) {
             $config->setOptions([
                 'save_handler' => 'files',
-                'save_path' => '/data/session/',
+               // 'save_path' => '/data/session/',
                 'name' => 'platzbuchung',
                 'cookie_httponly' => true,
             ]);
