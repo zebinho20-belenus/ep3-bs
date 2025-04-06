@@ -51,6 +51,28 @@
             <div id="topbar">
                 <?= $this->headerLocaleChoice() ?>
 
+                <div id="topbar-website" class="topbar-item responsive-pass-4">
+                    <p>
+                        <span class="light-gray"><?= $this->t('Our website') ?></span><br>
+                        <span class="large-text">
+                            <a href="<?= $this->option('client.website') ?>" target="_blank" class="unlined white">
+                                <?= $this->shortUrl($this->option('client.website')) ?>
+                            </a>
+                        </span>
+                    </p>
+                </div>
+
+                <div id="topbar-infos" class="topbar-item responsive-pass-4">
+                    <p>
+                        <span class="light-gray"><?= $this->t('Information about') ?></span><br>
+                        <span class="large-text">
+                            <a href="<?= $this->url('service/info') ?>" class="unlined white">
+                                <?= $this->option('subject.type') ?>
+                            </a>
+                        </span>
+                    </p>
+                </div>
+
                 <div id="topbar-phone" class="topbar-item responsive-pass-4">
                     <p>
                         <span class="topbar-label"><?= $this->t('Book by phone') ?></span><br>
