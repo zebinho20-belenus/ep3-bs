@@ -64,7 +64,7 @@ class QuantityChoice extends AbstractHelper
                                     </div>';
 
             $paymentNotice = '<div id="payment-notice" style="margin-top: 8px; display: none; border: 1px solid red; padding: 8px;">
-                                  ' . $view->t('Please transfer the amount as a PayPal friends payment to schatzmeister@tcn-kail.de or use the letterbox at the pitch') . '
+                                  ' . $view->t('Please transfer the amount as a PayPal friends payment to schatzmeister@tcn-kail.de or use the Money letterbox at the office') . '
                               </div>';
         } else {
             $guestPlayerCheckbox = '';

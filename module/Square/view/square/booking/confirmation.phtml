@@ -32,6 +32,7 @@ function showHide() {
 
 <div class="padded">
 
+
     <form id="confirmform" method="post" onSubmit="showHide();" action="<?= $this->url ?>">
 <?php
 
@@ -115,7 +116,7 @@ function showHide() {
             // Add PayPal payment instructions if guest player is set
             if ($guestPlayer) {
             echo '<div class="guest-payment-instructions" style="margin-top: 10px; font-size: 18px; font-weight: bold; color: #d9534f;">';
-            echo $this->t('Please pay the price of the booking via PayPal Friends & Family to schatzmeister@tcn-kail.de or use the letterbox at the pitch');
+            echo $this->t('Please pay the price of the booking via PayPal Friends & Family to schatzmeister@tcn-kail.de or use the Money letterbox at the office');
             echo '</div>';
         }
 

@@ -49,6 +49,6 @@ return array(
     'Should you have any questions and commentaries, please contact us through Email - %s' => 'Sollten Sie noch Fragen bzw. Anregungen haben, informieren sie bitte unser Supportteam unter %s',
     '%sPayment and admittance temporarily at %s!%s' => '%sBezahlung und Einlass vorübergehend bei %s!%s',
     '%sSorry online booking not possible at the moment!%s' => '%sEntschuldigung im Augenblick ist keine online Buchung möglich!%s',
-    'Please transfer the amount as a PayPal friends payment to schatzmeister@tcn-kail.de or use the letterbox at the pitch' => 'Bitte transferieren Sie den Betrag als PayPal Friends & Family Zahlung an schatzmeister@tcn-kail.de oder nutzen Sie den Briefkasten am Platz',
-    'Please pay the price of the booking via PayPal Friends & Family to schatzmeister@tcn-kail.de or use the letterbox at the pitch' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an schatzmeister@tcn-kail.de oder nutzen Sie den Briefkasten am Platz'
+    'Please transfer the amount as a PayPal friends payment to schatzmeister@tcn-kail.de or use the Money letterbox at the office' => 'Bitte transferieren Sie den Betrag als PayPal Friends & Family Zahlung an schatzmeister@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro',
+    'Please pay the price of the booking via PayPal Friends & Family to schatzmeister@tcn-kail.de or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an schatzmeister@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro'
 );

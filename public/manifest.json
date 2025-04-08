@@ -1,6 +1,6 @@
 {
-    "name": "TCN-Kail court booking dev",
-    "short_name": "TCN-Kail Booking dev",
+    "name": "TCN-Kail court booking",
+    "short_name": "TCN-Kail Booking",
     "start_url": "./",
     "display": "fullscreen",
     "theme_color": "#4a3827",
