@@ -172,33 +172,19 @@ class BookingController extends AbstractActionController
                     $userManager = $serviceManager->get('User\Manager\UserManager');
                     $user = $userManager->get($savedBooking->get('uid'));
                     
-                    // Debug logs - Check for needed directories
-                    $logDir = '/var/www/html/data/log';
+                    // Send booking creation email
+                    $this->sendAdminBookingCreationEmail($savedBooking, $user);
                     
-                    try {
-                        // Debug the email process
-                        error_log('[' . date('Y-m-d H:i:s') . '] ADMIN BOOKING CREATED - email process for booking ID: ' . $savedBooking->need('bid'));
-                        
-                        // Only send email if user has an email address
-                        if ($user && $user->get('email')) {
-                            // Send admin booking creation email
-                            $this->sendAdminBookingCreationEmail($savedBooking, $user);
-                        } else {
-                            error_log('[' . date('Y-m-d H:i:s') . '] NOT SENDING EMAIL - User has no email address. User ID: ' . $user->get('uid'));
-                        }
-                    } catch (\Exception $e) {
-                        error_log('Exception sending email: ' . $e->getMessage());
-                    }
                 }
 
                 $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
                 if ($this->params()->fromPost('bf-edit-user')) {
-                    return $this->redirect()->toRoute('backend/user/edit', ['uid' => $savedBooking->get('uid')]);
+                    return $this->redirect()->toRoute('backend/user/edit', ['uid' => $savedBooking->get('uid')], ['query' => []]);
                 } else if ($this->params()->fromPost('bf-edit-bills')) {
-                    return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $savedBooking->get('bid')]);
+                    return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $savedBooking->get('bid')], ['query' => []]);
                 } else {
-                    return $this->redirect()->toRoute('frontend');
+                    return $this->redirect()->toRoute('frontend', [], ['query' => []]);
                 }
             }
         } else {
@@ -356,7 +342,7 @@ class BookingController extends AbstractActionController
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
-                    return $this->redirect()->toRoute('frontend');
+                    return $this->redirect()->toRoute('frontend', [], ['query' => []]);
                 }
             } else if ($mode == 'date') {
                 $editDateRangeForm->setData($this->params()->fromPost());
@@ -390,7 +376,7 @@ class BookingController extends AbstractActionController
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
-                    return $this->redirect()->toRoute('frontend');
+                    return $this->redirect()->toRoute('frontend', [], ['query' => []]);
                 }
             } else {
                 throw new \RuntimeException('Invalid edit mode received');
@@ -500,7 +486,11 @@ class BookingController extends AbstractActionController
                     $userManager = $serviceManager->get('User\Manager\UserManager');
                     $user = $userManager->get($booking->get('uid'));
                     
-                    $this->sendAdminCancellationEmail($booking, $user);
+                    try {
+                        $this->sendAdminCancellationEmail($booking, $user);
+                    } catch (\Exception $e) {
+                        // Continue despite errors
+                    }
                     
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
                 } else {
@@ -520,18 +510,19 @@ class BookingController extends AbstractActionController
                     $booking->set('status', 'cancelled');
                     $bookingManager->save($booking);
                     
-                    error_log('Admin is deleting booking ID: ' . $bookingId);
-                    
                     // Get user info and send notification before deletion
                     try {
                         $userManager = $serviceManager->get('User\Manager\UserManager');
                         $user = $userManager->get($uid);
                         
                         // Send the cancellation email directly
-                        $this->sendAdminCancellationEmail($booking, $user);
-                        
+                        try {
+                            $this->sendAdminCancellationEmail($booking, $user);
+                        } catch (\Exception $e) {
+                            // Continue despite errors
+                        }
                     } catch (\Exception $e) {
-                        error_log('Error sending cancellation email before deletion: ' . $e->getMessage());
+                        // Continue despite errors
                     }
                     
                     // Now delete the booking
@@ -541,7 +532,7 @@ class BookingController extends AbstractActionController
                 }
             }
 
-            return $this->redirect()->toRoute('frontend');
+            return $this->redirect()->toRoute('frontend', [], ['query' => []]);
         }
 
         if ($editMode == 'reservation') {
@@ -639,7 +630,7 @@ class BookingController extends AbstractActionController
                     $this->flashMessenger()->addErrorMessage('No Booking-Bill position has been created');
                 }
 
-                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid]);
+                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
             }
 
             $delete = $this->params()->fromQuery('delete');
@@ -648,7 +639,7 @@ class BookingController extends AbstractActionController
                 $bookingBillManager->delete($delete);
 
                 $this->flashMessenger()->addSuccessMessage('Booking-Bill position has been deleted');
-                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid]);
+                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
             }
         }
 
@@ -717,9 +708,9 @@ class BookingController extends AbstractActionController
             $this->flashMessenger()->addSuccessMessage('Booking-Bill has been saved');
 
             if ($save) {
-                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid]);
+                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
             } else if ($saveAndBack) {
-                return $this->redirect()->toRoute('user/bookings/bills', ['bid' => $bid]);
+                return $this->redirect()->toRoute('user/bookings/bills', ['bid' => $bid], ['query' => []]);
             }
         }
 
@@ -929,182 +920,204 @@ class BookingController extends AbstractActionController
      */
     public function sendAdminCancellationEmail(Booking $booking, User $user)
     {
-        error_log('---------- ADMIN CANCELLATION EMAIL DEBUG START ----------');
-        error_log('sendAdminCancellationEmail called for booking ID: ' . $booking->need('bid'));
-        file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                          '[' . date('Y-m-d H:i:s') . '] ADMIN BOOKING CREATED - email process for booking ID: ' . $booking->need('bid') . PHP_EOL . 
-                          'User ID: ' . $booking->get('uid') . ', User alias: ' . $user->get('alias') . PHP_EOL,
-                          FILE_APPEND);
-        
+        // Only send email if user has an email address
+        if (empty($user->need('email'))) {
+            return false;
+        }
+
         try {
-            // Get the service manager and services
-            $serviceManager = $this->getServiceLocator();
+            // Daten aus den Reservierungen holen
+            $square = null;
+            $squareName = 'nicht spezifiziert';
+            $formattedDate = '[Datum nicht verfügbar]';
+            $formattedTime = '[Startzeit nicht verfügbar]';
+            $formattedEndTime = '[Endzeit nicht verfügbar]';
+            $reservation = null;
             
-            // Get the mail service
-            $mailService = $serviceManager->get('Base\Service\MailService');
-            if (!$mailService) {
-                error_log('ERROR: Mail service not available in BackendController');
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'ERROR: Mail service not available in BackendController' . PHP_EOL, 
-                                  FILE_APPEND);
-                return false;
-            }
-            
-            // Get square details
-            $squareManager = $serviceManager->get('Square\Manager\SquareManager');
-            $square = $squareManager->get($booking->need('sid'));
-            $squareName = $square->need('name');
-            
-            // Format booking time
-            $bookingTime = $booking->get('time_start');
-            if (!$bookingTime) {
-                $bookingTime = time();
-            }
-            
-            $formattedDate = date('d.m.Y', $bookingTime);
-            $formattedTime = date('H:i', $bookingTime);
-            $timeEnd = $booking->get('time_end');
-            // Default to 1 hour later if end time is not set
-            if (!$timeEnd) {
-                $timeEnd = $bookingTime + 3600; // Default to 1 hour duration
-            }
-            $formattedEndTime = date('H:i', $timeEnd);
-            
-            // Calculate refund if applicable
-            $refundMessage = '';
-            if ($booking->get('status_billing') == 'paid') {
-                $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
-                $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                $total = 0;
-                if ($bills) {
-                    foreach ($bills as $bill) {
-                        $total += $bill->need('price');
-                    }
-                }
+            try {
+                // Direkter Zugriff auf Services
+                $squareManager = $this->serviceLocator->get('Square\Manager\SquareManager');
                 
-                if ($total > 0 && $booking->getMeta('refunded') == 'true') {
-                    $refundAmount = number_format($total / 100, 2);
-                    $refundMessage = sprintf($this->t("\n\nA refund of %s has been processed to your account."), $refundAmount);
+                // Square über sid abrufen (nicht s)
+                if ($booking->get('sid')) {
+                    $square = $squareManager->get($booking->need('sid'));
+                    $squareName = $square->need('name');
+                    error_log(sprintf("Square für Buchung %s gefunden: %s", $booking->get('bid'), $squareName));
                 }
+            } catch (\Exception $e) {
+                // Fallback wenn Square nicht gefunden wird
+                error_log(sprintf("Square für Buchung %s nicht gefunden: %s", $booking->get('bid'), $e->getMessage()));
+            }
+
+            try {
+                // Reservierungsdaten für die Buchung abrufen
+                $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
+                $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+                
+                if (!empty($reservations)) {
+                    $reservation = current($reservations);
+                    
+                    // Datum und Zeiten aus der Reservierung extrahieren mit modernem DateTime
+                    if ($reservation->get('date')) {
+                        $date = new \DateTime($reservation->need('date'));
+                        $formattedDate = $date->format('d.m.Y');
+                        error_log(sprintf("Formatiertes Datum für Buchung %s: %s", $booking->get('bid'), $formattedDate));
+                    }
+                    
+                    if ($reservation->get('time_start')) {
+                        $formattedTime = $reservation->get('time_start');
+                    }
+                    
+                    if ($reservation->get('time_end')) {
+                        $formattedEndTime = $reservation->get('time_end');
+                    }
+                } else {
+                    error_log(sprintf("Keine Reservierungen für Buchung %s gefunden", $booking->get('bid')));
+                }
+            } catch (\Exception $e) {
+                error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
             }
             
-            // Set email content - German format
-            $subject = sprintf('%s\'s Platz-Buchung wurde storniert', $user->need('alias'));
-            $body = sprintf(
-                "Hallo,\n\nwir haben Ihre Buchung für den Platz \"%s\", %s, %s bis %s Uhr storniert (Buchungs-Nr: %s).%s\n\nDiese Nachricht wurde automatisch gesendet. Ursprünglich gesendet an %s (%s).\n\nViele Grüße,\nIhr %s Online-Platzbuchung\n%s",
+            // Personalisierte Anrede
+            $anrede = 'Hallo';
+            if ($user->getMeta('gender') == 'male') {
+                $anrede = 'Sehr geehrter Herr';
+            } elseif ($user->getMeta('gender') == 'female') {
+                $anrede = 'Sehr geehrte Frau';
+            }
+            
+            if ($user->getMeta('lastname')) {
+                $anrede .= ' ' . $user->getMeta('lastname');
+            } else {
+                $anrede .= ' ' . $user->need('alias');
+            }
+
+            $subject = sprintf($this->t('%s\'s Platz-Buchung wurde storniert'), $user->need('alias'));
+            
+            // Get client contact email for potential inquiries
+            $contactInfo = '';
+            $contactEmail = $this->option('client.contact.email', '');
+            if (!empty($contactEmail)) {
+                $contactInfo = sprintf($this->t('Bei Rückfragen wenden Sie sich bitte an %s'), $contactEmail);
+            }
+            
+            $clientName = $this->option('client.name', 'Online-Platzbuchung');
+            
+            // Strukturierte Darstellung der Buchungsdetails
+            $buchungsDetails = sprintf(
+                $this->t("Stornierte Buchungsdetails:\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
                 $formattedEndTime,
-                $booking->need('bid'),
-                $refundMessage,
-                $user->need('alias'),
-                $user->need('email'),
-                $this->option('client.name') ?: 'TCN', // Fallback to TCN if client.name is not set
-                $this->getRequest()->getUri()->getScheme() . '://' . $this->getRequest()->getUri()->getHost()
+                $booking->need('bid')
             );
             
-            // Get email settings from config
-            $fromAddress = $this->option('client.contact.email');
-            $clientName = $this->option('client.name') ?: 'TCN'; // Fallback to TCN if client.name is not set
-            $fromName = $clientName . ' Online-Platzbuchung';
-            $toAddress = $user->need('email');
-            $toName = $user->need('alias');
+            $stornierungsBedingungen = $this->t('Bitte beachten Sie unsere Stornierungsbedingungen. Stornierungen sind bis zu 2 Stunden vor Beginn kostenfrei möglich.');
+            $paypalInfo = $this->t('Bei Stornierung werden die gezahlten PayPal-Beträge als Budget dem Konto gutgeschrieben.');
             
-            // Fallback if client.contact.email is not set
-            if (empty($fromAddress)) {
-                $fromAddress = 'noreply@example.com';
-                $fromName = 'Booking System';
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'WARNING: Using fallback for fromAddress: ' . $fromAddress . PHP_EOL, 
-                                  FILE_APPEND);
-            }
-            
-            // Add debug logging
-            $logMessage = 'Email details:' . PHP_EOL;
-            $logMessage .= 'From: ' . $fromAddress . ' (' . $fromName . ')' . PHP_EOL;
-            $logMessage .= 'To: ' . $toAddress . ' (' . $toName . ')' . PHP_EOL;
-            $logMessage .= 'Subject: ' . $subject . PHP_EOL;
-            $logMessage .= 'Body: ' . $body . PHP_EOL;
-            
-            error_log($logMessage);
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', $logMessage, FILE_APPEND);
-            
-            // Let's also try BOTH mail methods to ensure one works
-            
-            // 1. Direct PHP mail function (as a fallback)
-            $headers = "From: $fromName <$fromAddress>\r\n";
-            $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
-            $headers .= "X-Mailer: PHP/" . phpversion();
-            
-            $mailResult = mail($toAddress, $subject, $body, $headers);
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              'PHP mail() result: ' . ($mailResult ? 'success' : 'failed') . PHP_EOL, 
-                              FILE_APPEND);
-            
-            // 2. Directly send the email using MailService
+            // Backend MailService verwenden, falls verfügbar
             try {
-                $result = $mailService->sendPlain(
-                    $fromAddress,    // fromAddress
-                    $fromName,       // fromName
-                    $fromAddress,    // replyToAddress
-                    $fromName,       // replyToName
-                    $toAddress,      // toAddress
-                    $toName,         // toName
-                    $subject,        // subject
-                    $body,           // text
-                    []               // attachments (empty array)
-                );
-                
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'MailService result: ' . ($result ? 'success' : 'failed') . PHP_EOL, 
-                                  FILE_APPEND);
-            } catch (\Exception $e) {
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'MailService exception: ' . $e->getMessage() . PHP_EOL, 
-                                  FILE_APPEND);
-            }
-            
-            // 3. Try the Square\Controller\BookingController method directly
-            try {
-                $squareController = $serviceManager->get('ControllerManager')->get('Square\Controller\BookingController');
-                if ($squareController) {
-                    file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                      'Trying Square BookingController sendCancellationEmail method' . PHP_EOL, 
-                                      FILE_APPEND);
-                    $squareController->sendCancellationEmail($booking, $user, $total ?? 0);
+                // Prüfen, ob der Backend\Service\MailService verfügbar ist
+                if ($this->serviceLocator->has('Backend\Service\MailService')) {
+                    // Vollständigen Text für die E-Mail erstellen
+                    $emailText = sprintf(
+                        "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s\n\n%s",
+                        $anrede,
+                        $buchungsDetails,
+                        $stornierungsBedingungen,
+                        $paypalInfo
+                    );
+                    
+                    $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
+                    
+                    // Benutzerdefinierte E-Mail an den Kunden senden
+                    $backendMailService->sendCustomEmail(
+                        $subject,
+                        $emailText,
+                        $user->need('email'),
+                        $user->need('alias'),
+                        [],   // keine Anhänge
+                        $contactInfo  // zusätzliche Information als Nachsatz
+                    );
+                    
+                    error_log(sprintf("Stornierungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
+                    return true;
+                } else {
+                    // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
+                    error_log("Backend\\Service\\MailService nicht verfügbar, verwende Fallback-Methode");
+                    $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede);
                 }
             } catch (\Exception $e) {
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'Square controller exception: ' . $e->getMessage() . PHP_EOL, 
-                                  FILE_APPEND);
+                error_log(sprintf("Fehler bei Verwendung von Backend\\Service\\MailService: %s", $e->getMessage()));
+                // Fallback auf die alte Methode
+                $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede);
             }
-            
-            // Mark that notification was sent
-            $booking->setMeta('cancellation_notification_sent', date('Y-m-d H:i:s'));
-            $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
-            $bookingManager->save($booking);
-            
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              'Successfully attempted to send cancellation email to: ' . $toAddress . PHP_EOL . 
-                              '---------- ADMIN CANCELLATION EMAIL DEBUG END ----------' . PHP_EOL, 
-                              FILE_APPEND);
             
             return true;
         } catch (\Exception $e) {
-            // Log the error but don't disrupt the cancellation process
-            $errorMessage = 'ERROR in sendAdminCancellationEmail: ' . $e->getMessage() . PHP_EOL . 
-                           'Exception trace: ' . $e->getTraceAsString();
-            error_log($errorMessage);
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              $errorMessage . PHP_EOL . 
-                              '---------- ADMIN CANCELLATION EMAIL DEBUG END ----------' . PHP_EOL, 
-                              FILE_APPEND);
-            
+            // Log the exception for debugging
+            error_log(sprintf("Fehler beim Senden der Stornierungsemail: %s", $e->getMessage()));
             return false;
         }
     }
-
+    
+    /**
+     * Fallback-Methode zum Senden der Stornierungsemail, wenn Backend\Service\MailService nicht verfügbar ist
+     */
+    protected function sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede)
+    {
+        try {
+            // Versuche den Mail-Service zu erhalten, mit robuster Fehlerbehandlung
+            if (!$this->serviceLocator->has('Base\Service\MailService')) {
+                throw new \Exception("MailService ist nicht als Service registriert");
+            }
+            
+            $mailService = $this->serviceLocator->get('Base\Service\MailService');
+            if (!$mailService) {
+                throw new \Exception("MailService konnte nicht initialisiert werden");
+            }
+            
+            // Debug-Log für Fehleranalyse
+            error_log(sprintf("Sende Stornierungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
+            
+            // Verwende Konfigurationswerte aus den Service-Einstellungen
+            $fromAddress = $this->option('client.contact.email', 'noreply@example.com');
+            $fromName = sprintf('%s %s', 
+                $this->option('client.name.short', 'BS'),
+                $this->option('service.name.full', 'Buchungssystem')
+            );
+            
+            // Vollständigen E-Mail-Text zusammenbauen
+            $body = sprintf(
+                $this->t("%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s\n\n%s\n\nViele Grüße,\nIhr %s"), 
+                $anrede,
+                $buchungsDetails,
+                $stornierungsBedingungen,
+                $paypalInfo,
+                $contactInfo,
+                $clientName
+            );
+            
+            // Send to user
+            $mailService->sendPlain(
+                $fromAddress,         // fromAddress
+                $fromName,            // fromName
+                $fromAddress,         // replyToAddress
+                $fromName,            // replyToName
+                $user->need('email'), // toAddress
+                $user->need('alias'), // toName
+                $subject,             // subject
+                $body                 // text
+            );
+            
+            return true;
+        } catch (\Exception $e) {
+            error_log(sprintf("Fehler beim Senden der E-Mail (Fallback): %s", $e->getMessage()));
+            return false;
+        }
+    }
+    
     /**
      * Send a booking creation email notification when an admin creates a booking
      * 
@@ -1114,175 +1127,330 @@ class BookingController extends AbstractActionController
      */
     public function sendAdminBookingCreationEmail(Booking $booking, User $user)
     {
-        error_log('---------- ADMIN BOOKING CREATION EMAIL DEBUG START ----------');
-        error_log('sendAdminBookingCreationEmail called for booking ID: ' . $booking->need('bid'));
-        file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                          '[' . date('Y-m-d H:i:s') . '] ADMIN BOOKING CREATED - email process for booking ID: ' . $booking->need('bid') . PHP_EOL . 
-                          'User ID: ' . $booking->get('uid') . ', User alias: ' . $user->get('alias') . PHP_EOL,
-                          FILE_APPEND);
-        
+        // Only send email if user has an email address
+        if (empty($user->need('email'))) {
+            return false;
+        }
+
         try {
-            // Get the service manager and services
-            $serviceManager = $this->getServiceLocator();
+            // Daten aus den Reservierungen holen
+            $square = null;
+            $squareName = 'nicht spezifiziert';
+            $formattedDate = '[Datum nicht verfügbar]';
+            $formattedTime = '[Startzeit nicht verfügbar]';
+            $formattedEndTime = '[Endzeit nicht verfügbar]';
             
-            // Get the mail service
-            $mailService = $serviceManager->get('Base\Service\MailService');
-            if (!$mailService) {
-                error_log('ERROR: Mail service not available in BackendController');
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'ERROR: Mail service not available in BackendController' . PHP_EOL, 
-                                  FILE_APPEND);
-                return false;
+            try {
+                // Direkter Zugriff auf Services
+                $squareManager = $this->serviceLocator->get('Square\Manager\SquareManager');
+                
+                // Square über sid abrufen (nicht s)
+                if ($booking->get('sid')) {
+                    $square = $squareManager->get($booking->need('sid'));
+                    $squareName = $square->need('name');
+                    error_log(sprintf("Square für Buchung %s gefunden: %s", $booking->get('bid'), $squareName));
+                }
+            } catch (\Exception $e) {
+                // Fallback wenn Square nicht gefunden wird
+                error_log(sprintf("Square für Buchung %s nicht gefunden: %s", $booking->get('bid'), $e->getMessage()));
+            }
+
+            try {
+                // Reservierungsdaten für die Buchung abrufen
+                $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
+                $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+                
+                if (!empty($reservations)) {
+                    $reservation = current($reservations);
+                    
+                    // Datum und Zeiten aus der Reservierung extrahieren mit modernem DateTime
+                    if ($reservation->get('date')) {
+                        $date = new \DateTime($reservation->need('date'));
+                        $formattedDate = $date->format('d.m.Y');
+                        error_log(sprintf("Formatiertes Datum für Buchung %s: %s", $booking->get('bid'), $formattedDate));
+                    }
+                    
+                    if ($reservation->get('time_start')) {
+                        $formattedTime = $reservation->get('time_start');
+                    }
+                    
+                    if ($reservation->get('time_end')) {
+                        $formattedEndTime = $reservation->get('time_end');
+                    }
+                } else {
+                    error_log(sprintf("Keine Reservierungen für Buchung %s gefunden", $booking->get('bid')));
+                }
+            } catch (\Exception $e) {
+                error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
             }
             
-            // Get square details
-            $squareManager = $serviceManager->get('Square\Manager\SquareManager');
-            $square = $squareManager->get($booking->need('sid'));
-            $squareName = $square->need('name');
-            
-            // Format booking time
-            $bookingTime = $booking->get('time_start');
-            if (!$bookingTime) {
-                $bookingTime = time();
-            }
-            
-            $formattedDate = date('d.m.Y', $bookingTime);
-            $formattedTime = date('H:i', $bookingTime);
-            $timeEnd = $booking->get('time_end');
-            // Default to 1 hour later if end time is not set
-            if (!$timeEnd) {
-                $timeEnd = $bookingTime + 3600; // Default to 1 hour duration
-            }
-            $formattedEndTime = date('H:i', $timeEnd);
-            
-            // Get door code if available
-            $doorCode = $booking->getMeta('door_code');
+            // Prüfen, ob der Platz einen Zugangscode hat
+            $doorCode = null;
             $doorCodeMessage = '';
-            if ($doorCode) {
-                $doorCodeMessage = sprintf("\n\nTür code: %s", $doorCode);
+            
+            if ($square) {
+                $doorCode = $this->checkReservedSquareHasDoorCode($square);
+                if ($doorCode) {
+                    $doorCodeMessage = sprintf("\n\nZugangscode: %s", $doorCode);
+                }
             }
             
-            // Set email content - German format
-            $subject = sprintf('%s\'s Platz-Buchung wurde erstellt', $user->need('alias'));
-            $body = sprintf(
-                "Hallo,\n\nwir haben den Platz \"%s\" am %s, %s bis %s Uhr für Sie gebucht (Buchungs-Nr: %s).%s\n\nDiese Nachricht wurde automatisch gesendet. Ursprünglich gesendet an %s (%s).\n\nViele Grüße,\nIhr %s Online-Platzbuchung\n%s",
+            // Personalisierte Anrede
+            $anrede = 'Hallo';
+            if ($user->getMeta('gender') == 'male') {
+                $anrede = 'Sehr geehrter Herr';
+            } elseif ($user->getMeta('gender') == 'female') {
+                $anrede = 'Sehr geehrte Frau';
+            }
+            
+            if ($user->getMeta('lastname')) {
+                $anrede .= ' ' . $user->getMeta('lastname');
+            } else {
+                $anrede .= ' ' . $user->need('alias');
+            }
+
+            $subject = sprintf($this->t('Buchungsbestätigung: Platz %s, %s'), $squareName, $formattedDate);
+            
+            // Get client contact email for potential inquiries
+            $contactInfo = '';
+            $contactEmail = $this->option('client.contact.email', '');
+            if (!empty($contactEmail)) {
+                $contactInfo = sprintf($this->t('Bei Rückfragen wenden Sie sich bitte an %s'), $contactEmail);
+            }
+            
+            $clientName = $this->option('client.name', 'Online-Platzbuchung');
+            
+            // Strukturierte Darstellung der Buchungsdetails
+            $buchungsDetails = sprintf(
+                $this->t("Buchungsdetails:\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s%s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
                 $formattedEndTime,
                 $booking->need('bid'),
-                $doorCodeMessage,
-                $user->need('alias'),
-                $user->need('email'),
-                $this->option('client.name') ?: 'TCN', // Fallback to TCN if client.name is not set
-                $this->getRequest()->getUri()->getScheme() . '://' . $this->getRequest()->getUri()->getHost()
+                $doorCodeMessage
             );
             
-            // Get email settings from config
-            $fromAddress = $this->option('client.contact.email');
-            $clientName = $this->option('client.name') ?: 'TCN'; // Fallback to TCN if client.name is not set
-            $fromName = $clientName . ' Online-Platzbuchung';
-            $toAddress = $user->need('email');
-            $toName = $user->need('alias');
+            $stornierungsBedingungen = $this->t('Bitte beachten Sie unsere Stornierungsbedingungen. Stornierungen sind bis zu 2 Stunden vor Beginn kostenfrei möglich.');
+            $paypalInfo = $this->t('Bei Stornierung werden die gezahlten PayPal-Beträge als Budget dem Konto gutgeschrieben.');
             
-            // Fallback if client.contact.email is not set
-            if (empty($fromAddress)) {
-                $fromAddress = 'noreply@example.com';
-                $fromName = 'Booking System';
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'WARNING: Using fallback for fromAddress: ' . $fromAddress . PHP_EOL, 
-                                  FILE_APPEND);
-            }
+            // iCalendar-Anhang erstellen
+            $calendarAttachment = $this->createICalendarAttachment($booking, $squareName, $formattedDate, $formattedTime, $formattedEndTime, $user);
             
-            // Add debug logging
-            $logMessage = 'Email details:' . PHP_EOL;
-            $logMessage .= 'From: ' . $fromAddress . ' (' . $fromName . ')' . PHP_EOL;
-            $logMessage .= 'To: ' . $toAddress . ' (' . $toName . ')' . PHP_EOL;
-            $logMessage .= 'Subject: ' . $subject . PHP_EOL;
-            $logMessage .= 'Body: ' . $body . PHP_EOL;
-            
-            error_log($logMessage);
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', $logMessage, FILE_APPEND);
-            
-            // Let's also try BOTH mail methods to ensure one works
-            
-            // 1. Direct PHP mail function (as a fallback)
-            $headers = "From: $fromName <$fromAddress>\r\n";
-            $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
-            $headers .= "X-Mailer: PHP/" . phpversion();
-            
-            $mailResult = mail($toAddress, $subject, $body, $headers);
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              'PHP mail() result: ' . ($mailResult ? 'success' : 'failed') . PHP_EOL, 
-                              FILE_APPEND);
-            
-            // 2. Directly send the email using MailService
+            // Backend MailService verwenden, falls verfügbar
             try {
-                $result = $mailService->sendPlain(
-                    $fromAddress,    // fromAddress
-                    $fromName,       // fromName
-                    $fromAddress,    // replyToAddress
-                    $fromName,       // replyToName
-                    $toAddress,      // toAddress
-                    $toName,         // toName
-                    $subject,        // subject
-                    $body,           // text
-                    []               // attachments (empty array)
-                );
-                
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'MailService result: ' . ($result ? 'success' : 'failed') . PHP_EOL, 
-                                  FILE_APPEND);
-            } catch (\Exception $e) {
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'MailService exception: ' . $e->getMessage() . PHP_EOL, 
-                                  FILE_APPEND);
-            }
-            
-            // 3. Try the Square\Controller\BookingController method directly
-            try {
-                $squareController = $serviceManager->get('ControllerManager')->get('Square\Controller\BookingController');
-                if ($squareController) {
-                    file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                      'Trying Square BookingController sendConfirmationEmail method' . PHP_EOL, 
-                                      FILE_APPEND);
-                    // Try to call the confirmation email method if it exists
-                    if (method_exists($squareController, 'sendConfirmationEmail')) {
-                        $squareController->sendConfirmationEmail($booking, $user);
-                    }
+                // Prüfen, ob der Backend\Service\MailService verfügbar ist
+                if ($this->serviceLocator->has('Backend\Service\MailService')) {
+                    // Vollständigen Text für die E-Mail erstellen
+                    $emailText = sprintf(
+                        "%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s",
+                        $anrede,
+                        $buchungsDetails,
+                        $stornierungsBedingungen,
+                        $paypalInfo
+                    );
+                    
+                    $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
+                    
+                    // Benutzerdefinierte E-Mail an den Kunden senden
+                    $backendMailService->sendCustomEmail(
+                        $subject,
+                        $emailText,
+                        $user->need('email'),
+                        $user->need('alias'),
+                        $calendarAttachment ? [$calendarAttachment] : [],   // Kalender-Anhang, falls vorhanden
+                        $contactInfo  // zusätzliche Information als Nachsatz
+                    );
+                    
+                    error_log(sprintf("Buchungsbestätigungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
+                    return true;
+                } else {
+                    // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
+                    error_log("Backend\\Service\\MailService nicht verfügbar, verwende Fallback-Methode");
+                    $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails, 
+                        $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede);
                 }
             } catch (\Exception $e) {
-                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                                  'Square controller exception: ' . $e->getMessage() . PHP_EOL, 
-                                  FILE_APPEND);
+                error_log(sprintf("Fehler bei Verwendung von Backend\\Service\\MailService: %s", $e->getMessage()));
+                // Fallback auf die alte Methode
+                $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails, 
+                    $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede);
             }
-            
-            // Mark that notification was sent
-            $booking->setMeta('creation_notification_sent', date('Y-m-d H:i:s'));
-            $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
-            $bookingManager->save($booking);
-            
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              'Successfully attempted to send booking creation email to: ' . $toAddress . PHP_EOL . 
-                              '---------- ADMIN BOOKING CREATION EMAIL DEBUG END ----------' . PHP_EOL, 
-                              FILE_APPEND);
             
             return true;
         } catch (\Exception $e) {
-            // Log the error but don't disrupt the booking process
-            $errorMessage = 'ERROR in sendAdminBookingCreationEmail: ' . $e->getMessage() . PHP_EOL . 
-                           'Exception trace: ' . $e->getTraceAsString();
-            error_log($errorMessage);
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              $errorMessage . PHP_EOL . 
-                              '---------- ADMIN BOOKING CREATION EMAIL DEBUG END ----------' . PHP_EOL, 
-                              FILE_APPEND);
-            
+            // Log the exception for debugging
+            error_log(sprintf("Fehler beim Senden der Buchungsbestätigungsemail: %s", $e->getMessage()));
             return false;
-        } finally {
-            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                              '---------- ADMIN BOOKING CREATION EMAIL DEBUG END ----------' . PHP_EOL, 
-                              FILE_APPEND);
+        }
+    }
+    
+    /**
+     * Fallback-Methode zum Senden der Buchungsbestätigungsemail, wenn Backend\Service\MailService nicht verfügbar ist
+     */
+    protected function sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails, 
+        $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede)
+    {
+        try {
+            // Versuche den Mail-Service zu erhalten, mit robuster Fehlerbehandlung
+            if (!$this->serviceLocator->has('Base\Service\MailService')) {
+                throw new \Exception("MailService ist nicht als Service registriert");
+            }
+            
+            $mailService = $this->serviceLocator->get('Base\Service\MailService');
+            if (!$mailService) {
+                throw new \Exception("MailService konnte nicht initialisiert werden");
+            }
+            
+            // Debug-Log für Fehleranalyse
+            error_log(sprintf("Sende Buchungsbestätigungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
+            
+            // Verwende Konfigurationswerte aus den Client-Einstellungen
+            $fromAddress = $this->option('client.contact.email', 'noreply@example.com');
+            $fromName = sprintf('%s %s', 
+                $this->option('client.name.short', 'BS'),
+                $this->option('service.name.full', 'Buchungssystem')
+            );
+            
+            // Vollständigen E-Mail-Text zusammenbauen
+            $body = sprintf(
+                $this->t("%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s\n\nViele Grüße,\nIhr %s"), 
+                $anrede,
+                $buchungsDetails,
+                $stornierungsBedingungen,
+                $paypalInfo,
+                $contactInfo,
+                $clientName
+            );
+            
+            // Protokollieren des E-Mail-Inhalts zur Fehleranalyse
+            error_log(sprintf("E-Mail-Inhalt für Buchung %s: %s", $booking->get('bid'), str_replace("\n", " ", $body)));
+            
+            // Send to user - ACHTUNG: sendPlain statt sendTextMail verwenden
+            // Wenn ICS-Anhang verfügbar, diesen hinzufügen
+            if ($calendarAttachment) {
+                $mailService->sendPlain(
+                    $fromAddress,         // fromAddress
+                    $fromName,            // fromName
+                    $fromAddress,         // replyToAddress
+                    $fromName,            // replyToName
+                    $user->need('email'), // toAddress
+                    $user->need('alias'), // toName
+                    $subject,             // subject
+                    $body,                // text
+                    [$calendarAttachment] // attachments - ICS-Anhang
+                );
+            } else {
+                // Keine Anhänge notwendig
+                $mailService->sendPlain(
+                    $fromAddress,         // fromAddress
+                    $fromName,            // fromName
+                    $fromAddress,         // replyToAddress
+                    $fromName,            // replyToName
+                    $user->need('email'), // toAddress
+                    $user->need('alias'), // toName
+                    $subject,             // subject
+                    $body                 // text
+                );
+            }
+            
+            return true;
+        } catch (\Exception $e) {
+            error_log(sprintf("Fehler beim Senden der E-Mail (Fallback): %s", $e->getMessage()));
+            return false;
+        }
+    }
+    
+    /**
+     * Prüft, ob ein reservierter Platz einen Zugangscode hat
+     *
+     * @param Square $square Der Platz
+     * @return string|null Der Zugangscode oder null, wenn keiner vorhanden
+     */
+    protected function checkReservedSquareHasDoorCode($square)
+    {
+        if (!$square) {
+            return null;
+        }
+        
+        try {
+            // Prüfen, ob ein Zugangscode existiert
+            $doorCode = $square->getMeta('door-code');
+            if (!empty($doorCode)) {
+                return $doorCode;
+            }
+        } catch (\Exception $e) {
+            error_log(sprintf("Fehler beim Abrufen des Zugangscodes: %s", $e->getMessage()));
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Erstellt einen iCalendar-Anhang für eine Buchung
+     *
+     * @param \Booking\Entity\Booking $booking
+     * @param string $squareName
+     * @param string $formattedDate
+     * @param string $formattedTime
+     * @param string $formattedEndTime
+     * @param User $user
+     * @return array|null Der Anhang oder null bei Fehlern
+     */
+    protected function createICalendarAttachment($booking, $squareName, $formattedDate, $formattedTime, $formattedEndTime, $user = null)
+    {
+        try {
+            // Datum und Zeit-Angaben aus der Reservierung extrahieren
+            $startDate = new \DateTime($formattedDate . ' ' . $formattedTime);
+            
+            // Endzeit, falls vorhanden
+            $endDate = clone $startDate;
+            if ($formattedEndTime) {
+                $endTime = explode(':', $formattedEndTime);
+                $endHour = isset($endTime[0]) ? (int)$endTime[0] : 0;
+                $endMinute = isset($endTime[1]) ? (int)$endTime[1] : 0;
+                
+                $endDate->setTime($endHour, $endMinute);
+            }
+            
+            $clientName = $this->option('client.name', 'Online-Platzbuchung');
+            
+            // iCalendar erstellen
+            $ics = "BEGIN:VCALENDAR\r\n";
+            $ics .= "VERSION:2.0\r\n";
+            $ics .= "PRODID:-//hacksw/handcal//NONSGML v1.0//EN\r\n";
+            $ics .= "CALSCALE:GREGORIAN\r\n";
+            $ics .= "METHOD:PUBLISH\r\n";
+            $ics .= "BEGIN:VEVENT\r\n";
+            $ics .= "UID:" . md5($booking->need('bid') . time()) . "\r\n";
+            $ics .= "DTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\n";
+            $ics .= "DTSTART:" . $startDate->format('Ymd\THis') . "\r\n";
+            $ics .= "DTEND:" . $endDate->format('Ymd\THis') . "\r\n";
+            $ics .= "SUMMARY:Platzbuchung: " . $squareName . "\r\n";
+            $ics .= "DESCRIPTION:Ihre Platzbuchung für " . $squareName . "\\n";
+            $ics .= "Buchungs-Nr: " . $booking->need('bid') . "\r\n";
+            $ics .= "LOCATION:" . $squareName . "\r\n";
+            $ics .= "STATUS:CONFIRMED\r\n";
+            $ics .= "ORGANIZER;CN=\"" . $clientName . "\":MAILTO:" . $this->option('client.contact.email', '') . "\r\n";
+            
+            // Füge Teilnehmer hinzu, wenn Benutzer übergeben wurde
+            if ($user) {
+                $ics .= "ATTENDEE;CN=\"" . $user->need('alias') . "\":MAILTO:" . $user->need('email') . "\r\n";
+            }
+            
+            $ics .= "END:VEVENT\r\n";
+            $ics .= "END:VCALENDAR\r\n";
+            
+            // Anhang als Array zurückgeben
+            return array(
+                'content' => $ics,
+                'filename' => 'buchung_' . $booking->need('bid') . '.ics',
+                'name' => 'buchung_' . $booking->need('bid') . '.ics',
+                'type' => 'text/calendar'
+            );
+        } catch (\Exception $e) {
+            error_log(sprintf("Fehler beim Erstellen des iCalendar-Anhangs: %s", $e->getMessage()));
+            return null;
         }
     }
 }

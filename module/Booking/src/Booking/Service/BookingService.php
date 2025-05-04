@@ -349,8 +349,7 @@ class BookingService extends AbstractService
                 
                 error_log('Successfully sent admin cancellation email for booking ID: ' . $booking->need('bid'));
             } catch (\Exception $e) {
-                error_log('Failed to send admin cancellation email: ' . $e->getMessage());
-                error_log('Exception trace: ' . $e->getTraceAsString());
+                // Just catch exception and move on
             }
         }
         
@@ -374,10 +373,6 @@ class BookingService extends AbstractService
     protected function sendAdminBookingNotification($booking, $user, $square, DateTime $dateTimeStart, DateTime $dateTimeEnd)
     {
         try {
-            // Debug logging
-            error_log('---------- ADMIN BOOKING NOTIFICATION DEBUG START ----------');
-            error_log('Attempting to send admin booking notification for booking ID: ' . $booking->need('bid'));
-            
             $squareType = $this->optionManager->need('subject.square.type');
             $squareName = $this->t($square->need('name'));
             
@@ -387,14 +382,12 @@ class BookingService extends AbstractService
                 $fromAddress = $this->optionManager->get('client.mail');
                 if (empty($fromAddress)) {
                     $fromAddress = 'noreply@example.com';
-                    error_log('WARNING: Using fallback from address: ' . $fromAddress);
                 }
             }
             
             $clientName = $this->optionManager->get('client.name');
             if (empty($clientName)) {
                 $clientName = 'TCN'; // Fallback name
-                error_log('WARNING: Using fallback client name: ' . $clientName);
             }
             
             $fromName = $clientName . ' Online-Platzbuchung';
@@ -428,12 +421,8 @@ class BookingService extends AbstractService
                 $clientName
             );
             
-            error_log('Email content prepared for booking ID: ' . $booking->need('bid'));
-            error_log('From: ' . $fromAddress . ' To: ' . $toAddress);
-            
             // Check if mailService is available
             if (!$this->mailService) {
-                error_log('ERROR: Mail service not available in BookingService');
                 return;
             }
             
@@ -442,11 +431,10 @@ class BookingService extends AbstractService
             $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
             $headers .= "X-Mailer: PHP/" . phpversion();
             
-            $mailResult = mail($toAddress, $subject, $body, $headers);
-            error_log('PHP mail() result: ' . ($mailResult ? 'success' : 'failed'));
+            mail($toAddress, $subject, $body, $headers);
             
             // Send the email using MailService
-            $result = $this->mailService->sendPlain(
+            $this->mailService->sendPlain(
                 $fromAddress,    // fromAddress
                 $fromName,       // fromName
                 $fromAddress,    // replyToAddress
@@ -462,12 +450,8 @@ class BookingService extends AbstractService
             $booking->setMeta('creation_notification_sent', date('Y-m-d H:i:s'));
             $this->bookingManager->save($booking);
             
-            error_log('Successfully sent admin booking notification to: ' . $toAddress . ' for booking ID: ' . $booking->need('bid'));
-            error_log('---------- ADMIN BOOKING NOTIFICATION DEBUG END ----------');
-            
         } catch (\Exception $e) {
-            // Log the error but don't disrupt the booking process
-            error_log('Failed to send admin booking notification: ' . $e->getMessage() . ', trace: ' . $e->getTraceAsString());
+            // Just catch exception and move on
         }
     }
 }
