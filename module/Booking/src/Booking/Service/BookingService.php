@@ -375,21 +375,33 @@ class BookingService extends AbstractService
     {
         try {
             // Debug logging
+            error_log('---------- ADMIN BOOKING NOTIFICATION DEBUG START ----------');
             error_log('Attempting to send admin booking notification for booking ID: ' . $booking->need('bid'));
             
             $squareType = $this->optionManager->need('subject.square.type');
             $squareName = $this->t($square->need('name'));
             
-            // Get email settings from config
-            $fromAddress = $this->optionManager->need('client.mail');
-            $fromName = $this->optionManager->need('client.name');
+            // Get email settings from config with fallbacks
+            $fromAddress = $this->optionManager->get('client.contact.email');
+            if (empty($fromAddress)) {
+                $fromAddress = $this->optionManager->get('client.mail');
+                if (empty($fromAddress)) {
+                    $fromAddress = 'noreply@example.com';
+                    error_log('WARNING: Using fallback from address: ' . $fromAddress);
+                }
+            }
+            
+            $clientName = $this->optionManager->get('client.name');
+            if (empty($clientName)) {
+                $clientName = 'TCN'; // Fallback name
+                error_log('WARNING: Using fallback client name: ' . $clientName);
+            }
+            
+            $fromName = $clientName . ' Online-Platzbuchung';
             $toAddress = $user->need('email');
             $toName = $user->need('alias');
             
-            /** @var $dateRangeHelper DateRange */
-            $dateRangeHelper = $this->viewHelperManager->get('DateRange');
-            
-            // Format the date and time
+            // Format the date and time for German format
             $formattedDate = $dateTimeStart->format('d.m.Y');
             $formattedStartTime = $dateTimeStart->format('H:i');
             $formattedEndTime = $dateTimeEnd->format('H:i');
@@ -398,25 +410,22 @@ class BookingService extends AbstractService
             $doorCode = $booking->getMeta('doorCode');
             $doorCodeMessage = '';
             if ($doorCode) {
-                $doorCodeMessage = sprintf($this->t("\nDoor code: %s"), $doorCode);
+                $doorCodeMessage = sprintf("\n\nTür code: %s", $doorCode);
             }
             
-            // Set email content
-            $subject = sprintf($this->t('Your booking for %s has been created'), $squareName);
+            // Set email content - German format
+            $subject = sprintf('%s\'s Platz-Buchung wurde erstellt', $user->need('alias'));
             $body = sprintf(
-                $this->t("Dear %s,\n\nWe have created a booking for you for %s on %s from %s to %s.\n\nBooking details:\n- Square: %s\n- Date: %s\n- Time: %s - %s\n- Quantity: %s%s\n\nIf you have any questions, please contact us.\n\nThank you,\n%s"),
-                $user->need('alias'),
+                "Hallo,\n\nwir haben den Platz \"%s\" am %s, %s bis %s Uhr für Sie gebucht (Buchungs-Nr: %s).%s\n\nDiese Nachricht wurde automatisch gesendet. Ursprünglich gesendet an %s (%s).\n\nViele Grüße,\nIhr %s Online-Platzbuchung",
                 $squareName,
                 $formattedDate,
                 $formattedStartTime,
                 $formattedEndTime,
-                $squareName,
-                $formattedDate,
-                $formattedStartTime,
-                $formattedEndTime,
-                $booking->get('quantity'),
+                $booking->need('bid'),
                 $doorCodeMessage,
-                $fromName
+                $user->need('alias'),
+                $user->need('email'),
+                $clientName
             );
             
             error_log('Email content prepared for booking ID: ' . $booking->need('bid'));
@@ -428,8 +437,16 @@ class BookingService extends AbstractService
                 return;
             }
             
-            // Send the email
-            $this->mailService->sendPlain(
+            // Try PHP mail function (as a fallback)
+            $headers = "From: $fromName <$fromAddress>\r\n";
+            $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+            
+            $mailResult = mail($toAddress, $subject, $body, $headers);
+            error_log('PHP mail() result: ' . ($mailResult ? 'success' : 'failed'));
+            
+            // Send the email using MailService
+            $result = $this->mailService->sendPlain(
                 $fromAddress,    // fromAddress
                 $fromName,       // fromName
                 $fromAddress,    // replyToAddress
@@ -442,10 +459,11 @@ class BookingService extends AbstractService
             );
             
             // Update the booking to record that notification was sent
-            $booking->setMeta('notification_sent', date('Y-m-d H:i:s'));
+            $booking->setMeta('creation_notification_sent', date('Y-m-d H:i:s'));
             $this->bookingManager->save($booking);
             
             error_log('Successfully sent admin booking notification to: ' . $toAddress . ' for booking ID: ' . $booking->need('bid'));
+            error_log('---------- ADMIN BOOKING NOTIFICATION DEBUG END ----------');
             
         } catch (\Exception $e) {
             // Log the error but don't disrupt the booking process
