@@ -167,7 +167,28 @@ class BookingController extends AbstractActionController
 
                     $savedBooking = $this->backendBookingCreate($d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'], $d['bf-date-end'],
                         $d['bf-repeat'], $d['bf-sid'], $d['bf-status-billing'], $d['bf-quantity'], $d['bf-notes'], $sessionUser->get('alias'));
-         
+          
+                    // Get the user object for the booking
+                    $userManager = $serviceManager->get('User\Manager\UserManager');
+                    $user = $userManager->get($savedBooking->get('uid'));
+                    
+                    // Debug logs - Check for needed directories
+                    $logDir = '/var/www/html/data/log';
+                    
+                    try {
+                        // Debug the email process
+                        error_log('[' . date('Y-m-d H:i:s') . '] ADMIN BOOKING CREATED - email process for booking ID: ' . $savedBooking->need('bid'));
+                        
+                        // Only send email if user has an email address
+                        if ($user && $user->get('email')) {
+                            // Send admin booking creation email
+                            $this->sendAdminBookingCreationEmail($savedBooking, $user);
+                        } else {
+                            error_log('[' . date('Y-m-d H:i:s') . '] NOT SENDING EMAIL - User has no email address. User ID: ' . $user->get('uid'));
+                        }
+                    } catch (\Exception $e) {
+                        error_log('Exception sending email: ' . $e->getMessage());
+                    }
                 }
 
                 $this->flashMessenger()->addSuccessMessage('Booking has been saved');
@@ -911,8 +932,8 @@ class BookingController extends AbstractActionController
         error_log('---------- ADMIN CANCELLATION EMAIL DEBUG START ----------');
         error_log('sendAdminCancellationEmail called for booking ID: ' . $booking->need('bid'));
         file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
-                          '---------- ADMIN CANCELLATION EMAIL DEBUG START ----------' . PHP_EOL . 
-                          'sendAdminCancellationEmail called for booking ID: ' . $booking->need('bid') . PHP_EOL, 
+                          '[' . date('Y-m-d H:i:s') . '] ADMIN BOOKING CREATED - email process for booking ID: ' . $booking->need('bid') . PHP_EOL . 
+                          'User ID: ' . $booking->get('uid') . ', User alias: ' . $user->get('alias') . PHP_EOL,
                           FILE_APPEND);
         
         try {
@@ -943,7 +964,11 @@ class BookingController extends AbstractActionController
             $formattedDate = date('d.m.Y', $bookingTime);
             $formattedTime = date('H:i', $bookingTime);
             $timeEnd = $booking->get('time_end');
-            $formattedEndTime = $timeEnd ? date('H:i', $timeEnd) : '';
+            // Default to 1 hour later if end time is not set
+            if (!$timeEnd) {
+                $timeEnd = $bookingTime + 3600; // Default to 1 hour duration
+            }
+            $formattedEndTime = date('H:i', $timeEnd);
             
             // Calculate refund if applicable
             $refundMessage = '';
@@ -975,17 +1000,18 @@ class BookingController extends AbstractActionController
                 $refundMessage,
                 $user->need('alias'),
                 $user->need('email'),
-                $this->option('client.name'),
+                $this->option('client.name') ?: 'TCN', // Fallback to TCN if client.name is not set
                 $this->getRequest()->getUri()->getScheme() . '://' . $this->getRequest()->getUri()->getHost()
             );
             
             // Get email settings from config
-            $fromAddress = $this->option('client.mail');
-            $fromName = $this->option('client.name') . ' Online-Platzbuchung';
+            $fromAddress = $this->option('client.contact.email');
+            $clientName = $this->option('client.name') ?: 'TCN'; // Fallback to TCN if client.name is not set
+            $fromName = $clientName . ' Online-Platzbuchung';
             $toAddress = $user->need('email');
             $toName = $user->need('alias');
             
-            // Fallback if client.mail is not set
+            // Fallback if client.contact.email is not set
             if (empty($fromAddress)) {
                 $fromAddress = 'noreply@example.com';
                 $fromName = 'Booking System';
@@ -1076,6 +1102,187 @@ class BookingController extends AbstractActionController
                               FILE_APPEND);
             
             return false;
+        }
+    }
+
+    /**
+     * Send a booking creation email notification when an admin creates a booking
+     * 
+     * @param Booking $booking
+     * @param User $user
+     * @return boolean
+     */
+    public function sendAdminBookingCreationEmail(Booking $booking, User $user)
+    {
+        error_log('---------- ADMIN BOOKING CREATION EMAIL DEBUG START ----------');
+        error_log('sendAdminBookingCreationEmail called for booking ID: ' . $booking->need('bid'));
+        file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                          '[' . date('Y-m-d H:i:s') . '] ADMIN BOOKING CREATED - email process for booking ID: ' . $booking->need('bid') . PHP_EOL . 
+                          'User ID: ' . $booking->get('uid') . ', User alias: ' . $user->get('alias') . PHP_EOL,
+                          FILE_APPEND);
+        
+        try {
+            // Get the service manager and services
+            $serviceManager = $this->getServiceLocator();
+            
+            // Get the mail service
+            $mailService = $serviceManager->get('Base\Service\MailService');
+            if (!$mailService) {
+                error_log('ERROR: Mail service not available in BackendController');
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'ERROR: Mail service not available in BackendController' . PHP_EOL, 
+                                  FILE_APPEND);
+                return false;
+            }
+            
+            // Get square details
+            $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+            $square = $squareManager->get($booking->need('sid'));
+            $squareName = $square->need('name');
+            
+            // Format booking time
+            $bookingTime = $booking->get('time_start');
+            if (!$bookingTime) {
+                $bookingTime = time();
+            }
+            
+            $formattedDate = date('d.m.Y', $bookingTime);
+            $formattedTime = date('H:i', $bookingTime);
+            $timeEnd = $booking->get('time_end');
+            // Default to 1 hour later if end time is not set
+            if (!$timeEnd) {
+                $timeEnd = $bookingTime + 3600; // Default to 1 hour duration
+            }
+            $formattedEndTime = date('H:i', $timeEnd);
+            
+            // Get door code if available
+            $doorCode = $booking->getMeta('door_code');
+            $doorCodeMessage = '';
+            if ($doorCode) {
+                $doorCodeMessage = sprintf("\n\nTür code: %s", $doorCode);
+            }
+            
+            // Set email content - German format
+            $subject = sprintf('%s\'s Platz-Buchung wurde erstellt', $user->need('alias'));
+            $body = sprintf(
+                "Hallo,\n\nwir haben den Platz \"%s\" am %s, %s bis %s Uhr für Sie gebucht (Buchungs-Nr: %s).%s\n\nDiese Nachricht wurde automatisch gesendet. Ursprünglich gesendet an %s (%s).\n\nViele Grüße,\nIhr %s Online-Platzbuchung\n%s",
+                $squareName,
+                $formattedDate,
+                $formattedTime,
+                $formattedEndTime,
+                $booking->need('bid'),
+                $doorCodeMessage,
+                $user->need('alias'),
+                $user->need('email'),
+                $this->option('client.name') ?: 'TCN', // Fallback to TCN if client.name is not set
+                $this->getRequest()->getUri()->getScheme() . '://' . $this->getRequest()->getUri()->getHost()
+            );
+            
+            // Get email settings from config
+            $fromAddress = $this->option('client.contact.email');
+            $clientName = $this->option('client.name') ?: 'TCN'; // Fallback to TCN if client.name is not set
+            $fromName = $clientName . ' Online-Platzbuchung';
+            $toAddress = $user->need('email');
+            $toName = $user->need('alias');
+            
+            // Fallback if client.contact.email is not set
+            if (empty($fromAddress)) {
+                $fromAddress = 'noreply@example.com';
+                $fromName = 'Booking System';
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'WARNING: Using fallback for fromAddress: ' . $fromAddress . PHP_EOL, 
+                                  FILE_APPEND);
+            }
+            
+            // Add debug logging
+            $logMessage = 'Email details:' . PHP_EOL;
+            $logMessage .= 'From: ' . $fromAddress . ' (' . $fromName . ')' . PHP_EOL;
+            $logMessage .= 'To: ' . $toAddress . ' (' . $toName . ')' . PHP_EOL;
+            $logMessage .= 'Subject: ' . $subject . PHP_EOL;
+            $logMessage .= 'Body: ' . $body . PHP_EOL;
+            
+            error_log($logMessage);
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', $logMessage, FILE_APPEND);
+            
+            // Let's also try BOTH mail methods to ensure one works
+            
+            // 1. Direct PHP mail function (as a fallback)
+            $headers = "From: $fromName <$fromAddress>\r\n";
+            $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+            
+            $mailResult = mail($toAddress, $subject, $body, $headers);
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              'PHP mail() result: ' . ($mailResult ? 'success' : 'failed') . PHP_EOL, 
+                              FILE_APPEND);
+            
+            // 2. Directly send the email using MailService
+            try {
+                $result = $mailService->sendPlain(
+                    $fromAddress,    // fromAddress
+                    $fromName,       // fromName
+                    $fromAddress,    // replyToAddress
+                    $fromName,       // replyToName
+                    $toAddress,      // toAddress
+                    $toName,         // toName
+                    $subject,        // subject
+                    $body,           // text
+                    []               // attachments (empty array)
+                );
+                
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'MailService result: ' . ($result ? 'success' : 'failed') . PHP_EOL, 
+                                  FILE_APPEND);
+            } catch (\Exception $e) {
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'MailService exception: ' . $e->getMessage() . PHP_EOL, 
+                                  FILE_APPEND);
+            }
+            
+            // 3. Try the Square\Controller\BookingController method directly
+            try {
+                $squareController = $serviceManager->get('ControllerManager')->get('Square\Controller\BookingController');
+                if ($squareController) {
+                    file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                      'Trying Square BookingController sendConfirmationEmail method' . PHP_EOL, 
+                                      FILE_APPEND);
+                    // Try to call the confirmation email method if it exists
+                    if (method_exists($squareController, 'sendConfirmationEmail')) {
+                        $squareController->sendConfirmationEmail($booking, $user);
+                    }
+                }
+            } catch (\Exception $e) {
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'Square controller exception: ' . $e->getMessage() . PHP_EOL, 
+                                  FILE_APPEND);
+            }
+            
+            // Mark that notification was sent
+            $booking->setMeta('creation_notification_sent', date('Y-m-d H:i:s'));
+            $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+            $bookingManager->save($booking);
+            
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              'Successfully attempted to send booking creation email to: ' . $toAddress . PHP_EOL . 
+                              '---------- ADMIN BOOKING CREATION EMAIL DEBUG END ----------' . PHP_EOL, 
+                              FILE_APPEND);
+            
+            return true;
+        } catch (\Exception $e) {
+            // Log the error but don't disrupt the booking process
+            $errorMessage = 'ERROR in sendAdminBookingCreationEmail: ' . $e->getMessage() . PHP_EOL . 
+                           'Exception trace: ' . $e->getTraceAsString();
+            error_log($errorMessage);
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              $errorMessage . PHP_EOL . 
+                              '---------- ADMIN BOOKING CREATION EMAIL DEBUG END ----------' . PHP_EOL, 
+                              FILE_APPEND);
+            
+            return false;
+        } finally {
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              '---------- ADMIN BOOKING CREATION EMAIL DEBUG END ----------' . PHP_EOL, 
+                              FILE_APPEND);
         }
     }
 }
