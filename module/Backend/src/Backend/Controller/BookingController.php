@@ -1013,8 +1013,11 @@ class BookingController extends AbstractActionController
                 $booking->need('bid')
             );
             
-            $stornierungsBedingungen = $this->t('Bitte beachten Sie unsere Stornierungsbedingungen. Stornierungen sind bis zu 2 Stunden vor Beginn kostenfrei möglich.');
-            $paypalInfo = $this->t('Bei Stornierung werden die gezahlten PayPal-Beträge als Budget dem Konto gutgeschrieben.');
+            $stornierungsBedingungen = '';
+            $paypalInfo = '';
+            if ($booking->get('status_billing') === 'paid') {
+                $paypalInfo = $this->t('Die gezahlten PayPal-Beträge wurden als Budget Ihrem Konto gutgeschrieben.');
+            }
             
             // Backend MailService verwenden, falls verfügbar
             try {
@@ -1022,11 +1025,10 @@ class BookingController extends AbstractActionController
                 if ($this->serviceLocator->has('Backend\Service\MailService')) {
                     // Vollständigen Text für die E-Mail erstellen
                     $emailText = sprintf(
-                        "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s\n\n%s",
+                        "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s",
                         $anrede,
                         $buchungsDetails,
-                        $stornierungsBedingungen,
-                        $paypalInfo
+                        !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
                     );
                     
                     $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
@@ -1090,13 +1092,10 @@ class BookingController extends AbstractActionController
             
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
-                $this->t("%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s\n\n%s\n\nViele Grüße,\nIhr %s"), 
+                $this->t("%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s"),
                 $anrede,
                 $buchungsDetails,
-                $stornierungsBedingungen,
-                $paypalInfo,
-                $contactInfo,
-                $clientName
+                !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
             
             // Send to user
@@ -1232,7 +1231,10 @@ class BookingController extends AbstractActionController
             );
             
             $stornierungsBedingungen = $this->t('Bitte beachten Sie unsere Stornierungsbedingungen. Stornierungen sind bis zu 2 Stunden vor Beginn kostenfrei möglich.');
-            $paypalInfo = $this->t('Bei Stornierung werden die gezahlten PayPal-Beträge als Budget dem Konto gutgeschrieben.');
+            $paypalInfo = '';
+            if ($booking->get('status_billing') === 'paid') {
+                $paypalInfo = $this->t('Bei Stornierung werden die gezahlten PayPal-Beträge als Budget dem Konto gutgeschrieben.');
+            }
             
             // iCalendar-Anhang erstellen
             $calendarAttachment = $this->createICalendarAttachment($booking, $squareName, $formattedDate, $formattedTime, $formattedEndTime, $user);
@@ -1247,7 +1249,7 @@ class BookingController extends AbstractActionController
                         $anrede,
                         $buchungsDetails,
                         $stornierungsBedingungen,
-                        $paypalInfo
+                        !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
                     );
                     
                     $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
@@ -1314,13 +1316,11 @@ class BookingController extends AbstractActionController
             
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
-                $this->t("%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s\n\nViele Grüße,\nIhr %s"), 
+                $this->t("%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s"),
                 $anrede,
                 $buchungsDetails,
                 $stornierungsBedingungen,
-                $paypalInfo,
-                $contactInfo,
-                $clientName
+                !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
             
             // Protokollieren des E-Mail-Inhalts zur Fehleranalyse
