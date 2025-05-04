@@ -202,12 +202,29 @@ class BookingController extends AbstractActionController
 
         $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
         $finalPricing = $squarePricingManager->getFinalPricingInRange($byproducts['dateStart'], $byproducts['dateEnd'], $square, $quantityParam, $member);
+
+        // Check guest player checkbox
+        $guestPlayerCheckbox = $this->params()->fromQuery('gp', 0); // Default to 0 if not provided
+        // If member is playing with guest, set price to half of square price instead of 0
         if ($finalPricing != null && $finalPricing['price']) {
+            if ($guestPlayerCheckbox == 1) {
+                // Get the original square price before member discount
+                $nonMemberPricing = $squarePricingManager->getFinalPricingInRange($byproducts['dateStart'], $byproducts['dateEnd'], $square, $quantityParam, false);
+
+                // Set the half price for the square
+                $total += $nonMemberPricing['price'] / 2;
+            } else {
+                // Calculate the normal price
             $total+=$finalPricing['price'];
+            }
         }
 
         foreach ($products as $product) {
-
+            $productPrice = $product->need('price') * $product->needExtra('amount');
+            if ($guestPlayerCheckbox == 1) {
+                // Set the half price for products
+                $productPrice /= 2;
+            }
             $bills[] = new Bill(array(
                'description' => $product->need('name'),
                'quantity' => $product->needExtra('amount'),
@@ -216,15 +233,19 @@ class BookingController extends AbstractActionController
                'gross' => $product->need('gross'),
             ));
 
-            $total+=$product->need('price') * $product->needExtra('amount');
+           // $total+=$product->need('price') * $product->needExtra('amount');
+            // Calculate the normal price for products
+            $total += $productPrice;
+            // Ensure the total is being stored correctly in the database
         }
+        $byproducts['total'] = $total;
 
         $newbudget = 0;
         $byproducts['hasBudget'] = false; 
         $budgetpayment = false;
 
         // calculate end total from user budget
-        if ($user != null && $user->getMeta('budget') != null && $user->getMeta('budget') > 0 && $total > 0) {
+        if ($user != null && $user->getMeta('budget') != null && $user->getMeta('budget') > 0 && $total > 0 && $guestPlayerCheckbox != 1) {
             $byproducts['hasBudget'] = true;
             $budget = $user->getMeta('budget');
             $byproducts['budget'] = $budget;
@@ -289,13 +310,13 @@ class BookingController extends AbstractActionController
             $payservice = $this->params()->fromPost('paymentservice');
             $meta = array('player-names' => serialize($playerNames), 'notes' => $notes, 'gp' => $guestPlayerCheckbox, 'status_billing' => $statusBilling);
             
-            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
+            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable && $guestPlayerCheckbox != 1) {
                    $meta['directpay'] = 'true';
             }
 
             $booking = $bookingService->createSingle($user, $square, $quantityParam, $byproducts['dateStart'], $byproducts['dateEnd'], $bills, $meta);
             
-            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
+            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable && $guestPlayerCheckbox != 1) {
             # payment checkout
                 if($payable) {
                    // $paymentService = $serviceManager->get('Payment\Service\PaymentService'); 
@@ -510,8 +531,10 @@ class BookingController extends AbstractActionController
 
                 $user->setMeta('budget', $newbudget);
                 $userManager->save($user);
+                
+                // Send email notification for booking cancellation
+                $this->sendCancellationEmail($booking, $user, $total);
             }
-
 
             $this->flashMessenger()->addErrorMessage(sprintf($this->t('Your booking has been %scancelled%s.'),
                 '<b>', '</b>'));
@@ -523,6 +546,98 @@ class BookingController extends AbstractActionController
             'bid' => $bid,
             'origin' => $origin,
         ));
+    }
+
+    public function sendCancellationEmail($booking, $user, $total)
+    {
+        try {
+            $serviceManager = $this->getServiceLocator();
+            $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+            $square = $squareManager->get($booking->need('sid'));
+            
+            // Get the mail service
+            $mailService = $serviceManager->get('Base\Service\MailService');
+            if (!$mailService) {
+                error_log('Cannot send cancellation email: Mail service not available');
+                return;
+            }
+            
+            $squareName = $square->need('name');
+            $bookingTime = $booking->get('time_start');
+            if (!$bookingTime && $booking->getExtra('reservations')) {
+                $reservations = $booking->getExtra('reservations');
+                if (is_array($reservations) && count($reservations) > 0) {
+                    $firstReservation = reset($reservations);
+                    $date = $firstReservation->get('date');
+                    $time = $firstReservation->get('time_start');
+                    if ($date && $time) {
+                        $dateTime = new \DateTime($date . ' ' . $time);
+                        $bookingTime = $dateTime->getTimestamp();
+                    }
+                }
+            }
+            
+            // Use current time if we can't determine the booking time
+            if (!$bookingTime) {
+                $bookingTime = time();
+            }
+            
+            $formattedDate = date('d.m.Y', $bookingTime);
+            $formattedTime = date('H:i', $bookingTime);
+            
+            // Prepare refund message if applicable
+            $refundMessage = '';
+            if ($total > 0) {
+                $refundAmount = number_format($total / 100, 2);
+                $refundMessage = sprintf($this->t("\n\nA refund of %s has been processed to your account."), $refundAmount);
+            }
+            
+            // Set email content
+            $subject = sprintf($this->t('Your booking for %s has been cancelled'), $squareName);
+            $body = sprintf(
+                $this->t("Dear %s,\n\nYour booking for %s on %s at %s has been cancelled.%s\n\nIf you have any questions, please contact us.\n\nThank you,\n%s"),
+                $user->need('alias'),
+                $squareName,
+                $formattedDate,
+                $formattedTime,
+                $refundMessage,
+                $this->option('client.name')
+            );
+            
+            // Get email settings from config
+            $fromAddress = $this->option('client.mail');
+            $fromName = $this->option('client.name');
+            $toAddress = $user->need('email');
+            $toName = $user->need('alias');
+            
+            // Add debug logging
+            error_log('Attempting to send cancellation email to: ' . $toAddress . ' for booking ID: ' . $booking->need('bid'));
+            error_log('From: ' . $fromAddress . ' To: ' . $toAddress);
+            error_log('Subject: ' . $subject);
+            
+            // Send the email using MailService
+            $mailService->sendPlain(
+                $fromAddress,    // fromAddress
+                $fromName,       // fromName
+                $fromAddress,    // replyToAddress
+                $fromName,       // replyToName
+                $toAddress,      // toAddress
+                $toName,         // toName
+                $subject,        // subject
+                $body,           // text
+                []               // attachments (empty array)
+            );
+            
+            // Log success
+            error_log('Successfully sent cancellation email to: ' . $toAddress);
+            
+            // Record that we sent a notification
+            $booking->setMeta('cancellation_notification_sent', date('Y-m-d H:i:s'));
+            
+        } catch (\Exception $e) {
+            // Log the error but don't disrupt the cancellation process
+            error_log('Failed to send cancellation email: ' . $e->getMessage() . ', Trace: ' . $e->getTraceAsString());
+        }
     }
 
     public function confirmAction()
@@ -635,7 +750,6 @@ class BookingController extends AbstractActionController
 
         $square = $squareManager->get($booking->need('sid'));
 
-
         if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
 
             // syslog(LOG_EMERG, 'doneAction - success');
@@ -698,11 +812,14 @@ class BookingController extends AbstractActionController
                 $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sError during payment: Your booking has been cancelled.%s'),
                     '<b>', '</b>'));
             }
+            $bookingService = $serviceManager->get('Booking\Service\BookingService');
             $bookingService->cancelSingle($booking);
+            $userManager = $serviceManager->get('User\Manager\UserManager');
+            $user = $userManager->get($booking->get('uid'));
+            $this->sendCancellationEmail($booking, $user, 0);
         }  
 
         return $this->redirectBack()->toOrigin();
    
     }
-
 }

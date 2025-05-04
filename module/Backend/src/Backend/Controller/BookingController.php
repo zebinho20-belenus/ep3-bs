@@ -3,6 +3,7 @@
 namespace Backend\Controller;
 
 use Booking\Entity\Booking;
+use User\Entity\User;
 use Booking\Table\BookingTable;
 use Booking\Table\ReservationTable;
 use DateTime;
@@ -437,10 +438,12 @@ class BookingController extends AbstractActionController
                     $booking->set('status', 'cancelled');
                     $booking->setMeta('cancellor', $sessionUser->get('alias'));
                     $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+                    $booking->setMeta('admin_cancelled', 'true');
+                    $booking->setMeta('backend_cancelled', 'true');
                     $bookingManager->save($booking);
 
                     if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
-                        $squareControlService->deactivateDoorCode($bid);
+                        $squareControlService->deactivateDoorCode($booking->get('bid'));
                     }
 
                     # redefine user budget if status paid
@@ -471,11 +474,46 @@ class BookingController extends AbstractActionController
                         $user->setMeta('budget', $newbudget);
                         $userManager->save($user);
                     }
-
+                    
+                    // Send cancellation email directly
+                    $userManager = $serviceManager->get('User\Manager\UserManager');
+                    $user = $userManager->get($booking->get('uid'));
+                    
+                    $this->sendAdminCancellationEmail($booking, $user);
+                    
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
                 } else {
                     $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
 
+                    // Before deleting, let's get user info and set cancellation metadata
+                    $uid = $booking->get('uid');
+                    $bookingId = $booking->get('bid');
+                    $squareId = $booking->get('sid');
+                    
+                    // Add metadata to identify this as an admin cancellation
+                    $booking->setMeta('cancellor', $sessionUser->get('alias'));
+                    $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+                    $booking->setMeta('admin_cancelled', 'true');
+                    $booking->setMeta('backend_cancelled', 'true');
+                    $booking->setMeta('admin_deleted', 'true');
+                    $booking->set('status', 'cancelled');
+                    $bookingManager->save($booking);
+                    
+                    error_log('Admin is deleting booking ID: ' . $bookingId);
+                    
+                    // Get user info and send notification before deletion
+                    try {
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+                        $user = $userManager->get($uid);
+                        
+                        // Send the cancellation email directly
+                        $this->sendAdminCancellationEmail($booking, $user);
+                        
+                    } catch (\Exception $e) {
+                        error_log('Error sending cancellation email before deletion: ' . $e->getMessage());
+                    }
+                    
+                    // Now delete the booking
                     $bookingManager->delete($booking);
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been deleted');
@@ -517,7 +555,6 @@ class BookingController extends AbstractActionController
         $bid = $this->params()->fromRoute('bid');
 
         $serviceManager = @$this->getServiceLocator();
-
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
         $bookingStatusService = $serviceManager->get('Booking\Service\BookingStatusService');
@@ -692,7 +729,7 @@ class BookingController extends AbstractActionController
             throw new \RuntimeException('This booking has no additional player names');
         }
 
-        $playerNames = @unserialize($playerNames);
+        $playerNames = @unserialize($booking->getMeta('player-names'));
 
         if (! $playerNames) {
             throw new \RuntimeException('Invalid player names data stored in database');
@@ -862,4 +899,183 @@ class BookingController extends AbstractActionController
         return false;
     }
 
+    /**
+     * Send a cancellation email notification when an admin cancels a booking
+     * 
+     * @param Booking $booking
+     * @param User $user
+     * @return boolean
+     */
+    public function sendAdminCancellationEmail(Booking $booking, User $user)
+    {
+        error_log('---------- ADMIN CANCELLATION EMAIL DEBUG START ----------');
+        error_log('sendAdminCancellationEmail called for booking ID: ' . $booking->need('bid'));
+        file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                          '---------- ADMIN CANCELLATION EMAIL DEBUG START ----------' . PHP_EOL . 
+                          'sendAdminCancellationEmail called for booking ID: ' . $booking->need('bid') . PHP_EOL, 
+                          FILE_APPEND);
+        
+        try {
+            // Get the service manager and services
+            $serviceManager = $this->getServiceLocator();
+            
+            // Get the mail service
+            $mailService = $serviceManager->get('Base\Service\MailService');
+            if (!$mailService) {
+                error_log('ERROR: Mail service not available in BackendController');
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'ERROR: Mail service not available in BackendController' . PHP_EOL, 
+                                  FILE_APPEND);
+                return false;
+            }
+            
+            // Get square details
+            $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+            $square = $squareManager->get($booking->need('sid'));
+            $squareName = $square->need('name');
+            
+            // Format booking time
+            $bookingTime = $booking->get('time_start');
+            if (!$bookingTime) {
+                $bookingTime = time();
+            }
+            
+            $formattedDate = date('d.m.Y', $bookingTime);
+            $formattedTime = date('H:i', $bookingTime);
+            $timeEnd = $booking->get('time_end');
+            $formattedEndTime = $timeEnd ? date('H:i', $timeEnd) : '';
+            
+            // Calculate refund if applicable
+            $refundMessage = '';
+            if ($booking->get('status_billing') == 'paid') {
+                $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+                $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+                $total = 0;
+                if ($bills) {
+                    foreach ($bills as $bill) {
+                        $total += $bill->need('price');
+                    }
+                }
+                
+                if ($total > 0 && $booking->getMeta('refunded') == 'true') {
+                    $refundAmount = number_format($total / 100, 2);
+                    $refundMessage = sprintf($this->t("\n\nA refund of %s has been processed to your account."), $refundAmount);
+                }
+            }
+            
+            // Set email content - German format
+            $subject = sprintf('%s\'s Platz-Buchung wurde storniert', $user->need('alias'));
+            $body = sprintf(
+                "Hallo,\n\nwir haben Ihre Buchung für den Platz \"%s\", %s, %s bis %s Uhr storniert (Buchungs-Nr: %s).%s\n\nDiese Nachricht wurde automatisch gesendet. Ursprünglich gesendet an %s (%s).\n\nViele Grüße,\nIhr %s Online-Platzbuchung\n%s",
+                $squareName,
+                $formattedDate,
+                $formattedTime,
+                $formattedEndTime,
+                $booking->need('bid'),
+                $refundMessage,
+                $user->need('alias'),
+                $user->need('email'),
+                $this->option('client.name'),
+                $this->getRequest()->getUri()->getScheme() . '://' . $this->getRequest()->getUri()->getHost()
+            );
+            
+            // Get email settings from config
+            $fromAddress = $this->option('client.mail');
+            $fromName = $this->option('client.name') . ' Online-Platzbuchung';
+            $toAddress = $user->need('email');
+            $toName = $user->need('alias');
+            
+            // Fallback if client.mail is not set
+            if (empty($fromAddress)) {
+                $fromAddress = 'noreply@example.com';
+                $fromName = 'Booking System';
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'WARNING: Using fallback for fromAddress: ' . $fromAddress . PHP_EOL, 
+                                  FILE_APPEND);
+            }
+            
+            // Add debug logging
+            $logMessage = 'Email details:' . PHP_EOL;
+            $logMessage .= 'From: ' . $fromAddress . ' (' . $fromName . ')' . PHP_EOL;
+            $logMessage .= 'To: ' . $toAddress . ' (' . $toName . ')' . PHP_EOL;
+            $logMessage .= 'Subject: ' . $subject . PHP_EOL;
+            $logMessage .= 'Body: ' . $body . PHP_EOL;
+            
+            error_log($logMessage);
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', $logMessage, FILE_APPEND);
+            
+            // Let's also try BOTH mail methods to ensure one works
+            
+            // 1. Direct PHP mail function (as a fallback)
+            $headers = "From: $fromName <$fromAddress>\r\n";
+            $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
+            $headers .= "X-Mailer: PHP/" . phpversion();
+            
+            $mailResult = mail($toAddress, $subject, $body, $headers);
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              'PHP mail() result: ' . ($mailResult ? 'success' : 'failed') . PHP_EOL, 
+                              FILE_APPEND);
+            
+            // 2. Directly send the email using MailService
+            try {
+                $result = $mailService->sendPlain(
+                    $fromAddress,    // fromAddress
+                    $fromName,       // fromName
+                    $fromAddress,    // replyToAddress
+                    $fromName,       // replyToName
+                    $toAddress,      // toAddress
+                    $toName,         // toName
+                    $subject,        // subject
+                    $body,           // text
+                    []               // attachments (empty array)
+                );
+                
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'MailService result: ' . ($result ? 'success' : 'failed') . PHP_EOL, 
+                                  FILE_APPEND);
+            } catch (\Exception $e) {
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'MailService exception: ' . $e->getMessage() . PHP_EOL, 
+                                  FILE_APPEND);
+            }
+            
+            // 3. Try the Square\Controller\BookingController method directly
+            try {
+                $squareController = $serviceManager->get('ControllerManager')->get('Square\Controller\BookingController');
+                if ($squareController) {
+                    file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                      'Trying Square BookingController sendCancellationEmail method' . PHP_EOL, 
+                                      FILE_APPEND);
+                    $squareController->sendCancellationEmail($booking, $user, $total ?? 0);
+                }
+            } catch (\Exception $e) {
+                file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                                  'Square controller exception: ' . $e->getMessage() . PHP_EOL, 
+                                  FILE_APPEND);
+            }
+            
+            // Mark that notification was sent
+            $booking->setMeta('cancellation_notification_sent', date('Y-m-d H:i:s'));
+            $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+            $bookingManager->save($booking);
+            
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              'Successfully attempted to send cancellation email to: ' . $toAddress . PHP_EOL . 
+                              '---------- ADMIN CANCELLATION EMAIL DEBUG END ----------' . PHP_EOL, 
+                              FILE_APPEND);
+            
+            return true;
+        } catch (\Exception $e) {
+            // Log the error but don't disrupt the cancellation process
+            $errorMessage = 'ERROR in sendAdminCancellationEmail: ' . $e->getMessage() . PHP_EOL . 
+                           'Exception trace: ' . $e->getTraceAsString();
+            error_log($errorMessage);
+            file_put_contents('/Users/sebastian.heim/Documents/git/ep3-bs/tmp/email_debug.log', 
+                              $errorMessage . PHP_EOL . 
+                              '---------- ADMIN CANCELLATION EMAIL DEBUG END ----------' . PHP_EOL, 
+                              FILE_APPEND);
+            
+            return false;
+        }
+    }
 }
