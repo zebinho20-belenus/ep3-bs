@@ -20,7 +20,9 @@ class BookingServiceFactory implements FactoryInterface
             $sm->get('Booking\Manager\ReservationManager'),
             $sm->get('Square\Manager\SquarePricingManager'),
             $sm->get('ViewHelperManager'),
-            $sm->get('Zend\Db\Adapter\Adapter')->getDriver()->getConnection());
+            $sm->get('Zend\Db\Adapter\Adapter')->getDriver()->getConnection(),
+            $sm->get('Base\Service\MailService'),
+            $sm);
 
         $eventManager = $bookingService->getEventManager();
         $eventManager->attach($notificationListener);
