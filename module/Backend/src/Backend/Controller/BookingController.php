@@ -994,18 +994,33 @@ class BookingController extends AbstractActionController
 
             $subject = sprintf($this->t('%s\'s Platz-Buchung wurde storniert'), $user->need('alias'));
             
-            // Get client contact email for potential inquiries
+            // Get client contact email and website for potential inquiries
             $contactInfo = '';
-            $contactEmail = $this->option('client.contact.email', '');
-            if (!empty($contactEmail)) {
-                $contactInfo = sprintf($this->t('Bei Rückfragen wenden Sie sich bitte an %s'), $contactEmail);
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+            
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('Diese Nachricht wurde automatisch gesendet. Sollten Sie noch Fragen bzw. Anregungen haben, informieren Sie bitte unser Supportteam');
+                
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf($this->t(' unter %s'), $contactEmail);
+                }
+                
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= $this->t(' oder');
+                    }
+                    $contactInfo .= sprintf($this->t(' auf unserer Website %s'), $clientWebsite);
+                }
+                $contactInfo .= '.';
             }
             
             $clientName = $this->option('client.name', 'Online-Platzbuchung');
             
             // Strukturierte Darstellung der Buchungsdetails
             $buchungsDetails = sprintf(
-                $this->t("Stornierte Buchungsdetails:\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s"),
+                $this->t("Stornierte Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
@@ -1084,7 +1099,11 @@ class BookingController extends AbstractActionController
             error_log(sprintf("Sende Stornierungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
             
             // Verwende Konfigurationswerte aus den Service-Einstellungen
-            $fromAddress = $this->option('client.contact.email', 'noreply@example.com');
+            $fromAddress = $this->option('client.website.contact', 'noreply@example.com');
+            if (strpos($fromAddress, 'mailto:') === 0) {
+                $fromAddress = substr($fromAddress, 7); // Entferne "mailto:"
+            }
+            
             $fromName = sprintf('%s %s', 
                 $this->option('client.name.short', 'BS'),
                 $this->option('service.name.full', 'Buchungssystem')
@@ -1092,7 +1111,7 @@ class BookingController extends AbstractActionController
             
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
-                $this->t("%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s"),
+                "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s",
                 $anrede,
                 $buchungsDetails,
                 !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
@@ -1210,18 +1229,33 @@ class BookingController extends AbstractActionController
 
             $subject = sprintf($this->t('Buchungsbestätigung: Platz %s, %s'), $squareName, $formattedDate);
             
-            // Get client contact email for potential inquiries
+            // Get client contact email and website for potential inquiries
             $contactInfo = '';
-            $contactEmail = $this->option('client.contact.email', '');
-            if (!empty($contactEmail)) {
-                $contactInfo = sprintf($this->t('Bei Rückfragen wenden Sie sich bitte an %s'), $contactEmail);
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+            
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('Diese Nachricht wurde automatisch gesendet. Sollten Sie noch Fragen bzw. Anregungen haben, informieren Sie bitte unser Supportteam');
+                
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf($this->t(' unter %s'), $contactEmail);
+                }
+                
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= $this->t(' oder');
+                    }
+                    $contactInfo .= sprintf($this->t(' auf unserer Website %s'), $clientWebsite);
+                }
+                $contactInfo .= '.';
             }
             
             $clientName = $this->option('client.name', 'Online-Platzbuchung');
             
             // Strukturierte Darstellung der Buchungsdetails
             $buchungsDetails = sprintf(
-                $this->t("Buchungsdetails:\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s%s"),
+                $this->t("Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s%s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
@@ -1308,7 +1342,11 @@ class BookingController extends AbstractActionController
             error_log(sprintf("Sende Buchungsbestätigungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
             
             // Verwende Konfigurationswerte aus den Client-Einstellungen
-            $fromAddress = $this->option('client.contact.email', 'noreply@example.com');
+            $fromAddress = $this->option('client.website.contact', 'noreply@example.com');
+            if (strpos($fromAddress, 'mailto:') === 0) {
+                $fromAddress = substr($fromAddress, 7); // Entferne "mailto:"
+            }
+            
             $fromName = sprintf('%s %s', 
                 $this->option('client.name.short', 'BS'),
                 $this->option('service.name.full', 'Buchungssystem')
@@ -1316,11 +1354,11 @@ class BookingController extends AbstractActionController
             
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
-                $this->t("%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s"),
+                "%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s",
                 $anrede,
                 $buchungsDetails,
                 $stornierungsBedingungen,
-                !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
+                !empty($paypalInfo) ? $paypalInfo . "\n\n" : ""
             );
             
             // Protokollieren des E-Mail-Inhalts zur Fehleranalyse
@@ -1424,14 +1462,18 @@ class BookingController extends AbstractActionController
             $ics .= "BEGIN:VEVENT\r\n";
             $ics .= "UID:" . md5($booking->need('bid') . time()) . "\r\n";
             $ics .= "DTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\n";
-            $ics .= "DTSTART:" . $startDate->format('Ymd\THis') . "\r\n";
-            $ics .= "DTEND:" . $endDate->format('Ymd\THis') . "\r\n";
+            $ics .= "DTSTART:" . $startDate->format('Ymd\THis\Z') . "\r\n";
+            $ics .= "DTEND:" . $endDate->format('Ymd\THis\Z') . "\r\n";
             $ics .= "SUMMARY:Platzbuchung: " . $squareName . "\r\n";
             $ics .= "DESCRIPTION:Ihre Platzbuchung für " . $squareName . "\\n";
             $ics .= "Buchungs-Nr: " . $booking->need('bid') . "\r\n";
             $ics .= "LOCATION:" . $squareName . "\r\n";
             $ics .= "STATUS:CONFIRMED\r\n";
-            $ics .= "ORGANIZER;CN=\"" . $clientName . "\":MAILTO:" . $this->option('client.contact.email', '') . "\r\n";
+            $contactEmail = $this->option('client.website.contact', '');
+            if (strpos($contactEmail, 'mailto:') === 0) {
+                $contactEmail = substr($contactEmail, 7); // Entferne "mailto:"
+            }
+            $ics .= "ORGANIZER;CN=\"" . $clientName . "\":MAILTO:" . $contactEmail . "\r\n";
             
             // Füge Teilnehmer hinzu, wenn Benutzer übergeben wurde
             if ($user) {
