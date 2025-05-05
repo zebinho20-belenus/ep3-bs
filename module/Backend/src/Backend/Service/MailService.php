@@ -61,13 +61,17 @@ class MailService extends AbstractService
         $fromAddress = $this->configManager->need('mail.address');
         $fromName = $this->optionManager->need('client.name.short') . ' ' . $this->optionManager->need('service.name.full');
 
-        $replyToAddress = $this->optionManager->need('client.contact.email');
+        // Kontakt-E-Mail abrufen und "mailto:" Präfix entfernen, falls vorhanden
+        $replyToAddress = $this->optionManager->need('client.website.contact');
+        if (strpos($replyToAddress, 'mailto:') === 0) {
+            $replyToAddress = substr($replyToAddress, 7); // Entferne "mailto:"
+        }
+        
         $replyToName = $this->optionManager->need('client.name.full');
 
         // Formatieren des E-Mail-Textes mit Signatur und Addendum
-        $formattedText = sprintf("%s\r\n\r\n%s %s\r\n\r\n%s,\r\n%s %s\r\n%s",
+        $formattedText = sprintf("%s\r\n\r\n%s\r\n\r\n\r\n%s,\r\n\r\n%s %s\r\n\r\n%s",
             $text,
-            $this->t('This was an automated message from the system.'),
             $addendum,
             $this->t('Sincerely'),
             $this->t("Your"),
@@ -91,9 +95,8 @@ class MailService extends AbstractService
         $clientContactEmail = $this->optionManager->need('client.contact.email');
         if (!empty($clientContactEmail) && $toAddress !== $clientContactEmail) {
             // Für die Admin-Kopie fügen wir einen Hinweis hinzu, an wen die E-Mail ursprünglich ging
-            $adminText = sprintf("%s\r\n\r\n%s %s\r\n\r\n%s %s (%s).\r\n\r\n%s,\r\n%s %s\r\n%s",
+            $adminText = sprintf("%s\r\n\r\n%s\r\n\r\n%s %s (%s).\r\n\r\n%s,\r\n%s %s\r\n%s",
                 $text,
-                $this->t('This was an automated message from the system.'),
                 $addendum,
                 $this->t('Originally sent to'),
                 $toName,
@@ -103,10 +106,16 @@ class MailService extends AbstractService
                 $this->optionManager->need('service.name.full'),
                 $this->optionManager->need('service.website'));
 
+            // Entferne "mailto:" Präfix von replyToAddress
+            $adminReplyToAddress = $replyToAddress;
+            if (strpos($adminReplyToAddress, 'mailto:') === 0) {
+                $adminReplyToAddress = substr($adminReplyToAddress, 7); // Entferne "mailto:"
+            }
+
             $this->baseMailService->sendPlain(
                 $fromAddress,
                 $fromName,
-                $replyToAddress,
+                $adminReplyToAddress,
                 $replyToName,
                 $clientContactEmail,
                 $replyToName,
