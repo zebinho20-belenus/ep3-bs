@@ -1156,8 +1156,9 @@ class BookingController extends AbstractActionController
                     }
                     
                     // Falls konfiguriert, System-E-Mail auch verwenden
-                    $systemEmail = $this->option('client.system.email', '');
-                    
+                    //$systemEmail = $this->option('client.system.email', '');
+                    $systemEmail = 'system@platzbuchung.tcn-kail.de';
+
                     // Admin-Kopie mit den zusätzlichen Informationen senden
                     if (!empty($contactEmail)) {
                         $adminEmailText = $emailText . $adminInfo;
