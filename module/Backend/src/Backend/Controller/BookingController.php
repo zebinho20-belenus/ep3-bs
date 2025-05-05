@@ -172,6 +172,13 @@ class BookingController extends AbstractActionController
                     $userManager = $serviceManager->get('User\Manager\UserManager');
                     $user = $userManager->get($savedBooking->get('uid'));
                     
+                    // Store the admin user information in the booking metadata
+                    $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+                    $savedBooking->setMeta('creator', $sessionUser->get('alias'));
+                    $savedBooking->setMeta('created', date('Y-m-d H:i:s'));
+                    $savedBooking->setMeta('admin_created', 'true');
+                    $bookingManager->save($savedBooking);
+                    
                     // Send booking creation email
                     $this->sendAdminBookingCreationEmail($savedBooking, $user);
                     
@@ -197,7 +204,7 @@ class BookingController extends AbstractActionController
                     'bf-sid' => $booking->get('sid'),
                     'bf-status-billing' => $booking->get('status_billing'),
                     'bf-quantity' => $booking->get('quantity'),
-                    'bf-notes' => $booking->getMeta('notes'),
+                    'bf-notes' => $booking->getMeta('notes', ''),
                 ));
 
                 if ($booking->get('status') == 'subscription' && $params['editMode'] == 'booking') {
@@ -206,7 +213,7 @@ class BookingController extends AbstractActionController
                         'bf-time-end' => substr($booking->getMeta('time_end', $reservation->get('time_end')), 0, 5),
                         'bf-date-start' => $this->dateFormat($booking->getMeta('date_start', $reservation->get('date')), \IntlDateFormatter::MEDIUM),
                         'bf-date-end' => $this->dateFormat($booking->getMeta('date_end', $reservation->get('date')), \IntlDateFormatter::MEDIUM),
-                        'bf-repeat' => $booking->getMeta('repeat'),
+                        'bf-repeat' => $booking->getMeta('repeat', ''),
                     ));
                 } else {
                     $editForm->setData(array(
@@ -853,7 +860,7 @@ class BookingController extends AbstractActionController
         try {
             $booking = $bookingManager->get($bid);
             $square = $squareManager->get($booking->get('sid'));
-            $notes = $booking->getMeta('notes');
+            $notes = $booking->getMeta('notes', '');
 
             if ($booking->getMeta('directpay_pending') == true && $booking->getMeta('paymentMethod') == 'stripe') {
 
@@ -1059,6 +1066,124 @@ class BookingController extends AbstractActionController
                     );
                     
                     error_log(sprintf("Stornierungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
+                    
+                    // Admin-Kopie mit zusätzlichen Informationen über den Admin, der storniert hat
+                    // Holen des aktuellen Admin-Benutzers
+                    $adminUser = null;
+                    $adminInfo = '';
+                    
+                    try {
+                        // Vereinfachter Code zur Erkennung des Admin-Benutzers
+                        $adminUser = null;
+                        
+                        // Primäre Methode: Benutze das 'creator' oder 'cancellor'-Feld aus den Metadaten
+                        if ($booking->getMeta('creator', null)) {
+                            try {
+                                $userManager = $this->serviceLocator->get('User\Manager\UserManager');
+                                $adminUsers = $userManager->getBy(['alias' => $booking->getMeta('creator')]);
+                                if (!empty($adminUsers)) {
+                                    $adminUser = current($adminUsers);
+                                } else {
+                                    // Fallback für den Fall, dass der Benutzer nicht gefunden wird
+                                    $adminUser = new \stdClass();
+                                    $adminUser->alias = $booking->getMeta('creator');
+                                    $adminUser->email = 'admin@system.local';
+                                }
+                            } catch (\Exception $e) {
+                                // Einfacher Fallback bei Fehlern
+                                $adminUser = new \stdClass();
+                                $adminUser->alias = $booking->getMeta('creator');
+                                $adminUser->email = 'admin@system.local';
+                            }
+                        }
+                        // Alternative: Benutze 'cancellor' Feld für Stornierungen
+                        elseif ($booking->getMeta('cancellor', null)) {
+                            try {
+                                $userManager = $this->serviceLocator->get('User\Manager\UserManager');
+                                $adminUsers = $userManager->getBy(['alias' => $booking->getMeta('cancellor')]);
+                                if (!empty($adminUsers)) {
+                                    $adminUser = current($adminUsers);
+                                } else {
+                                    // Fallback für den Fall, dass der Benutzer nicht gefunden wird
+                                    $adminUser = new \stdClass();
+                                    $adminUser->alias = $booking->getMeta('cancellor');
+                                    $adminUser->email = 'admin@system.local';
+                                }
+                            } catch (\Exception $e) {
+                                // Einfacher Fallback bei Fehlern
+                                $adminUser = new \stdClass();
+                                $adminUser->alias = $booking->getMeta('cancellor');
+                                $adminUser->email = 'admin@system.local';
+                            }
+                        }
+                        // Fallback: Aktuelle Authentifizierung
+                        elseif ($this->serviceLocator->has('Zend\Authentication\AuthenticationService')) {
+                            $authService = $this->serviceLocator->get('Zend\Authentication\AuthenticationService');
+                            if ($authService->hasIdentity()) {
+                                $adminUser = $authService->getIdentity();
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Fehler beim Ermitteln des Admin-Benutzers
+                    }
+                    
+                    // Admin-Info für die Kopie-E-Mail
+                    if ($adminUser) {
+                        // Extrahiere die Admin-Daten
+                        $adminName = method_exists($adminUser, 'need') ? $adminUser->need('alias') : 
+                                     (isset($adminUser->alias) ? $adminUser->alias : 'Unbekannt');
+                        $adminEmail = method_exists($adminUser, 'need') ? $adminUser->need('email') : 
+                                     (isset($adminUser->email) ? $adminUser->email : 'keine@email.de');
+                        
+                        $adminInfo = sprintf(
+                            "\n\n\n==================================================\nINTERNE ADMIN-INFORMATION:\n--------------------------------------------------\nDiese Buchung wurde STORNIERT von: %s (%s)\nZeitpunkt der Stornierung: %s\n==================================================\n\n",
+                            $adminName,
+                            $adminEmail,
+                            date('d.m.Y H:i:s')
+                        );
+                    } else {
+                        // Fallback-Information wenn kein Admin-Benutzer ermittelt werden konnte
+                        $adminInfo = sprintf(
+                            "\n\n\n==================================================\nINTERNE ADMIN-INFORMATION:\n--------------------------------------------------\nDiese Buchung wurde STORNIERT\nZeitpunkt der Stornierung: %s\n(Admin-Benutzer konnte nicht ermittelt werden)\n==================================================\n\n",
+                            date('d.m.Y H:i:s')
+                        );
+                    }
+                    
+                    // Kontakt-E-Mail-Adresse aus den Einstellungen abrufen
+                    $contactEmail = $this->option('client.website.contact', '');
+                    if (strpos($contactEmail, 'mailto:') === 0) {
+                        $contactEmail = substr($contactEmail, 7); // Entferne "mailto:"
+                    }
+                    
+                    // Falls konfiguriert, System-E-Mail auch verwenden
+                    $systemEmail = $this->option('client.system.email', '');
+                    
+                    // Admin-Kopie mit den zusätzlichen Informationen senden
+                    if (!empty($contactEmail)) {
+                        $adminEmailText = $emailText . $adminInfo;
+                        $backendMailService->sendCustomEmail(
+                            '[ADMIN-KOPIE] ' . $subject,
+                            $adminEmailText,
+                            $contactEmail,
+                            'Administrator',
+                            [],   // keine Anhänge
+                            $contactInfo  // zusätzliche Information als Nachsatz
+                        );
+                    }
+                    
+                    // Zweite Admin-E-Mail versenden, falls konfiguriert und unterschiedlich
+                    if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
+                        $adminEmailText = $emailText . $adminInfo;
+                        $backendMailService->sendCustomEmail(
+                            '[ADMIN-KOPIE] ' . $subject,
+                            $adminEmailText,
+                            $systemEmail,
+                            'System-Administrator',
+                            [],   // keine Anhänge
+                            $contactInfo  // zusätzliche Information als Nachsatz
+                        );
+                    }
+                    
                     return true;
                 } else {
                     // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
@@ -1098,7 +1223,7 @@ class BookingController extends AbstractActionController
             // Debug-Log für Fehleranalyse
             error_log(sprintf("Sende Stornierungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
             
-            // Verwende Konfigurationswerte aus den Service-Einstellungen
+            // Verwende Konfigurationswerte aus den Client-Einstellungen
             $fromAddress = $this->option('client.website.contact', 'noreply@example.com');
             if (strpos($fromAddress, 'mailto:') === 0) {
                 $fromAddress = substr($fromAddress, 7); // Entferne "mailto:"
@@ -1202,17 +1327,6 @@ class BookingController extends AbstractActionController
                 error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
             }
             
-            // Prüfen, ob der Platz einen Zugangscode hat
-            $doorCode = null;
-            $doorCodeMessage = '';
-            
-            if ($square) {
-                $doorCode = $this->checkReservedSquareHasDoorCode($square);
-                if ($doorCode) {
-                    $doorCodeMessage = sprintf("\n\nZugangscode: %s", $doorCode);
-                }
-            }
-            
             // Personalisierte Anrede
             $anrede = 'Hallo';
             if ($user->getMeta('gender') == 'male') {
@@ -1255,13 +1369,12 @@ class BookingController extends AbstractActionController
             
             // Strukturierte Darstellung der Buchungsdetails
             $buchungsDetails = sprintf(
-                $this->t("Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s%s"),
+                $this->t("Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
                 $formattedEndTime,
-                $booking->need('bid'),
-                $doorCodeMessage
+                $booking->need('bid')
             );
             
             $stornierungsBedingungen = $this->t('Bitte beachten Sie unsere Stornierungsbedingungen. Stornierungen sind bis zu 2 Stunden vor Beginn kostenfrei möglich.');
@@ -1299,6 +1412,124 @@ class BookingController extends AbstractActionController
                     );
                     
                     error_log(sprintf("Buchungsbestätigungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
+                    
+                    // Admin-Kopie mit zusätzlichen Informationen über den Admin, der die Buchung erstellt hat
+                    // Holen des aktuellen Admin-Benutzers
+                    $adminUser = null;
+                    $adminInfo = '';
+                    
+                    try {
+                        // Vereinfachter Code zur Erkennung des Admin-Benutzers
+                        $adminUser = null;
+                        
+                        // Primäre Methode: Benutze 'creator' oder 'cancellor' Feld aus den Metadaten
+                        if ($booking->getMeta('creator', null)) {
+                            try {
+                                $userManager = $this->serviceLocator->get('User\Manager\UserManager');
+                                $adminUsers = $userManager->getBy(['alias' => $booking->getMeta('creator')]);
+                                if (!empty($adminUsers)) {
+                                    $adminUser = current($adminUsers);
+                                } else {
+                                    // Fallback für den Fall, dass der Benutzer nicht gefunden wird
+                                    $adminUser = new \stdClass();
+                                    $adminUser->alias = $booking->getMeta('creator');
+                                    $adminUser->email = 'admin@system.local';
+                                }
+                            } catch (\Exception $e) {
+                                // Einfacher Fallback bei Fehlern
+                                $adminUser = new \stdClass();
+                                $adminUser->alias = $booking->getMeta('creator');
+                                $adminUser->email = 'admin@system.local';
+                            }
+                        }
+                        // Alternative: Benutze 'cancellor' Feld für Stornierungen
+                        elseif ($booking->getMeta('cancellor', null)) {
+                            try {
+                                $userManager = $this->serviceLocator->get('User\Manager\UserManager');
+                                $adminUsers = $userManager->getBy(['alias' => $booking->getMeta('cancellor')]);
+                                if (!empty($adminUsers)) {
+                                    $adminUser = current($adminUsers);
+                                } else {
+                                    // Fallback für den Fall, dass der Benutzer nicht gefunden wird
+                                    $adminUser = new \stdClass();
+                                    $adminUser->alias = $booking->getMeta('cancellor');
+                                    $adminUser->email = 'admin@system.local';
+                                }
+                            } catch (\Exception $e) {
+                                // Einfacher Fallback bei Fehlern
+                                $adminUser = new \stdClass();
+                                $adminUser->alias = $booking->getMeta('cancellor');
+                                $adminUser->email = 'admin@system.local';
+                            }
+                        }
+                        // Fallback: Aktuelle Authentifizierung
+                        elseif ($this->serviceLocator->has('Zend\Authentication\AuthenticationService')) {
+                            $authService = $this->serviceLocator->get('Zend\Authentication\AuthenticationService');
+                            if ($authService->hasIdentity()) {
+                                $adminUser = $authService->getIdentity();
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        // Fehler beim Ermitteln des Admin-Benutzers
+                    }
+                    
+                    // Admin-Info für die Kopie-E-Mail
+                    if ($adminUser) {
+                        // Extrahiere die Admin-Daten
+                        $adminName = method_exists($adminUser, 'need') ? $adminUser->need('alias') : 
+                                     (isset($adminUser->alias) ? $adminUser->alias : 'Unbekannt');
+                        $adminEmail = method_exists($adminUser, 'need') ? $adminUser->need('email') : 
+                                     (isset($adminUser->email) ? $adminUser->email : 'keine@email.de');
+                        
+                        $adminInfo = sprintf(
+                            "\n\n\n==================================================\nINTERNE ADMIN-INFORMATION:\n--------------------------------------------------\nDiese Buchung wurde ERSTELLT von: %s (%s)\nZeitpunkt der Buchungserstellung: %s\n==================================================\n\n",
+                            $adminName,
+                            $adminEmail,
+                            date('d.m.Y H:i:s')
+                        );
+                    } else {
+                        // Fallback-Information wenn kein Admin-Benutzer ermittelt werden konnte
+                        $adminInfo = sprintf(
+                            "\n\n\n==================================================\nINTERNE ADMIN-INFORMATION:\n--------------------------------------------------\nDiese Buchung wurde ERSTELLT\nZeitpunkt der Buchungserstellung: %s\n(Admin-Benutzer konnte nicht ermittelt werden)\n==================================================\n\n",
+                            date('d.m.Y H:i:s')
+                        );
+                    }
+                    
+                    // Kontakt-E-Mail-Adresse aus den Einstellungen abrufen
+                    $contactEmail = $this->option('client.website.contact', '');
+                    if (strpos($contactEmail, 'mailto:') === 0) {
+                        $contactEmail = substr($contactEmail, 7); // Entferne "mailto:"
+                    }
+                    
+                    // Falls konfiguriert, System-E-Mail auch verwenden
+                    $systemEmail = $this->option('client.system.email', '');
+                    
+                    // Admin-Kopie mit den zusätzlichen Informationen senden
+                    if (!empty($contactEmail)) {
+                        $adminEmailText = $emailText . $adminInfo;
+                        $backendMailService->sendCustomEmail(
+                            '[ADMIN-KOPIE] ' . $subject,
+                            $adminEmailText,
+                            $contactEmail,
+                            'Administrator',
+                            $calendarAttachment ? [$calendarAttachment] : [],   // Kalender-Anhang, falls vorhanden
+                            $contactInfo  // zusätzliche Information als Nachsatz
+                        );
+                    }
+                    
+                    // Zweite Admin-E-Mail versenden, falls konfiguriert und unterschiedlich
+                    if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
+                        $adminEmailText = $emailText . $adminInfo;
+                        $backendMailService->sendCustomEmail(
+                            '[ADMIN-KOPIE] ' . $subject,
+                            $adminEmailText,
+                            $systemEmail,
+                            'System-Administrator',
+                            $calendarAttachment ? [$calendarAttachment] : [],   // Kalender-Anhang, falls vorhanden
+                            $contactInfo  // zusätzliche Information als Nachsatz
+                        );
+                    }
+                    
                     return true;
                 } else {
                     // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
@@ -1358,7 +1589,7 @@ class BookingController extends AbstractActionController
                 $anrede,
                 $buchungsDetails,
                 $stornierungsBedingungen,
-                !empty($paypalInfo) ? $paypalInfo . "\n\n" : ""
+                !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
             
             // Protokollieren des E-Mail-Inhalts zur Fehleranalyse
@@ -1413,7 +1644,7 @@ class BookingController extends AbstractActionController
         
         try {
             // Prüfen, ob ein Zugangscode existiert
-            $doorCode = $square->getMeta('door-code');
+            $doorCode = $square->getMeta('door-code', '');
             if (!empty($doorCode)) {
                 return $doorCode;
             }
@@ -1514,11 +1745,24 @@ class BookingController extends AbstractActionController
             $ics .= "Buchungs-Nr: " . $booking->need('bid') . "\\n\\n";
             
             // Zusätzliche Informationen wie einen Zugangscode einfügen, falls vorhanden
-            $square = $booking->getRelation('Square');
-            if ($square) {
-                $doorCode = $this->checkReservedSquareHasDoorCode($square);
-                if ($doorCode) {
-                    $ics .= "Zugangscode: " . $doorCode . "\\n";
+            $squareId = $booking->get('sid');
+            if ($squareId) {
+                // Hole Square über den SquareManager
+                $square = null;
+                if ($this->serviceLocator->has('Square\Manager\SquareManager')) {
+                    $squareManager = $this->serviceLocator->get('Square\Manager\SquareManager');
+                    try {
+                        $square = $squareManager->get($squareId);
+                        if ($square) {
+                            $doorCode = $this->checkReservedSquareHasDoorCode($square);
+                            if ($doorCode) {
+                                $ics .= "Zugangscode: " . $doorCode . "\\n";
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        error_log(sprintf("Fehler beim Abrufen des Squares für Buchung %s: %s", 
+                            $booking->get('bid'), $e->getMessage()));
+                    }
                 }
             }
             
