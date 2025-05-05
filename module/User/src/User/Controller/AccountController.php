@@ -205,6 +205,74 @@ class AccountController extends AbstractActionController
                         sprintf($this->t('A new user has registered to your %s. According to your configuration, this user will not be able to book %s until you manually activate him.'),
                             $this->option('service.name.full', false), $this->option('subject.square.type.plural', false)));
                 }
+                
+                /* Immer Benachrichtigung an Admin senden, unabhängig von Aktivierungsmethode */
+                $backendMailService = $serviceManager->get('Backend\Service\MailService');
+                
+                // Detaillierte Benutzerinformationen zusammenstellen
+                $userDetails = sprintf(
+                    "Neue Benutzerregistrierung:\n\n" .
+                    "Benutzer: %s\n" .
+                    "E-Mail: %s\n" .
+                    "Status: %s\n" .
+                    "Registriert am: %s\n" .
+                    "IP-Adresse: %s\n\n",
+                    $user->need('alias'),
+                    $user->need('email'),
+                    $status,
+                    date('d.m.Y H:i:s'),
+                    $_SERVER['REMOTE_ADDR']
+                );
+                
+                // Metadaten hinzufügen, falls vorhanden
+                if (isset($meta['firstname']) && isset($meta['lastname'])) {
+                    $userDetails .= sprintf("Vorname: %s\nNachname: %s\n", $meta['firstname'], $meta['lastname']);
+                } elseif (isset($meta['name'])) {
+                    $userDetails .= sprintf("Name: %s\n", $meta['name']);
+                }
+                
+                if (isset($meta['phone'])) {
+                    $userDetails .= sprintf("Telefon: %s\n", $meta['phone']);
+                }
+                
+                if (isset($meta['street'])) {
+                    $userDetails .= sprintf("Adresse: %s, %s %s\n", 
+                        $meta['street'], 
+                        $meta['zip'], 
+                        $meta['city']
+                    );
+                }
+                
+                // Benutzereinstellungen und Zugriffslink für Admin hinzufügen
+                $adminLink = $this->url()->fromRoute('backend/user', ['uid' => $user->need('uid')], ['force_canonical' => true]);
+                $userDetails .= sprintf("\nZum Bearbeiten des Benutzers: %s\n\n", $adminLink);
+                $userDetails .= "Bitte überprüfen Sie, ob dieser Benutzer ein Mitglied ist und setzen Sie ggf. das 'membership'-Flag im System.";
+                
+                // E-Mail an Admin senden
+                $contactEmail = $this->option('client.website.contact', '');
+                if (strpos($contactEmail, 'mailto:') === 0) {
+                    $contactEmail = substr($contactEmail, 7); // Entferne "mailto:"
+                }
+                
+                // E-Mail-Adressen für Admin-Benachrichtigungen
+                $adminEmails = [$contactEmail];
+                
+                // Falls systemEmail konfiguriert ist, diese auch verwenden
+                $systemEmail = $this->option('client.system.email', '');
+                if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
+                    $adminEmails[] = $systemEmail;
+                }
+                
+                foreach ($adminEmails as $adminEmail) {
+                    if (!empty($adminEmail)) {
+                        $backendMailService->sendCustomEmail(
+                            'Neue Benutzerregistrierung: ' . $user->need('alias'),
+                            $userDetails,
+                            $adminEmail,
+                            'Administrator'
+                        );
+                    }
+                }
 
                 /* Send confirmation email to user for activation */
 
