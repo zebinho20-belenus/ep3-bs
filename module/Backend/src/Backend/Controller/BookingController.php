@@ -1438,8 +1438,15 @@ class BookingController extends AbstractActionController
     protected function createICalendarAttachment($booking, $squareName, $formattedDate, $formattedTime, $formattedEndTime, $user = null)
     {
         try {
+            // Lokale Zeitzone setzen
+            $timezone = new \DateTimeZone('Europe/Berlin');
+            
             // Datum und Zeit-Angaben aus der Reservierung extrahieren
-            $startDate = new \DateTime($formattedDate . ' ' . $formattedTime);
+            $startDate = \DateTime::createFromFormat('d.m.Y H:i:s', $formattedDate . ' ' . $formattedTime, $timezone);
+            if (!$startDate) {
+                // Fallback, falls das Format nicht passt
+                $startDate = new \DateTime($formattedDate . ' ' . $formattedTime, $timezone);
+            }
             
             // Endzeit, falls vorhanden
             $endDate = clone $startDate;
@@ -1451,23 +1458,71 @@ class BookingController extends AbstractActionController
                 $endDate->setTime($endHour, $endMinute);
             }
             
+            // Debug-Log für Zeitinformationen
+            error_log(sprintf("iCalendar-Zeitangaben: Start=%s, End=%s", 
+                $startDate->format('Y-m-d H:i:s'), 
+                $endDate->format('Y-m-d H:i:s')));
+                
             $clientName = $this->option('client.name', 'Online-Platzbuchung');
+            $locationDetails = sprintf("%s (%s)", 
+                $squareName, 
+                $this->option('client.name.full', 'Platzbuchungssystem'));
             
             // iCalendar erstellen
             $ics = "BEGIN:VCALENDAR\r\n";
             $ics .= "VERSION:2.0\r\n";
-            $ics .= "PRODID:-//hacksw/handcal//NONSGML v1.0//EN\r\n";
+            $ics .= "PRODID:-//" . $clientName . "//DE\r\n";
             $ics .= "CALSCALE:GREGORIAN\r\n";
-            $ics .= "METHOD:PUBLISH\r\n";
+            $ics .= "METHOD:REQUEST\r\n";
             $ics .= "BEGIN:VEVENT\r\n";
             $ics .= "UID:" . md5($booking->need('bid') . time()) . "\r\n";
             $ics .= "DTSTAMP:" . gmdate('Ymd\THis\Z') . "\r\n";
-            $ics .= "DTSTART:" . $startDate->format('Ymd\THis\Z') . "\r\n";
-            $ics .= "DTEND:" . $endDate->format('Ymd\THis\Z') . "\r\n";
+            
+            // Korrekte Zeitumwandlung für iCal (von lokal nach UTC)
+            $utcTimezone = new \DateTimeZone('UTC');
+            $startDateUTC = clone $startDate;
+            $startDateUTC->setTimezone($utcTimezone);
+            $endDateUTC = clone $endDate;
+            $endDateUTC->setTimezone($utcTimezone);
+            
+            $ics .= "DTSTART:" . $startDateUTC->format('Ymd\THis\Z') . "\r\n";
+            $ics .= "DTEND:" . $endDateUTC->format('Ymd\THis\Z') . "\r\n";
+            
+            // Lokale Zeitzone definieren (für Clients, die VTIMEZONE unterstützen)
+            $ics .= "BEGIN:VTIMEZONE\r\n";
+            $ics .= "TZID:Europe/Berlin\r\n";
+            $ics .= "BEGIN:STANDARD\r\n";
+            $ics .= "DTSTART:20231029T030000\r\n";
+            $ics .= "TZOFFSETFROM:+0200\r\n";
+            $ics .= "TZOFFSETTO:+0100\r\n";
+            $ics .= "RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU\r\n";
+            $ics .= "END:STANDARD\r\n";
+            $ics .= "BEGIN:DAYLIGHT\r\n";
+            $ics .= "DTSTART:20240331T020000\r\n";
+            $ics .= "TZOFFSETFROM:+0100\r\n";
+            $ics .= "TZOFFSETTO:+0200\r\n";
+            $ics .= "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU\r\n";
+            $ics .= "END:DAYLIGHT\r\n";
+            $ics .= "END:VTIMEZONE\r\n";
+            
+            // Verbesserte Informationen zum Platz
             $ics .= "SUMMARY:Platzbuchung: " . $squareName . "\r\n";
-            $ics .= "DESCRIPTION:Ihre Platzbuchung für " . $squareName . "\\n";
-            $ics .= "Buchungs-Nr: " . $booking->need('bid') . "\r\n";
-            $ics .= "LOCATION:" . $squareName . "\r\n";
+            $ics .= "DESCRIPTION:Ihre Platzbuchung bei " . $clientName . "\\n\\n";
+            $ics .= "Platz: " . $squareName . "\\n";
+            $ics .= "Datum: " . $formattedDate . "\\n";
+            $ics .= "Zeit: " . $formattedTime . " - " . $formattedEndTime . " Uhr\\n";
+            $ics .= "Buchungs-Nr: " . $booking->need('bid') . "\\n\\n";
+            
+            // Zusätzliche Informationen wie einen Zugangscode einfügen, falls vorhanden
+            $square = $booking->getRelation('Square');
+            if ($square) {
+                $doorCode = $this->checkReservedSquareHasDoorCode($square);
+                if ($doorCode) {
+                    $ics .= "Zugangscode: " . $doorCode . "\\n";
+                }
+            }
+            
+            $ics .= "LOCATION:" . $locationDetails . "\r\n";
             $ics .= "STATUS:CONFIRMED\r\n";
             $contactEmail = $this->option('client.website.contact', '');
             if (strpos($contactEmail, 'mailto:') === 0) {
@@ -1486,8 +1541,8 @@ class BookingController extends AbstractActionController
             // Anhang als Array zurückgeben
             return array(
                 'content' => $ics,
-                'filename' => 'buchung_' . $booking->need('bid') . '.ics',
-                'name' => 'buchung_' . $booking->need('bid') . '.ics',
+                'filename' => 'buchung_' . $booking->need('bid') . '_' . $squareName . '.ics',
+                'name' => 'buchung_' . $booking->need('bid') . '_' . $squareName . '.ics',
                 'type' => 'text/calendar'
             );
         } catch (\Exception $e) {
