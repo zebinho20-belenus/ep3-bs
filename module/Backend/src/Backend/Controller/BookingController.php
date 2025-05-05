@@ -1502,7 +1502,7 @@ class BookingController extends AbstractActionController
                     }
                     
                     // Falls konfiguriert, System-E-Mail auch verwenden
-                    $systemEmail = $this->option('client.system.email', '');
+                    $systemEmail = $this->option('client.contact.email', '');
                     
                     // Admin-Kopie mit den zusätzlichen Informationen senden
                     if (!empty($contactEmail)) {
