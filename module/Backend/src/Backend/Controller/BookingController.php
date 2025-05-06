@@ -1159,9 +1159,9 @@ class BookingController extends AbstractActionController
                     //$systemEmail = $this->option('client.system.email', '');
                    // $systemEmail = 'system@platzbuchung.tcn-kail.de';
                     // Debug the email settings
-                    error_log("DEBUG: About to send cancellation email");
-                    error_log("DEBUG: Client contact email: " . $this->option('client.contact.email', 'NOT SET'));
-                    error_log("DEBUG: skipCopy setting: false");
+//                    error_log("DEBUG: About to send cancellation email");
+//                    error_log("DEBUG: Client contact email: " . $this->option('client.contact.email', 'NOT SET'));
+//                    error_log("DEBUG: skipCopy setting: false");
 
                     // Admin-Kopie mit den zusätzlichen Informationen senden
                     if (!empty($contactEmail)) {

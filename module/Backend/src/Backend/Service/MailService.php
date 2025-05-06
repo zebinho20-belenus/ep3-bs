@@ -94,13 +94,13 @@ class MailService extends AbstractService
 
         // Optional: Kopie an die Client-Kontakt-E-Mail senden
         $clientContactEmail = $this->optionManager->need('client.contact.email');
-        // Debug the admin copy conditions
-        error_log("DEBUG: In sendCustomEmail admin copy section");
-        error_log("DEBUG: skipCopy value: " . ($skipCopy ? 'true' : 'false'));
-        error_log("DEBUG: clientContactEmail: " . $clientContactEmail);
-        error_log("DEBUG: toAddress: " . $toAddress);
-        error_log("DEBUG: Will send admin copy: " . (!$skipCopy && !empty($clientContactEmail) && $toAddress !== $clientContactEmail ?
-            'true' : 'false'));
+//        // Debug the admin copy conditions
+//        error_log("DEBUG: In sendCustomEmail admin copy section");
+//        error_log("DEBUG: skipCopy value: " . ($skipCopy ? 'true' : 'false'));
+//        error_log("DEBUG: clientContactEmail: " . $clientContactEmail);
+//        error_log("DEBUG: toAddress: " . $toAddress);
+//        error_log("DEBUG: Will send admin copy: " . (!$skipCopy && !empty($clientContactEmail) && $toAddress !== $clientContactEmail ?
+//            'true' : 'false'));
         if (!$skipCopy && !empty($clientContactEmail) && $toAddress !== $clientContactEmail) {
             // Für die Admin-Kopie fügen wir einen Hinweis hinzu, an wen die E-Mail ursprünglich ging
             $adminText = sprintf("%s\r\n\r\n%s\r\n\r\n%s %s (%s).\r\n\r\n%s,\r\n%s %s\r\n%s",
