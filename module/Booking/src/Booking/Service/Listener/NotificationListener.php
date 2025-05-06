@@ -172,7 +172,8 @@ class NotificationListener extends AbstractListenerAggregate
         $message .= "\n\n"; 
 
         $message = $message . sprintf($this->t('Should you have any questions and commentaries, please contact us through Email - %s'),
-             $this->optionManager->get('client.contact.email'));
+             //$this->optionManager->get('client.contact.email'));
+                str_replace('mailto:', '', $this->optionManager->get('client.website.contact')));
 
         if ($square->get('allow_notes') && $booking->getMeta('notes')) {
             $message .= "\n\nAnmerkungen:";
