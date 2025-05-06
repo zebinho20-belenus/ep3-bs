@@ -128,7 +128,7 @@ class BookingService extends AbstractService
                     'quantity' => $quantity,
                     'time' => $dateTimeEnd->getTimestamp() - $dateTimeStart->getTimestamp(),
                     'price' => $customPrice,
-                    'rate' => 19, // Standard VAT rate
+                    'rate' => 0, // Standard VAT rate
                     'gross' => true,
                 ));
                 
