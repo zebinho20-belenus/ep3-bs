@@ -31,7 +31,7 @@ ini_set('error_log', getcwd() . '/data/log/errors.txt');
 
 ini_set('display_errors', EP3_BS_DEV_TAG ? 1 : 0);
 ini_set('display_startup_errors', EP3_BS_DEV_TAG ? 1 : 0);
-ini_set('log_errors', EP3_BS_DEV_TAG ? 0 : 1);
+ini_set('log_errors', EP3_BS_DEV_TAG ? 1 : 1);
 ini_set('ignore_repeated_errors', 1);
 ini_set('html_errors',  EP3_BS_DEV_TAG ? 1 : 0);
 ini_set('ignore_user_abort', EP3_BS_DEV_TAG ? 1 : 0);

@@ -55,9 +55,10 @@ class PricingSummary extends AbstractHelper
             $nonMemberPricing = $this->squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, $quantity, false);
             if ($nonMemberPricing) {
                 $finalPricing['price'] = $nonMemberPricing['price'] / 2;
+                //$finalPricing['nonMemberPrice'] = $nonMemberPricing['price']; // Store for reference if needed
             }
         }
-        // If guest player but not already handled above, apply half price
+// If guest player but not already handled above, apply half price
         else if ($guestPlayer) {
             $finalPricing['price'] = $finalPricing['price'] / 2;
         }
