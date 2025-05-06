@@ -38,7 +38,13 @@ class PricingHints extends AbstractHelper
             
             $pricing = $this->squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, 1, $member);
 
+            // Check guest player checkbox
+            $guestPlayerCheckbox = isset($_GET['gp']) && $_GET['gp'] == '1';
+
             if ($pricing) {
+                if ($guestPlayerCheckbox) {
+                    $pricing['price'] /= 2;
+                }
                 return $this->getView()->priceFormat($pricing['price'], $pricing['rate'], $pricing['gross'], $pricing['seconds'], $pricing['per_quantity']);
             }
         }

@@ -70,24 +70,16 @@ class BookingService extends AbstractService
             $transaction = false;
         }
 
-//        try {
-//            // Determine if the user is a member
-//            $member = $user ? $user->getMeta('member') : 0;
-//
-//            // Set status_billing to 'paid' if a member is booking
-//            $statusBilling = $member ? 'paid' : 'pending';
-
-        //zebinho20 member status_billing to paid if played with guest status_billing to pending
         try {
-        // Determine if the user is a member
-        $member = $user ? $user->getMeta('member') : 0;
+            // Determine if the user is a member
+            $member = $user ? $user->getMeta('member') : 0;
 
-        // Get guest parameter value
-        $guestParam = isset($_GET['gp']) ? $_GET['gp'] : '0';
+            // Get guest parameter value - either from meta or from GET params
+            $guestPlayer = isset($meta['guestPlayer']) ? $meta['guestPlayer'] : (isset($_GET['gp']) ? $_GET['gp'] : '0');
 
-        // Set status_billing to 'member' if a member is booking without a guest
-        // Otherwise set to 'pending' (non-member or member with guest)
-        $statusBilling = ($member && $guestParam !== '1') ? 'member' : 'pending';
+            // Set status_billing to 'member' if a member is booking without a guest
+            // Otherwise set to 'pending' (non-member or member with guest)
+            $statusBilling = ($member && $guestPlayer !== '1') ? 'member' : 'pending';
 
             // Create a new booking
             $booking = new Booking(array(
@@ -114,9 +106,12 @@ class BookingService extends AbstractService
                $member = $user->getMeta('member');
             }
 
-            $pricing = $this->squarePricingManager->getFinalPricingInRange($dateTimeStart, $dateTimeEnd, $square, $quantity, $member);
-
-            if ($pricing) {
+            // Check if we already have a custom price from the controller
+            $customPrice = isset($meta['price']) ? $meta['price'] : null;
+            
+            if ($customPrice) {
+                error_log("Using custom price from controller: " . $customPrice);
+                
                 $squareType = $this->optionManager->need('subject.square.type');
                 $squareName = $this->t($square->need('name'));
 
@@ -126,17 +121,43 @@ class BookingService extends AbstractService
                 $description = sprintf('%s %s, %s',
                     $squareType, $squareName,
                     $dateRangeHelper($dateTimeStart, $dateTimeEnd));
-
+                
+                // Use the custom price
                 $bookingBill = new Bill(array(
                     'description' => $description,
                     'quantity' => $quantity,
-                    'time' => $pricing['seconds'],
-                    'price' => $pricing['price'],
-                    'rate' => $pricing['rate'],
-                    'gross' => $pricing['gross'],
+                    'time' => $dateTimeEnd->getTimestamp() - $dateTimeStart->getTimestamp(),
+                    'price' => $customPrice,
+                    'rate' => 19, // Standard VAT rate
+                    'gross' => true,
                 ));
-
+                
                 array_unshift($bills, $bookingBill);
+            } else {
+                $pricing = $this->squarePricingManager->getFinalPricingInRange($dateTimeStart, $dateTimeEnd, $square, $quantity, $member);
+                
+                if ($pricing) {
+                    $squareType = $this->optionManager->need('subject.square.type');
+                    $squareName = $this->t($square->need('name'));
+
+                    /** @var $dateRangeHelper DateRange  */
+                    $dateRangeHelper = $this->viewHelperManager->get('DateRange');
+
+                    $description = sprintf('%s %s, %s',
+                        $squareType, $squareName,
+                        $dateRangeHelper($dateTimeStart, $dateTimeEnd));
+
+                    $bookingBill = new Bill(array(
+                        'description' => $description,
+                        'quantity' => $quantity,
+                        'time' => $pricing['seconds'],
+                        'price' => $pricing['price'],
+                        'rate' => $pricing['rate'],
+                        'gross' => $pricing['gross'],
+                    ));
+
+                    array_unshift($bills, $bookingBill);
+                }
             }
 
             if ($bills) {

@@ -107,7 +107,34 @@ class BookingController extends AbstractActionController
         if ($guestPlayerCheckbox == 1) {
             // Set billing status to pending
             $statusBilling = 'pending';
-
+            // Get the pricing manager to calculate the non-member price
+            try {
+                $squarePricingManager = $this->getServiceLocator()->get('Square\Manager\SquarePricingManager');
+                
+                // Convert string dates to DateTime objects
+                $dateStart = new \DateTime($dateStartParam . ' ' . $timeStartParam);
+                $dateEnd = new \DateTime($dateEndParam . ' ' . $timeEndParam);
+                
+                $nonMemberPricing = $squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, $quantityParam, false);
+                
+                // Store non-member pricing for later use
+                if (isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
+                    // Apply 50% discount for guest players
+                    $nonMemberPricing['price'] = $nonMemberPricing['price'] / 2;
+                    $byproducts['price'] = $nonMemberPricing['price'];
+                    error_log("DEBUG: Using calculated pricing for guest player (half price): " . $byproducts['price']);
+                }
+            } catch (\Exception $e) {
+                error_log("Error calculating non-member pricing: " . $e->getMessage());
+                $nonMemberPricing = null;
+            }
+        }
+        elseif ($user->getMeta('member')) {
+            // If a member is playing, set billing status to member
+            $statusBilling = 'member';
+            // Set the price to 0 for members
+            $byproducts['price'] = 0;
+            $byproducts['total'] = 0;
         } else {
             // If not a guest player, set billing status to the default
             $statusBilling = 'paid'; // Set this to whatever the default billing status should be
@@ -223,12 +250,12 @@ class BookingController extends AbstractActionController
             $productPrice = $product->need('price') * $product->needExtra('amount');
             if ($guestPlayerCheckbox == 1) {
                 // Set the half price for products
-                $productPrice /= 2;
+                $productPrice = $productPrice / 2;
             }
             $bills[] = new Bill(array(
                'description' => $product->need('name'),
                'quantity' => $product->needExtra('amount'),
-               'price' => $product->need('price') * $product->needExtra('amount'),
+               'price' => $productPrice,
                'rate' => $product->need('rate'),
                'gross' => $product->need('gross'),
             ));
@@ -239,6 +266,47 @@ class BookingController extends AbstractActionController
             // Ensure the total is being stored correctly in the database
         }
         $byproducts['total'] = $total;
+        // Create a Bill object for the court itself
+        if ($guestPlayerCheckbox == 1 || $finalPricing != null) {
+            // Create a description for the court rental
+            $timeDescription = date('d.m.Y, H:i', strtotime($dateStartParam)) . ' bis ' .
+                date('H:i', strtotime($dateEndParam)) . ' Uhr';
+
+            // Make sure we check if the keys exist before accessing them
+            $courtPrice = 0;
+            if ($guestPlayerCheckbox == 1 && isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
+                // Use the already halved price for guest players
+                $courtPrice = $nonMemberPricing['price'];
+                error_log("Guest player court price: " . $courtPrice);
+            } elseif ($user->getMeta('member') && $guestPlayerCheckbox != 1) {
+                // Members should pay 0 for court rental
+                $courtPrice = 0;
+                error_log("Member court price (free): " . $courtPrice);
+            } elseif ($finalPricing != null && isset($finalPricing['price'])) {
+                $courtPrice = $finalPricing['price'];
+                error_log("Regular player court price: " . $courtPrice);
+            } else {
+                // Default fallback price
+                $courtPrice = 750; // 7.50€ in cents
+                error_log("Using fixed fallback court price: " . $courtPrice);
+            }
+
+            // Make sure courtPrice is a positive number ONLY for non-members
+            if ($courtPrice <= 0 && (!$user->getMeta('member') || $guestPlayerCheckbox == 1)) {
+                // Only apply this correction for non-members or members with guests
+                $courtPrice = 750; // Use fixed fallback price of 7.50€
+                error_log("Corrected court price to fixed fallback: " . $courtPrice);
+            }
+
+
+            // Add the court price to the total
+            $total += $courtPrice;
+            $byproducts['total'] = $total;
+            error_log("Updated total price with court rental: " . $total);
+            
+            // Store the court price in meta data so BookingService can use it
+            $byproducts['courtPrice'] = $courtPrice;
+        }
 
         $newbudget = 0;
         $byproducts['hasBudget'] = false; 
@@ -310,11 +378,24 @@ class BookingController extends AbstractActionController
             $payservice = $this->params()->fromPost('paymentservice');
             $meta = array('player-names' => serialize($playerNames), 'notes' => $notes, 'gp' => $guestPlayerCheckbox, 'status_billing' => $statusBilling);
             
+            // Store player names in meta data
+            if (is_array($playerNames) && !empty($playerNames)) {
+                // Process player names individually to ensure they're stored as scalar values
+                foreach ($playerNames as $index => $playerData) {
+                    if (isset($playerData['name']) && isset($playerData['value'])) {
+                        $meta['playerName_' . $index] = $playerData['value'];
+                    }
+                }
+            }
+
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable && $guestPlayerCheckbox != 1) {
                    $meta['directpay'] = 'true';
             }
 
-            $booking = $bookingService->createSingle($user, $square, $quantityParam, $byproducts['dateStart'], $byproducts['dateEnd'], $bills, $meta);
+            $booking = $bookingService->createSingle($user, $square, $quantityParam, $byproducts['dateStart'], $byproducts['dateEnd'], $bills, array_merge($meta, [
+                'price' => $byproducts['courtPrice'], // Pass the correct price to the booking service
+                'guestPlayer' => $guestPlayerCheckbox == 1 ? '1' : '0', // Pass guest player status as string
+            ]));
             
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable && $guestPlayerCheckbox != 1) {
             # payment checkout
