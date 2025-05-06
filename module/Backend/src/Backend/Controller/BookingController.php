@@ -550,6 +550,7 @@ class BookingController extends AbstractActionController
 
         return $this->ajaxViewModel(array(
             'rid' => $rid,
+            'sessionUser' => $sessionUser,
         ), null, $template);
     }
 
@@ -1003,7 +1004,7 @@ class BookingController extends AbstractActionController
             
             // Get client contact email and website for potential inquiries
             $contactInfo = '';
-            $contactEmail = $this->option('client.website.contact', '');
+            $contactEmail = $this->option('client.contact.email', '');
             $clientWebsite = $this->option('client.website', '');
             
             if (!empty($contactEmail) || !empty($clientWebsite)) {
@@ -1023,7 +1024,7 @@ class BookingController extends AbstractActionController
                 $contactInfo .= '.';
             }
             
-            $clientName = $this->option('client.name', 'Online-Platzbuchung');
+            $clientName = $this->option('client.name.full', 'Online-Platzbuchung');
             
             // Strukturierte Darstellung der Buchungsdetails
             $buchungsDetails = sprintf(
@@ -1062,7 +1063,8 @@ class BookingController extends AbstractActionController
                         $user->need('email'),
                         $user->need('alias'),
                         [],   // keine Anhänge
-                        $contactInfo  // zusätzliche Information als Nachsatz
+                        $contactInfo,  // zusätzliche Information als Nachsatz
+                        false  // skipCopy = false, um Admin-Kopien zu senden
                     );
                     
                     error_log(sprintf("Stornierungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
@@ -1150,40 +1152,52 @@ class BookingController extends AbstractActionController
                     }
                     
                     // Kontakt-E-Mail-Adresse aus den Einstellungen abrufen
-                    $contactEmail = $this->option('client.website.contact', '');
-                    if (strpos($contactEmail, 'mailto:') === 0) {
-                        $contactEmail = substr($contactEmail, 7); // Entferne "mailto:"
-                    }
+                    $contactEmail = $this->option('client.contact.email', '');
+
                     
                     // Falls konfiguriert, System-E-Mail auch verwenden
                     //$systemEmail = $this->option('client.system.email', '');
-                    $systemEmail = 'system@platzbuchung.tcn-kail.de';
+                   // $systemEmail = 'system@platzbuchung.tcn-kail.de';
+                    // Debug the email settings
+                    error_log("DEBUG: About to send cancellation email");
+                    error_log("DEBUG: Client contact email: " . $this->option('client.contact.email', 'NOT SET'));
+                    error_log("DEBUG: skipCopy setting: false");
 
                     // Admin-Kopie mit den zusätzlichen Informationen senden
                     if (!empty($contactEmail)) {
                         $adminEmailText = $emailText . $adminInfo;
+                        // Get the client contact email to avoid duplication
+                        $clientContactEmail = $this->option('client.contact.email', '');
+
+                        if (!empty($clientContactEmail)) {
+
+
                         $backendMailService->sendCustomEmail(
                             '[ADMIN-KOPIE] ' . $subject,
                             $adminEmailText,
                             $contactEmail,
                             'Administrator',
                             [],   // keine Anhänge
-                            $contactInfo  // zusätzliche Information als Nachsatz
+                            $contactInfo,  // zusätzliche Information als Nachsatz
+                            true  // skipCopy = true, um doppelte Emails zu vermeiden
                         );
                     }
-                    
+                    } else {
+                        // Fallback-Information wenn keine Kontakt-E-Mail-Adresse konfiguriert ist
+                        error_log(sprintf("Keine Kontakt-E-Mail-Adresse konfiguriert, kann keine Admin-Kopie senden"));
+                    }
                     // Zweite Admin-E-Mail versenden, falls konfiguriert und unterschiedlich
-                    if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
-                        $adminEmailText = $emailText . $adminInfo;
-                        $backendMailService->sendCustomEmail(
-                            '[ADMIN-KOPIE] ' . $subject,
-                            $adminEmailText,
-                            $systemEmail,
-                            'System-Administrator',
-                            [],   // keine Anhänge
-                            $contactInfo  // zusätzliche Information als Nachsatz
-                        );
-                    }
+                    //if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
+                    //    $adminEmailText = $emailText . $adminInfo;
+                    //    $backendMailService->sendCustomEmail(
+                    //        '[ADMIN-KOPIE] ' . $subject,
+                    //        $adminEmailText,
+                    //        $systemEmail,
+                    //        'System-Administrator',
+                    //        [],   // keine Anhänge
+                    //        $contactInfo  // zusätzliche Information als Nachsatz
+                    //    );
+                    //}
                     
                     return true;
                 } else {
@@ -1346,7 +1360,7 @@ class BookingController extends AbstractActionController
             
             // Get client contact email and website for potential inquiries
             $contactInfo = '';
-            $contactEmail = $this->option('client.website.contact', '');
+            $contactEmail = $this->option('client.contact.email', '');
             $clientWebsite = $this->option('client.website', '');
             
             if (!empty($contactEmail) || !empty($clientWebsite)) {
@@ -1409,7 +1423,8 @@ class BookingController extends AbstractActionController
                         $user->need('email'),
                         $user->need('alias'),
                         $calendarAttachment ? [$calendarAttachment] : [],   // Kalender-Anhang, falls vorhanden
-                        $contactInfo  // zusätzliche Information als Nachsatz
+                        $contactInfo,  // zusätzliche Information als Nachsatz
+                        false  // skipCopy = false, um Admin-Kopien zu senden
                     );
                     
                     error_log(sprintf("Buchungsbestätigungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
@@ -1497,14 +1512,14 @@ class BookingController extends AbstractActionController
                     }
                     
                     // Kontakt-E-Mail-Adresse aus den Einstellungen abrufen
-                    $contactEmail = $this->option('client.website.contact', '');
+                    $contactEmail = $this->option('client.contact.email', '');
                     if (strpos($contactEmail, 'mailto:') === 0) {
                         $contactEmail = substr($contactEmail, 7); // Entferne "mailto:"
                     }
                     
                     // Falls konfiguriert, System-E-Mail auch verwenden
                     //$systemEmail = $this->option('client.contact.email', '');
-                    $systemEmail = 'system@platzbuchung.tcn-kail.de';
+                    //$systemEmail = 'system@platzbuchung.tcn-kail.de';
                     
                     // Admin-Kopie mit den zusätzlichen Informationen senden
                     if (!empty($contactEmail)) {
@@ -1515,7 +1530,8 @@ class BookingController extends AbstractActionController
                             $contactEmail,
                             'Administrator',
                             $calendarAttachment ? [$calendarAttachment] : [],   // Kalender-Anhang, falls vorhanden
-                            $contactInfo  // zusätzliche Information als Nachsatz
+                            $contactInfo,  // zusätzliche Information als Nachsatz
+                            true  // skipCopy = true, um doppelte Emails zu vermeiden
                         );
                     }
                     
