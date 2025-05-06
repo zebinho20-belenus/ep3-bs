@@ -255,24 +255,30 @@ class AccountController extends AbstractActionController
                 }
                 
                 // E-Mail-Adressen für Admin-Benachrichtigungen
-                $adminEmails = [$contactEmail];
+                //$adminEmails = [$contactEmail];
                 
                 // Falls systemEmail konfiguriert ist, diese auch verwenden
-                $systemEmail = $this->option('client.system.email', '');
-                if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
-                    $adminEmails[] = $systemEmail;
-                }
+//                $systemEmail = $this->option('client.system.email', '');
+//                if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
+//                    $adminEmails[] = $systemEmail;
+//                }
                 
-                foreach ($adminEmails as $adminEmail) {
-                    if (!empty($adminEmail)) {
+//                //foreach ($adminEmails as $adminEmail) {
+//                    //if (!empty($adminEmail)) {
+                    if (!empty($contactEmail)) {
+                        // Sende E-Mail an den Administrator
+                        $adminEmail = $contactEmail;
                         $backendMailService->sendCustomEmail(
                             'Neue Benutzerregistrierung: ' . $user->need('alias'),
                             $userDetails,
                             $adminEmail,
-                            'Administrator'
+                            'Administrator',
+                            [],
+                            'text/plain',
+                            true
                         );
                     }
-                }
+
 
                 /* Send confirmation email to user for activation */
 

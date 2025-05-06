@@ -1004,7 +1004,7 @@ class BookingController extends AbstractActionController
             
             // Get client contact email and website for potential inquiries
             $contactInfo = '';
-            $contactEmail = $this->option('client.contact.email', '');
+            $contactEmail = $this->option('client.website.contact', '');
             $clientWebsite = $this->option('client.website', '');
             
             if (!empty($contactEmail) || !empty($clientWebsite)) {
@@ -1360,7 +1360,7 @@ class BookingController extends AbstractActionController
             
             // Get client contact email and website for potential inquiries
             $contactInfo = '';
-            $contactEmail = $this->option('client.contact.email', '');
+            $contactEmail = $this->option('client.website.contact', '');
             $clientWebsite = $this->option('client.website', '');
             
             if (!empty($contactEmail) || !empty($clientWebsite)) {
