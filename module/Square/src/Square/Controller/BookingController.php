@@ -266,47 +266,47 @@ class BookingController extends AbstractActionController
             // Ensure the total is being stored correctly in the database
         }
         $byproducts['total'] = $total;
-        // Create a Bill object for the court itself
-        if ($guestPlayerCheckbox == 1 || $finalPricing != null) {
-            // Create a description for the court rental
-            $timeDescription = date('d.m.Y, H:i', strtotime($dateStartParam)) . ' bis ' .
-                date('H:i', strtotime($dateEndParam)) . ' Uhr';
-
-            // Make sure we check if the keys exist before accessing them
-            $courtPrice = 0;
-            if ($guestPlayerCheckbox == 1 && isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
-                // Use the already halved price for guest players
-                $courtPrice = $nonMemberPricing['price'];
-                error_log("Guest player court price: " . $courtPrice);
-            } elseif ($user->getMeta('member') && $guestPlayerCheckbox != 1) {
-                // Members should pay 0 for court rental
-                $courtPrice = 0;
-                error_log("Member court price (free): " . $courtPrice);
-            } elseif ($finalPricing != null && isset($finalPricing['price'])) {
-                $courtPrice = $finalPricing['price'];
-                error_log("Regular player court price: " . $courtPrice);
-            } else {
-                // Default fallback price
-                $courtPrice = 750; // 7.50€ in cents
-                error_log("Using fixed fallback court price: " . $courtPrice);
-            }
-
-            // Make sure courtPrice is a positive number ONLY for non-members
-            if ($courtPrice <= 0 && (!$user->getMeta('member') || $guestPlayerCheckbox == 1)) {
-                // Only apply this correction for non-members or members with guests
-                $courtPrice = 750; // Use fixed fallback price of 7.50€
-                error_log("Corrected court price to fixed fallback: " . $courtPrice);
-            }
-
-
-            // Add the court price to the total
-            $total += $courtPrice;
-            $byproducts['total'] = $total;
-            error_log("Updated total price with court rental: " . $total);
-            
-            // Store the court price in meta data so BookingService can use it
-            $byproducts['courtPrice'] = $courtPrice;
-        }
+//        // Create a Bill object for the court itself
+//        if ($guestPlayerCheckbox == 1 || $finalPricing != null) {
+//            // Create a description for the court rental
+//            $timeDescription = date('d.m.Y, H:i', strtotime($dateStartParam)) . ' bis ' .
+//                date('H:i', strtotime($dateEndParam)) . ' Uhr';
+//
+//            // Make sure we check if the keys exist before accessing them
+//            $courtPrice = 0;
+//            if ($guestPlayerCheckbox == 1 && isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
+//                // Use the already halved price for guest players
+//                $courtPrice = $nonMemberPricing['price'];
+//                error_log("Guest player court price: " . $courtPrice);
+//            } elseif ($user->getMeta('member') && $guestPlayerCheckbox != 1) {
+//                // Members should pay 0 for court rental
+//                $courtPrice = 0;
+//                error_log("Member court price (free): " . $courtPrice);
+//            } elseif ($finalPricing != null && isset($finalPricing['price'])) {
+//                $courtPrice = $finalPricing['price'];
+//                error_log("Regular player court price: " . $courtPrice);
+//            } else {
+//                // Default fallback price
+//                $courtPrice = 750; // 7.50€ in cents
+//                error_log("Using fixed fallback court price: " . $courtPrice);
+//            }
+//
+//            // Make sure courtPrice is a positive number ONLY for non-members
+//            if ($courtPrice <= 0 && (!$user->getMeta('member') || $guestPlayerCheckbox == 1)) {
+//                // Only apply this correction for non-members or members with guests
+//                $courtPrice = 750; // Use fixed fallback price of 7.50€
+//                error_log("Corrected court price to fixed fallback: " . $courtPrice);
+//            }
+//
+//
+//            // Add the court price to the total
+//            $total += $courtPrice;
+//            $byproducts['total'] = $total;
+//            error_log("Updated total price with court rental: " . $total);
+//
+//            // Store the court price in meta data so BookingService can use it
+//            $byproducts['courtPrice'] = $courtPrice;
+//        }
 
         $newbudget = 0;
         $byproducts['hasBudget'] = false; 
