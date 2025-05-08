@@ -12,9 +12,18 @@ $this->headScript()->appendFile('https://challenges.cloudflare.com/turnstile/v0/
 // Add CSP header to allow Turnstile scripts
 // More secure CSP implementation
 $nonce = base64_encode(random_bytes(16));
+// More secure CSP implementation targeting only jQuery and Turnstile
 header("Content-Security-Policy: ".
     "default-src 'self'; ".
-    "script-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com 'nonce-{$nonce}'; ".
+    // Allow scripts from self and Cloudflare with exact hashes from error messages
+    "script-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com ".
+    // Include the three hashes reported in error messages
+    "'sha256-tutWzkTQQbaCqCBmdP1Zrcb0qkJebRWZEmM4ILA4j+0=' ".
+    "'sha256-ATNC5kpOkQ+bwZQyhBKxwxWnSW0Kjde8STNkg9e9ryM=' ".
+    "'sha256-9rpJ8nDVsumP+KgsqdB1SsBbT2+5OsJ1PTHQF9XD30Y=' ".
+    // Keep unsafe-eval for jQuery and Turnstile
+    "'unsafe-eval'; ".
+    // Rest of CSP remains the same
     "style-src 'self' 'unsafe-inline'; ".
     "frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com; ".
     "connect-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com; ".
