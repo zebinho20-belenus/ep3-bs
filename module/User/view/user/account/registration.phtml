@@ -9,7 +9,8 @@ $this->setup(array(
 $this->headScript()->appendFile($this->basePath('js/controller/user/registration.min.js'));
 // Add Cloudflare Turnstile script
 $this->headScript()->appendFile('https://challenges.cloudflare.com/turnstile/v0/api.js', 'text/javascript', ['async' => true, 'defer' => true]);
-
+// Add CSP header to allow Turnstile scripts
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.cloudflare.com; style-src 'self' 'unsafe-inline'; frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com;");
 ?>
 
 <div>
@@ -181,8 +182,19 @@ $this->headScript()->appendFile('https://challenges.cloudflare.com/turnstile/v0/
                 </div>
                 
                 <!-- Cloudflare Turnstile -->
-                <div class="cf-turnstile-container" style="display: flex; justify-content: center; margin: 20px 0;">
-                    <div class="cf-turnstile" data-sitekey="<?= $this->turnstileSiteKey ?>" data-theme="auto"></div>
+                <!-- Add this hidden field right before the Turnstile script -->
+                <input type="hidden" name="rf-cf-turnstile-response" id="rf-cf-turnstile-response" value="">
+                <script>
+                    function turnstileCallback(token) {
+                        console.log("Turnstile token received");
+                        document.getElementById('rf-cf-turnstile-response').value = token;
+                    }
+                </script>
+                <div class="cf-turnstile"
+                     data-sitekey="<?= $this->turnstileSiteKey ?>"
+                     data-callback="turnstileCallback"
+                     data-theme="auto">
+
                 </div>
 
                 <!-- Submit -->
