@@ -12,3 +12,5 @@ Thumbs.db
 /tmp
 /config/autoload/local.php
 /config/autoload/project.php
+config/secrets.php
+

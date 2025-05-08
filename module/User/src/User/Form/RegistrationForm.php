@@ -667,7 +667,9 @@ class RegistrationForm extends Form
                         'name' => 'Callback',
                         'options' => array(
                             'callback' => function($value) {
-                                $secretKey = '0x4AAAAAABbgN42j78mi_6K8RrL9cP7sTj4'; // Replace with your Cloudflare Turnstile secret key
+                                // Load secret key from config file
+                                $config = include getcwd() . '/config/secrets.php';
+                                $secretKey = $config['cloudflare']['turnstile']['secret_key'];
                                 
                                 $data = [
                                     'secret' => $secretKey,

@@ -182,7 +182,7 @@ $this->headScript()->appendFile('https://challenges.cloudflare.com/turnstile/v0/
                 
                 <!-- Cloudflare Turnstile -->
                 <div class="cf-turnstile-container" style="display: flex; justify-content: center; margin: 20px 0;">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABbgN_GHrRGI_XrK" data-theme="auto"></div>
+                    <div class="cf-turnstile" data-sitekey="<?= $this->turnstileSiteKey ?>" data-theme="auto"></div>
                 </div>
 
                 <!-- Submit -->
