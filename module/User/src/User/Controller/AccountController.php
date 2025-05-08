@@ -302,14 +302,14 @@ class AccountController extends AbstractActionController
                 return $this->redirect()->toRoute('user/registration-confirmation');
             }
         }
-// Load Cloudflare Turnstile config
+// Load config before the return statement
         $config = include getcwd() . '/config/secrets.php';
         $turnstileSiteKey = $config['cloudflare']['turnstile']['site_key'];
 
-// Add this line just before the return statement in registrationAction()
+// Include it in your return array
         return array(
             'registrationForm' => $registrationForm,
-            'turnstileSiteKey' => $turnstileSiteKey,  // Add this line
+            'turnstileSiteKey' => $turnstileSiteKey,
         );
     }
 

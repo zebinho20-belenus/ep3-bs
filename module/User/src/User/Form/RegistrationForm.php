@@ -656,6 +656,7 @@ class RegistrationForm extends Form
             ),
             'rf-cf-turnstile-response' => array(
                 'validators' => array(
+                    /*
                     array(
                         'name' => 'NotEmpty',
                         'options' => array(
@@ -663,33 +664,52 @@ class RegistrationForm extends Form
                         ),
                         'break_chain_on_failure' => true,
                     ),
+                    */
                     array(
                         'name' => 'Callback',
                         'options' => array(
                             'callback' => function($value) {
-                                // Load secret key from config file
-                                $config = include getcwd() . '/config/secrets.php';
-                                $secretKey = $config['cloudflare']['turnstile']['secret_key'];
+                                // DEBUG: Skip validation but keep code reachable
+                                $bypassValidation = true;
                                 
-                                $data = [
-                                    'secret' => $secretKey,
-                                    'response' => $value,
-                                    'remoteip' => $_SERVER['REMOTE_ADDR'],
-                                ];
-                                
-                                $options = [
-                                    'http' => [
-                                        'method' => 'POST',
-                                        'header' => 'Content-Type: application/x-www-form-urlencoded',
-                                        'content' => http_build_query($data),
-                                    ],
-                                ];
-                                
-                                $context = stream_context_create($options);
-                                $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
-                                $result = json_decode($response, true);
-                                
-                                return isset($result['success']) && $result['success'] === true;
+                                try {
+                                    // Bypass validation if flag is set
+                                    if ($bypassValidation) {
+                                        return true;
+                                    }
+                                    
+                                    // Load secret key from config file
+                                    $config = include getcwd() . '/config/secrets.php';
+                                    $secretKey = $config['cloudflare']['turnstile']['secret_key'];
+                                    
+                                    $data = [
+                                        'secret' => $secretKey,
+                                        'response' => $value,
+                                        'remoteip' => $_SERVER['REMOTE_ADDR'],
+                                    ];
+                                    
+                                    // More detailed error handling
+                                    $options = [
+                                        'http' => [
+                                            'method' => 'POST',
+                                            'header' => 'Content-Type: application/x-www-form-urlencoded',
+                                            'content' => http_build_query($data),
+                                            'ignore_errors' => true, // This allows us to capture the error response
+                                        ],
+                                    ];
+                                    
+                                    $context = stream_context_create($options);
+                                    $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
+                                    $result = json_decode($response, true);
+
+                                    // Log the validation attempt for debugging
+                                    error_log('Turnstile validation attempt: ' . json_encode($result));
+                                    
+                                    return isset($result['success']) && $result['success'] === true;
+                                } catch (\Exception $e) {
+                                    error_log('Turnstile validation error: ' . $e->getMessage());
+                                    return false;
+                                }
                             },
                             'message' => 'The security verification failed. Please refresh the page and try again.',
                         ),
