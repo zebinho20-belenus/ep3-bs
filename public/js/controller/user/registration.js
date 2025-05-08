@@ -38,6 +38,15 @@
         if ($("#form-nickname-error").length) {
             $('input[name="rf-nickname"]').show();
         }
+        
+        /* Cloudflare Turnstile integration */
+        $('form[name="rf"]').submit(function(event) {
+            // Get the Turnstile token and add it to the hidden form field
+            var turnstileResponse = $(".cf-turnstile [name='cf-turnstile-response']").val();
+            if (turnstileResponse) {
+                $("#rf-cf-turnstile-response").val(turnstileResponse);
+            }
+        });
     });
 
 })();

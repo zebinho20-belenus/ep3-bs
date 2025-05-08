@@ -7,6 +7,8 @@ $this->setup(array(
 ));
 
 $this->headScript()->appendFile($this->basePath('js/controller/user/registration.min.js'));
+// Add Cloudflare Turnstile script
+$this->headScript()->appendFile('https://challenges.cloudflare.com/turnstile/v0/api.js', 'text/javascript', ['async' => true, 'defer' => true]);
 
 ?>
 
@@ -176,6 +178,11 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/registration
                     }
 
                     ?>
+                </div>
+                
+                <!-- Cloudflare Turnstile -->
+                <div class="cf-turnstile-container" style="display: flex; justify-content: center; margin: 20px 0;">
+                    <div class="cf-turnstile" data-sitekey="<?= $this->turnstileSiteKey ?>" data-theme="auto"></div>
                 </div>
 
                 <!-- Submit -->
