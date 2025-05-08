@@ -38,13 +38,24 @@
         if ($("#form-nickname-error").length) {
             $('input[name="rf-nickname"]').show();
         }
-        
+
         /* Cloudflare Turnstile integration */
         $('form[name="rf"]').submit(function(event) {
-            // Get the Turnstile token and add it to the hidden form field
-            var turnstileResponse = $(".cf-turnstile [name='cf-turnstile-response']").val();
-            if (turnstileResponse) {
-                $("#rf-cf-turnstile-response").val(turnstileResponse);
+            console.log("Form submission detected");
+
+            // The correct way to get the Turnstile response
+            try {
+                var turnstileResponse = document.querySelector('[name="cf-turnstile-response"]').value;
+                console.log("Turnstile response: ", turnstileResponse);
+
+                if (turnstileResponse) {
+                    $("#rf-cf-turnstile-response").val(turnstileResponse);
+                    console.log("Turnstile response set in hidden field");
+                } else {
+                    console.log("Turnstile response not found");
+                }
+            } catch (e) {
+                console.error("Error getting Turnstile response:", e);
             }
         });
     });
