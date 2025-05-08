@@ -250,6 +250,15 @@ class RegistrationForm extends Form
             ),
         ));
 
+        /* Add Cloudflare Turnstile field */
+        $this->add(array(
+            'name' => 'rf-cf-turnstile-response',
+            'type' => 'Hidden',
+            'attributes' => array(
+                'id' => 'rf-cf-turnstile-response',
+            ),
+        ));
+
         /* Add weak CSRF protection */
 
         $time = time();
@@ -641,6 +650,46 @@ class RegistrationForm extends Form
                         'options' => array(
                             'max' => 0,
                             'message' => 'Please leave this field empty',
+                        ),
+                    ),
+                ),
+            ),
+            'rf-cf-turnstile-response' => array(
+                'validators' => array(
+                    array(
+                        'name' => 'NotEmpty',
+                        'options' => array(
+                            'message' => 'The security verification failed. Please try again.',
+                        ),
+                        'break_chain_on_failure' => true,
+                    ),
+                    array(
+                        'name' => 'Callback',
+                        'options' => array(
+                            'callback' => function($value) {
+                                $secretKey = '0x4AAAAAABbgN42j78mi_6K8RrL9cP7sTj4'; // Replace with your Cloudflare Turnstile secret key
+                                
+                                $data = [
+                                    'secret' => $secretKey,
+                                    'response' => $value,
+                                    'remoteip' => $_SERVER['REMOTE_ADDR'],
+                                ];
+                                
+                                $options = [
+                                    'http' => [
+                                        'method' => 'POST',
+                                        'header' => 'Content-Type: application/x-www-form-urlencoded',
+                                        'content' => http_build_query($data),
+                                    ],
+                                ];
+                                
+                                $context = stream_context_create($options);
+                                $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
+                                $result = json_decode($response, true);
+                                
+                                return isset($result['success']) && $result['success'] === true;
+                            },
+                            'message' => 'The security verification failed. Please refresh the page and try again.',
                         ),
                     ),
                 ),
