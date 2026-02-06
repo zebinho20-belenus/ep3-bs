@@ -28,7 +28,18 @@ $this->setup(array(
 
     <div class="separator-small"></div>
 
-    <p><?= $this->t(sprintf('Status: %s', '<code>' . $this->bookingBillingStatus . '</code>')) ?></p>
+    <?php
+        $statusCssMap = array(
+            'paid' => 'billing-paid',
+            'pending' => 'billing-pending',
+            'cancelled' => 'billing-cancelled',
+            'uncollectable' => 'billing-uncollectable',
+            'member' => 'billing-member',
+        );
+        $slug = isset($this->bookingBillingStatusSlug) ? $this->bookingBillingStatusSlug : '';
+        $cssClass = isset($statusCssMap[$slug]) ? $statusCssMap[$slug] : 'billing-pending';
+    ?>
+    <p><?= $this->t('Status') ?>: <span class="billing-badge <?= $cssClass ?>"><?= $this->escapeHtml($this->bookingBillingStatus) ?></span></p>
 
     <div class="card card-body bg-light">
         <div class="table-responsive">

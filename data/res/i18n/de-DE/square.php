@@ -100,6 +100,7 @@ return array(
     'End date' => 'Enddatum',
     'Check free %s' => 'Auf freie %s prüfen',
     'Check' => 'Prüfen',
+    'View' => 'Anzeigen',
 
     'You need to activate %sJavaScript%s in your web browser to proceed. If in doubt, switch to another web browser (e.g. Mozilla Firefox).'
         => '%sJavaScript%s muss in Ihrem Webbrowser aktiviert sein um fortzufahren. Im Zweifelsfall benutzen Sie einfach einen anderen Webbrowser (z.B. Mozilla Firefox).',

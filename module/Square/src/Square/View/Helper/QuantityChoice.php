@@ -40,7 +40,7 @@ class QuantityChoice extends AbstractHelper
         $html .= '</label>';
 
         // Add onchange event to toggle the guest player checkbox
-        $html .= '<select id="sb-quantity" name="sb-quantity" style="min-width: 64px; visibility:' . $quantityChoiceSelect . '" onchange="toggleGuestPlayerCheckbox(this.value)">';
+        $html .= '<select id="sb-quantity" name="sb-quantity" class="form-select form-select-sm" style="display: inline-block; width: auto; min-width: 64px; visibility:' . $quantityChoiceSelect . '" onchange="toggleGuestPlayerCheckbox(this.value)">';
         //$html .= '<select id="sb-quantity" style="min-width: 64px; visibility:' . $quantityChoiceSelect . '" >';
 
         for ($i = 1; $i <= $quantityAvailable; $i++) {

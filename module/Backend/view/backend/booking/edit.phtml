@@ -142,7 +142,7 @@ $this->setup(array(
 
                             <?= $this->t('Bill') ?>:
                             &nbsp;
-                            <a href="<?= $this->url('user/bookings/bills', ['bid' => $this->booking->get('bid')]) ?>" class="symbolic symbolic-info unlined gray"><?= $this->t('Check') ?></a>
+                            <a href="<?= $this->url('user/bookings/bills', ['bid' => $this->booking->get('bid')]) ?>" class="symbolic symbolic-info unlined gray"><?= $this->t('View') ?></a>
 
                             <?php if ($this->sessionUser->can('admin.booking')): ?>
                                 &nbsp;
