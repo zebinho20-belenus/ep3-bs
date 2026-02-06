@@ -103,6 +103,9 @@ class PricingSummary extends AbstractHelper
             $html .= '<tr>';
 
             $productTotal = $product->need('price') * $product->needExtra('amount');
+            if ($guestPlayer) {
+                $productTotal = $productTotal / 2;
+            }
 
             $html .= '<td>' . $product->need('name') . '</td>';
             $html .= '<td colspan="2">' . sprintf($view->t('%s items'), $product->needExtra('amount')) . '</td>';

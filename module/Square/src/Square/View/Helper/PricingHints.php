@@ -43,7 +43,14 @@ class PricingHints extends AbstractHelper
 
             if ($pricing) {
                 if ($guestPlayerCheckbox) {
-                    $pricing['price'] /= 2;
+                    if ($member && $pricing['price'] == 0) {
+                        $nonMemberPricing = $this->squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, 1, false);
+                        if ($nonMemberPricing) {
+                            $pricing['price'] = $nonMemberPricing['price'] / 2;
+                        }
+                    } else {
+                        $pricing['price'] /= 2;
+                    }
                 }
                 return $this->getView()->priceFormat($pricing['price'], $pricing['rate'], $pricing['gross'], $pricing['seconds'], $pricing['per_quantity']);
             }

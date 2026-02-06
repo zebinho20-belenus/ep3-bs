@@ -233,7 +233,7 @@ class BookingController extends AbstractActionController
         // Check guest player checkbox
         $guestPlayerCheckbox = $this->params()->fromQuery('gp', 0); // Default to 0 if not provided
         // If member is playing with guest, set price to half of square price instead of 0
-        if ($finalPricing != null && $finalPricing['price']) {
+        if ($finalPricing != null && ($finalPricing['price'] || $guestPlayerCheckbox == 1)) {
             if ($guestPlayerCheckbox == 1) {
                 // Get the original square price before member discount
                 $nonMemberPricing = $squarePricingManager->getFinalPricingInRange($byproducts['dateStart'], $byproducts['dateEnd'], $square, $quantityParam, false);
@@ -266,6 +266,15 @@ class BookingController extends AbstractActionController
             // Ensure the total is being stored correctly in the database
         }
         $byproducts['total'] = $total;
+
+        if ($guestPlayerCheckbox == 1 && isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
+            $byproducts['courtPrice'] = $nonMemberPricing['price'] / 2;
+        } elseif ($finalPricing != null && isset($finalPricing['price'])) {
+            $byproducts['courtPrice'] = $finalPricing['price'];
+        } else {
+            $byproducts['courtPrice'] = 0;
+        }
+
 //        // Create a Bill object for the court itself
 //        if ($guestPlayerCheckbox == 1 || $finalPricing != null) {
 //            // Create a description for the court rental
@@ -388,7 +397,7 @@ class BookingController extends AbstractActionController
                 }
             }
 
-            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable && $guestPlayerCheckbox != 1) {
+            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
                    $meta['directpay'] = 'true';
             }
 
@@ -396,8 +405,8 @@ class BookingController extends AbstractActionController
                 'price' => $byproducts['courtPrice'], // Pass the correct price to the booking service
                 'guestPlayer' => $guestPlayerCheckbox == 1 ? '1' : '0', // Pass guest player status as string
             ]));
-            
-            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable && $guestPlayerCheckbox != 1) {
+
+            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
             # payment checkout
                 if($payable) {
                    // $paymentService = $serviceManager->get('Payment\Service\PaymentService'); 
