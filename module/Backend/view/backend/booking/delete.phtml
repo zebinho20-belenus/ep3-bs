@@ -34,9 +34,6 @@ $this->setup(array(
             // Silently fail if we can't determine roles
         }
 
-        // Debug output (optional, can be removed later)
-        echo "Is Verwalter? " . ($isVerwalter ? 'Yes' : 'No');
-
         if ($isVerwalter):
             ?>
             <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true']]) ?>" class="default-button">
