@@ -576,7 +576,7 @@ class BookingController extends AbstractActionController
                         '<b>', '</b>',$this->option('subject.square.type')));
                 }
 
-                if ($guestPlayerCheckbox == 1) {
+                if ($guestPlayerCheckbox == 1 && !$budgetpayment) {
                     $this->flashMessenger()->addInfoMessage(
                         $this->t('Please pay the booking amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.')
                     );
