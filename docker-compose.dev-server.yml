@@ -1,0 +1,73 @@
+# DEV instance on server — runs alongside production
+# Usage: docker compose -f docker-compose.dev-server.yml up -d
+#
+# Requires:
+# - .env file (copy from .env.dev-server, adjust credentials)
+# - External traefik_web network (shared with production Traefik)
+# - Separate config files: local.php (DB: mariadb-dev), project.php (URLs: dev.*)
+
+services:
+  mailhog-dev:
+    image: mailhog/mailhog:latest
+    restart: always
+    volumes:
+      - ./tmp/mail:/maildir
+    networks:
+      - courtnet-dev
+
+  mariadb-dev:
+    image: mariadb:latest
+    restart: always
+    ports:
+      - ${MYSQL_PORT}:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./tmp/db:/var/lib/mysql
+    networks:
+      - courtnet-dev
+
+  court-dev:
+    image: court-dev
+    build:
+      dockerfile: Dockerfile
+      args:
+        INSTALL_XDEBUG: ${INSTALL_XDEBUG}
+    restart: always
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - mailhog-dev
+      - mariadb-dev
+    networks:
+      - courtnet-dev
+      - traefik_web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_web"
+
+      # Secure Header Middleware
+      - "traefik.http.middlewares.secure-headers-dev.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.court-dev.middlewares=secure-headers-dev"
+
+      # HTTP -> HTTPS Redirect
+      - "traefik.http.routers.court-dev-redirect.entrypoints=web"
+      - "traefik.http.routers.court-dev-redirect.rule=Host(`${APP_HOSTNAME}`)"
+      - "traefik.http.routers.court-dev-redirect.middlewares=redirect-to-https-dev"
+      - "traefik.http.middlewares.redirect-to-https-dev.redirectscheme.scheme=https"
+
+      # HTTPS Router
+      - "traefik.http.routers.court-dev.rule=Host(`${APP_HOSTNAME}`)"
+      - "traefik.http.routers.court-dev.entrypoints=websecure"
+      - "traefik.http.routers.court-dev.tls=true"
+      - "traefik.http.routers.court-dev.tls.certresolver=myresolver"
+      - "traefik.http.services.court-dev.loadbalancer.server.port=80"
+
+networks:
+  courtnet-dev:
+    driver: bridge
+  traefik_web:
+    external: true
