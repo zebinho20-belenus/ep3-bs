@@ -12,7 +12,7 @@ class TimeTable extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<table class="calendar-time-table" style="width: 70px;">';
+        $html .= '<table class="calendar-time-table" style="width: 90px;">';
         $html .= '<tr class="calendar-date-row"><td>&nbsp;</td></tr>';
 
         $html .= sprintf('<tr class="calendar-square-row"><td>%s</td></tr>',

@@ -18,8 +18,8 @@ class UsersFormat extends AbstractHelper
         $html .= '<thead><tr>';
         $html .= '<th data-sort-type="number">' . $view->t('No.') . '</th>';
         $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';
-        $html .= '<th data-sort-type="text">' . $view->t('Member') . '</th>';
-        $html .= '<th data-sort-type="text">' . $view->t('Status') . '</th>';
+        $html .= '<th data-sort-type="text" data-filter-type="select">' . $view->t('Member') . '</th>';
+        $html .= '<th data-sort-type="text" data-filter-type="select">' . $view->t('Status') . '</th>';
         $html .= '<th data-sort-type="text" class="email-col">' . $view->t('Email address') . '</th>';
         $html .= '<th data-sort-type="text" class="notes-col">' . $view->t('Notes') . '</th>';
         $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';

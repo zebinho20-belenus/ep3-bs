@@ -13,7 +13,7 @@
         });
 
         $('th.sortable').on('click', function (e) {
-            // Ignore clicks on the filter input
+            // Ignore clicks on filter inputs/selects
             if ($(e.target).hasClass('col-filter')) return;
 
             var $th   = $(this);
@@ -53,17 +53,45 @@
             var $headerRow = $thead.find('tr').first();
             var $filterRow = $('<tr class="filter-row no-print"></tr>');
 
-            $headerRow.find('th').each(function () {
+            $headerRow.find('th').each(function (thIdx) {
                 var $th = $(this);
                 var sortType = $th.data('sort-type');
+                var filterType = $th.data('filter-type');
                 var $td = $('<td></td>');
 
                 if (sortType && sortType !== 'none') {
-                    var $input = $('<input type="text" class="col-filter form-control form-control-sm" placeholder="Filter...">');
-                    $input.on('input', function () {
-                        applyFilters($table);
-                    });
-                    $td.append($input);
+                    if (filterType === 'select') {
+                        // Collect unique values from column cells
+                        var values = [];
+                        var seen = {};
+                        $table.find('tbody tr').each(function () {
+                            var cell = this.cells[thIdx];
+                            var text = (cell ? cell.textContent : '').trim();
+                            if (text && text !== '-' && !seen[text]) {
+                                seen[text] = true;
+                                values.push(text);
+                            }
+                        });
+                        values.sort(function (a, b) {
+                            return a.localeCompare(b, 'de', { sensitivity: 'base' });
+                        });
+
+                        var $select = $('<select class="col-filter form-select form-select-sm"></select>');
+                        $select.append('<option value="">Alle</option>');
+                        for (var i = 0; i < values.length; i++) {
+                            $select.append($('<option></option>').val(values[i]).text(values[i]));
+                        }
+                        $select.on('change', function () {
+                            applyFilters($table);
+                        });
+                        $td.append($select);
+                    } else {
+                        var $input = $('<input type="text" class="col-filter form-control form-control-sm" placeholder="Filter...">');
+                        $input.on('input', function () {
+                            applyFilters($table);
+                        });
+                        $td.append($input);
+                    }
                 }
                 $filterRow.append($td);
             });
@@ -75,11 +103,12 @@
     function applyFilters($table) {
         var filters = [];
         $table.find('.filter-row .col-filter').each(function () {
-            var $input = $(this);
-            var colIdx = $input.closest('td').index();
-            var val = $input.val().toLowerCase().trim();
+            var $el = $(this);
+            var colIdx = $el.closest('td').index();
+            var val = $el.val().trim();
+            var isSelect = $el.is('select');
             if (val) {
-                filters.push({ col: colIdx, text: val });
+                filters.push({ col: colIdx, text: val.toLowerCase(), exact: isSelect });
             }
         });
 
@@ -89,10 +118,17 @@
 
             for (var i = 0; i < filters.length; i++) {
                 var cell = $row[0].cells[filters[i].col];
-                var cellText = (cell ? cell.textContent : '').toLowerCase();
-                if (cellText.indexOf(filters[i].text) === -1) {
-                    show = false;
-                    break;
+                var cellText = (cell ? cell.textContent : '').trim();
+                if (filters[i].exact) {
+                    if (cellText !== filters[i].text && cellText.toLowerCase() !== filters[i].text) {
+                        show = false;
+                        break;
+                    }
+                } else {
+                    if (cellText.toLowerCase().indexOf(filters[i].text) === -1) {
+                        show = false;
+                        break;
+                    }
                 }
             }
 

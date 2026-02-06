@@ -3,6 +3,7 @@
 namespace Backend\View\Helper\Booking;
 
 use Booking\Entity\Reservation;
+use Booking\Service\BookingStatusService;
 use Square\Manager\SquareManager;
 use Booking\Manager\Booking\BillManager;
 use User\Manager\UserManager;
@@ -13,13 +14,15 @@ class BookingFormat extends AbstractHelper
 
     protected $squareManager;
     protected $bookingBillManager;
-    protected $userManager; 
+    protected $userManager;
+    protected $bookingStatusService;
 
-    public function __construct(SquareManager $squareManager, BillManager $bookingBillManager, UserManager $userManager )
+    public function __construct(SquareManager $squareManager, BillManager $bookingBillManager, UserManager $userManager, BookingStatusService $bookingStatusService)
     {
         $this->squareManager = $squareManager;
         $this->bookingBillManager = $bookingBillManager;
         $this->userManager = $userManager;
+        $this->bookingStatusService = $bookingStatusService;
     }
 
     public function __invoke(Reservation $reservation, $dateStart = null, $dateEnd = null, $search = null)
@@ -129,6 +132,55 @@ class BookingFormat extends AbstractHelper
 
         $html .= sprintf('<td>%s</td>',
             $view->priceFormat($price));
+
+        /* Billing status col */
+
+        $statusBilling = $booking->get('status_billing');
+
+        if ($statusBilling) {
+            $statusCssMap = array(
+                'paid' => 'billing-paid',
+                'pending' => 'billing-pending',
+                'cancelled' => 'billing-cancelled',
+                'uncollectable' => 'billing-uncollectable',
+                'member' => 'billing-member',
+            );
+
+            $cssClass = isset($statusCssMap[$statusBilling]) ? $statusCssMap[$statusBilling] : 'billing-pending';
+
+            if ($statusBilling === 'member') {
+                $statusTitle = $view->t('Member');
+            } else {
+                $statusTitle = $view->t($this->bookingStatusService->getStatusTitle($statusBilling));
+            }
+
+            $html .= sprintf('<td><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
+        } else {
+            $html .= '<td>-</td>';
+        }
+
+        /* Budget col */
+
+        $budgetPayment = $booking->getMeta('budgetpayment');
+        $hasBudget = $booking->getMeta('hasBudget');
+        $budgetBefore = $booking->getMeta('budget');
+        $budgetAfter = $booking->getMeta('newbudget');
+
+        if ($budgetPayment === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
+            $deducted = floatval($budgetBefore) - floatval($budgetAfter);
+            $html .= sprintf('<td><span class="billing-badge billing-paid">%s</span></td>',
+                number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
+        } elseif ($hasBudget === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
+            $deducted = floatval($budgetBefore) - floatval($budgetAfter);
+            if ($deducted > 0) {
+                $html .= sprintf('<td><span class="billing-badge billing-pending">%s</span></td>',
+                    number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
+            } else {
+                $html .= '<td>-</td>';
+            }
+        } else {
+            $html .= '<td>-</td>';
+        }
 
         /* Actions col */
 
