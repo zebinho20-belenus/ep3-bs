@@ -15,6 +15,9 @@ class DetermineFilters extends AbstractPlugin
 
         $filters = array();
         $filterParts = array();
+        $metaFilters = array();
+
+        $metaKeys = array('member');
 
         preg_match_all('/\(([^\(\)]+[<=>][^\(\)]+)\)/', $search, $matches);
 
@@ -80,8 +83,12 @@ class DetermineFilters extends AbstractPlugin
                     break;
                 }
 
-                $filters[] = sprintf('%s %s "%s"', $key, $operator, $value);
-                $filterParts[] = array($key, $operator, $value);
+                if (in_array($key, $metaKeys)) {
+                    $metaFilters[] = array($key, $operator, $value);
+                } else {
+                    $filters[] = sprintf('%s %s "%s"', $key, $operator, $value);
+                    $filterParts[] = array($key, $operator, $value);
+                }
             }
         }
 
@@ -89,6 +96,7 @@ class DetermineFilters extends AbstractPlugin
             'search' => $search,
             'filters' => $filters,
             'filterParts' => $filterParts,
+            'metaFilters' => $metaFilters,
         );
     }
 

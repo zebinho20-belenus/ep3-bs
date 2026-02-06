@@ -40,6 +40,19 @@ class UserController extends AbstractActionController
                 } else {
                     $users = $userManager->getBy($filters['filters'], 'alias ASC', $limit);
                 }
+
+                if (!empty($filters['metaFilters'])) {
+                    $users = array_filter($users, function($user) use ($filters) {
+                        foreach ($filters['metaFilters'] as $metaFilter) {
+                            list($key, $operator, $value) = $metaFilter;
+                            $metaValue = $user->getMeta($key);
+                            if ($operator === '=' && (string)$metaValue !== (string)$value) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                }
             } catch (\RuntimeException $e) {
                 $users = array();
             }
