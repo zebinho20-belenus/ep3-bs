@@ -1,0 +1,37 @@
+# Local dev overrides — auto-loaded by docker compose
+# On production use: docker compose -f docker-compose.yml up -d
+services:
+  traefik:
+    image: traefik:latest
+    restart: always
+    environment:
+      - DOCKER_API_VERSION=1.44
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "${TRAEFIK_HTTP_PORT}:80"
+      - "${TRAEFIK_HTTPS_PORT}:443"
+      - "${TRAEFIK_DASHBOARD_PORT}:8080"
+    volumes:
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    networks:
+      - traefik_web
+
+  mailhog:
+    ports:
+      - ${MAILHOG_UI_PORT}:8025
+
+  court:
+    labels:
+      - "traefik.http.routers.court.tls.certresolver="
+
+# Override: traefik_web as local network (not external), with explicit name to avoid prefix
+networks:
+  traefik_web:
+    external: false
+    name: traefik_web
+    driver: bridge
