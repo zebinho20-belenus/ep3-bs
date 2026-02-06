@@ -531,7 +531,28 @@ class BookingController extends AbstractActionController
                     } catch (\Exception $e) {
                         // Continue despite errors
                     }
-                    
+
+                    // Budget refund before deletion (same logic as cancel path)
+                    if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
+                        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+                        $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+                        $total = 0;
+                        if ($bills) {
+                            foreach ($bills as $bill) {
+                                $total += $bill->need('price');
+                            }
+                        }
+
+                        $olduserbudget = $user->getMeta('budget');
+                        if ($olduserbudget == null || $olduserbudget == '') {
+                            $olduserbudget = 0;
+                        }
+
+                        $newbudget = ($olduserbudget * 100 + $total) / 100;
+                        $user->setMeta('budget', $newbudget);
+                        $userManager->save($user);
+                    }
+
                     // Now delete the booking
                     $bookingManager->delete($booking);
 

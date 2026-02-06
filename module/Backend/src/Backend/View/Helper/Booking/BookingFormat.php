@@ -184,27 +184,32 @@ class BookingFormat extends AbstractHelper
 
         /* Actions col */
 
+        $editUrl = $view->url('backend/booking/edit', [], ['query' => [
+            'ds' => $date->format('Y-m-d'),
+            'ts' => substr($reservation->get('time_start'), 0, 5),
+            'te' => substr($reservation->get('time_end'), 0, 5),
+            's' => $booking->get('sid'),
+            'r' => $reservation->get('rid')]]);
+
+        $deleteUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')]);
+
         if ($booking->get('status') == 'cancelled') {
 
-            $html .= sprintf('<td class="actions-col no-print"><a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a></td>',
-                $view->url('backend/booking/edit', [], ['query' => [
-                    'ds' => $date->format('Y-m-d'),
-                    'ts' => substr($reservation->get('time_start'), 0, 5),
-                    'te' => substr($reservation->get('time_end'), 0, 5),
-                    's' => $booking->get('sid'),
-                    'r' => $reservation->get('rid')]]),
-                $view->t('Edit'));
+            $html .= sprintf('<td class="actions-col no-print">'
+                . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
+                . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                . '</td>',
+                $editUrl, $view->t('Edit'),
+                $deleteUrl, $view->t('Delete'));
 
         } else {
 
-            $html .= sprintf('<td class="actions-col no-print"><a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a></td>',
-                $view->url('backend/booking/edit', [], ['query' => [
-                    'ds' => $date->format('Y-m-d'),
-                    'ts' => substr($reservation->get('time_start'), 0, 5),
-                    'te' => substr($reservation->get('time_end'), 0, 5),
-                    's' => $booking->get('sid'),
-                    'r' => $reservation->get('rid')]]),
-                $view->t('Edit'));
+            $html .= sprintf('<td class="actions-col no-print">'
+                . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
+                . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                . '</td>',
+                $editUrl, $view->t('Edit'),
+                $deleteUrl, $view->t('Cancel booking'));
         }
 
         $html .= '</tr>';
