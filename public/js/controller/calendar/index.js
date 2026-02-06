@@ -172,10 +172,10 @@
 
         if (! squarebox) {
             if (window.matchMedia('(min-width: 1024px)').matches) {
-                squarebox = $('<div class="panel"></div>').css({
+                squarebox = $('<div class="panel squarebox-desktop"></div>').css({
                     "position": "absolute",
                     "z-index": 1536,
-                    "max-width": "600px",
+                    "max-width": "720px",
                     "transition": "top 0.3s ease, left 0.3s ease"
                 });
             } else {

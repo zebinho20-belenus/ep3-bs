@@ -677,6 +677,29 @@ a.squarebox-primary-close-link:hover {
     background: #DC2626;
 }
 
+/* Squarebox desktop — 2-column grid for the 4-section booking form */
+.squarebox-desktop table.middle-table,
+.squarebox-desktop table.middle-table > tbody {
+    display: block;
+    width: 100%;
+}
+.squarebox-desktop table.middle-table > tbody > tr:first-child {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.squarebox-desktop table.middle-table > tbody > tr:first-child > td {
+    padding-right: 0;
+    padding-bottom: 0;
+}
+.squarebox-desktop table.middle-table > tbody > tr:last-child {
+    display: block;
+}
+.squarebox-desktop table.middle-table > tbody > tr:last-child > td[colspan] {
+    display: block;
+    width: 100%;
+}
+
 /* Squarebox mobile — fixed positioning, scrollable, stacked layout */
 .squarebox-mobile { box-sizing: border-box; }
 .squarebox-mobile a.squarebox-primary-close-link { position: sticky; float: right; top: 0; right: 0; z-index: 10; }
