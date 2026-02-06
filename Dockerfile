@@ -3,16 +3,23 @@ FROM php:8.1-apache
 ARG INSTALL_XDEBUG=false
 
 RUN apt update && apt install -y \
-    libicu-dev libsodium-dev git unzip libzip-dev libxml2-dev zlib1g-dev wget
+    libicu-dev libsodium-dev git unzip libzip-dev libxml2-dev zlib1g-dev wget \
+    ca-certificates && update-ca-certificates
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql \
     && docker-php-ext-configure intl && docker-php-ext-install intl \
     && docker-php-ext-install zip soap \
     && docker-php-ext-enable mysqli intl pdo_mysql sodium
 
-# Xdebug only when INSTALL_XDEBUG=true (dev)
+# Xdebug only when INSTALL_XDEBUG=true (dev) — installed from source tarball (PECL SSL broken on older images)
 RUN if [ "$INSTALL_XDEBUG" = "true" ]; then \
-    pecl install xdebug && docker-php-ext-enable xdebug \
+    cd /tmp \
+    && wget --no-check-certificate https://xdebug.org/files/xdebug-3.3.2.tgz \
+    && tar -xzf xdebug-3.3.2.tgz \
+    && cd xdebug-3.3.2 \
+    && phpize && ./configure && make && make install \
+    && docker-php-ext-enable xdebug \
+    && rm -rf /tmp/xdebug-3.3.2 /tmp/xdebug-3.3.2.tgz \
     && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
@@ -32,7 +39,10 @@ WORKDIR /var/www/html/
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 COPY . /var/www/html
-RUN cd /var/www/html/ && composer install
+RUN git config --global --add safe.directory /var/www/html
+
+# Composer dependencies: managed via volume mount at runtime (docker compose exec court composer update)
+# The volume mount ./:/var/www/html overrides COPY, so vendor/ from host is used directly.
 
 RUN chown -R www-data:www-data /var/www/html/*
 
