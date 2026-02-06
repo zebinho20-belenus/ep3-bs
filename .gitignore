@@ -3,12 +3,14 @@
 /nbproject/
 
 composer.phar
+composer.lock
 
 Desktop.ini
 Thumbs.db
 
 .DS_Store
 
+.env
 /tmp
 /config/autoload/local.php
 /config/autoload/project.php

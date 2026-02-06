@@ -1,11 +1,10 @@
-version: "3"
 services:
   mailhog:
     image: mailhog/mailhog:latest
     restart: always
     ports:
-      - 1025:1025
-      - 8025:8025
+      - ${MAILHOG_SMTP_PORT}:1025
+      - ${MAILHOG_UI_PORT}:8025
     volumes:
       - ./tmp/mail:/maildir
 
@@ -13,24 +12,25 @@ services:
     image: mariadb:latest
     restart: always
     ports:
-      - 3306:3306
+      - ${MYSQL_PORT}:3306
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: mycourt
-      MYSQL_USER: mycourt
-      MYSQL_PASSWORD: mycourt
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - ./tmp/db:/var/lib/mysql
 
   court:
-    image: court
     build:
       dockerfile: Dockerfile
+      args:
+        INSTALL_XDEBUG: ${INSTALL_XDEBUG}
     restart: always
     ports:
-      - 80:80
+      - ${COURT_PORT}:80
     volumes:
-        - ./:/var/www/html
-    links:
+      - ./:/var/www/html
+    depends_on:
       - mailhog
       - mariadb
