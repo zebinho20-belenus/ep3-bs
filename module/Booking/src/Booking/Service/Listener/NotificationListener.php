@@ -170,10 +170,42 @@ class NotificationListener extends AbstractListenerAggregate
         $message .= " -> ";
         $message .= $priceFormatHelper($total);
 
-        if ($booking->get('status_billing') == 'pending' && $booking->getMeta('gp') == '1' && $booking->getMeta('directpay') != 'true') {
+        if ($booking->get('status_billing') == 'pending' && $booking->getMeta('gp') == '1' && $booking->getMeta('directpay') != 'true' && $booking->getMeta('budgetpayment') != 'true') {
             $message .= "\n\n" . $this->t('Payment instructions:');
             $message .= "\n" . $this->t('Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.');
             $message .= "\n" . $this->t('The booking is only valid after payment is completed.');
+        }
+
+        # payment method and budget info for email
+        $paymentMethod = $booking->getMeta('paymentMethod');
+        $hasBudget = $booking->getMeta('hasBudget') == 'true';
+        $budgetpayment = $booking->getMeta('budgetpayment') == 'true';
+        $methodLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', 'billing' => $this->t('Invoice')];
+
+        if ($budgetpayment || $paymentMethod || $hasBudget) {
+            $message .= "\n\n" . $this->t('Payment information:');
+
+            if ($budgetpayment) {
+                // Full payment from budget
+                $message .= "\n" . $this->t('Payment method:') . ' ' . $this->t('Budget');
+            } elseif ($hasBudget && $paymentMethod) {
+                // Partial: budget + payment gateway
+                $methodLabel = isset($methodLabels[$paymentMethod]) ? $methodLabels[$paymentMethod] : $paymentMethod;
+                $message .= "\n" . $this->t('Payment method:') . ' ' . $this->t('Budget') . ' + ' . $methodLabel;
+            } elseif ($paymentMethod) {
+                // Gateway only
+                $methodLabel = isset($methodLabels[$paymentMethod]) ? $methodLabels[$paymentMethod] : $paymentMethod;
+                $message .= "\n" . $this->t('Payment method:') . ' ' . $methodLabel;
+            }
+
+            // Show budget deduction if budget was used
+            if ($hasBudget && $booking->getMeta('budget') !== null) {
+                $budget = $booking->getMeta('budget');
+                $newbudget = $booking->getMeta('newbudget') !== null ? $booking->getMeta('newbudget') : '0';
+                $message .= "\n" . sprintf($this->t('Budget: %s → new budget: %s'),
+                    number_format((float)$budget, 2, ',', '.') . ' €',
+                    number_format((float)$newbudget, 2, ',', '.') . ' €');
+            }
         }
 
         $message .= "\n\n";
@@ -181,14 +213,6 @@ class NotificationListener extends AbstractListenerAggregate
         $message = $message . sprintf($this->t('Should you have any questions and commentaries, please contact us through Email - %s'),
              //$this->optionManager->get('client.contact.email'));
                 str_replace('mailto:', '', $this->optionManager->get('client.website.contact')));
-
-        # payment status for email
-        $paymentMethod = $booking->getMeta('paymentMethod');
-        if ($booking->get('status_billing') == 'paid' && $paymentMethod) {
-            $methodLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna'];
-            $methodLabel = isset($methodLabels[$paymentMethod]) ? $methodLabels[$paymentMethod] : $paymentMethod;
-            $message .= "\n" . $this->t('Payment status:') . ' ' . sprintf($this->t('Paid via %s'), $methodLabel);
-        }
 
         # user notes (strip internal payment tracking)
         $notes = $booking->getMeta('notes');

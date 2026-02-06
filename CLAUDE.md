@@ -69,13 +69,13 @@ Entity (data container, extends AbstractEntity)
 |--------|------|
 | **Base** | Core utilities, AbstractEntity/AbstractManager, view helpers, OptionManager, ConfigManager, MailService |
 | **Backend** | Admin dashboard — user management, booking management, system configuration |
-| **Booking** | Booking creation/management, BookingService, BookingManager, billing |
+| **Booking** | Booking creation/management, BookingService, BookingManager, billing, email notifications (NotificationListener) |
 | **Square** | Court/square definitions, public booking UI (customization, confirmation views) |
 | **Calendar** | Calendar widget rendering |
 | **Event** | Events and court closures |
 | **Frontend** | Public-facing index/calendar page |
 | **User** | Authentication, account management, user metadata |
-| **Payment** | Payum integration — PayPal, Stripe (card, SEPA, iDEAL, giropay), Klarna |
+| **Payment** | Payum integration — PayPal, Stripe (card, SEPA, iDEAL, giropay), Klarna; Stripe webhook handler |
 | **SquareControl** | Door code generation for Loxone MiniServer (toggled via config) |
 | **Service** | Shared cross-module services |
 | **Setup** | Installation wizard |
@@ -109,6 +109,37 @@ Payment options (PayPal/Stripe/Klarna) are only shown on the confirmation page w
 
 Unpaid bookings are auto-removed via a MySQL scheduled event (every 15 min, bookings older than 3 hours with `directpay=true` and `status_billing=pending`).
 
+### Budget (Guthaben) System
+
+Users can have a prepaid budget stored in `bs_users_meta` (key: `budget`, value in EUR). Admin-editable in Backend → User Edit.
+
+**Budget payment flow** (`BookingController.php`):
+1. Budget check: `$user->getMeta('budget') > 0 && $total > 0 && ($guestPlayerCheckbox != 1 || $member)`
+2. Budget covers full amount → `$budgetpayment = true`, `$payable = false` → "Mit Budget zahlen" button
+3. Budget partial → remaining amount charged via PayPal/Stripe/Klarna
+4. Budget deducted: immediately for budget-only; after gateway success for partial payments
+5. Budget info stored in booking meta: `hasBudget`, `budget`, `newbudget`, `budgetpayment`
+
+**Budget refund on cancellation**: budget is restored to user account.
+
+### Member/Guest Pricing Logic
+
+Pricing rules in `bs_squares_pricing` with `member` column (0=non-member, 1=member):
+- **Members** (member=1): use member pricing from DB (currently 0 = free)
+- **Non-members** (member=0): pay full non-member price
+- **Member with guest** (gp=1, member=1): pays **50% of non-member price** — only members get the 50% discount
+- **Non-member with guest** (gp=1, member=0): pays **full non-member price** (no discount)
+
+### Booking Email Notifications
+
+Email is sent via event-driven system: `BookingService::createSingle()` triggers `create.single` event → `NotificationListener::onCreateSingle()` composes and sends email.
+
+**Important**: Email is sent DURING `createSingle()`, so all payment/budget metadata must be included in the `$meta` array BEFORE calling `createSingle()`. Meta set after `createSingle()` (e.g., `setMeta()` calls) won't appear in the email.
+
+Key file: `module/Booking/src/Booking/Service/Listener/NotificationListener.php`
+
+Email includes: booking details, player names, itemized bill, payment information (method + budget deduction), guest payment instructions (only when not paid by budget/gateway).
+
 ### Dependency Injection
 
 Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factories implement `FactoryInterface` and are registered in each module's `module.config.php`.
@@ -119,12 +150,14 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 - Naming: `*Controller`, `*Manager`, `*Service`, `*Table`, `*Factory`, `*Entity`
 - Views: `module/{Module}/view/{module-lowercase}/{controller}/{action}.phtml`
 - Config per module: `module/{Module}/config/module.config.php`
+- Translations: `data/res/i18n/de-DE/{module}.php` — key = English, value = German
 
 ## Docker Setup
 
-Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD. Two compose files:
+Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD. Three compose files:
 - `docker-compose.yml` — production-compatible base (court, mariadb, mailhog + Traefik labels, external `traefik_web` network)
 - `docker-compose.override.yml` — local dev additions (Traefik service, self-signed HTTPS, local `traefik_web` network)
+- `docker-compose.dev-server.yml` — DEV instance on server alongside production (separate service names, Traefik routers, DB port)
 
 ```bash
 # Local dev (override auto-loaded):
@@ -132,6 +165,9 @@ docker compose up -d
 
 # Production (base only, uses external Traefik):
 docker compose -f docker-compose.yml up -d
+
+# DEV on server (alongside production):
+docker compose -f docker-compose.dev-server.yml up -d
 ```
 
 | Service | Default Port | Purpose |

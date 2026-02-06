@@ -77,9 +77,13 @@ class BookingService extends AbstractService
             // Get guest parameter value - either from meta or from GET params
             $guestPlayer = isset($meta['guestPlayer']) ? $meta['guestPlayer'] : (isset($_GET['gp']) ? $_GET['gp'] : '0');
 
-            // Set status_billing to 'member' if a member is booking without a guest
-            // Otherwise set to 'pending' (non-member or member with guest)
-            $statusBilling = ($member && $guestPlayer !== '1') ? 'member' : 'pending';
+            // Use status_billing from controller meta if explicitly set (e.g. member with pricing > 0)
+            // Otherwise default: 'member' for members without guest, 'pending' for others
+            if (isset($meta['status_billing'])) {
+                $statusBilling = $meta['status_billing'];
+            } else {
+                $statusBilling = ($member && $guestPlayer !== '1') ? 'member' : 'pending';
+            }
 
             // Create a new booking
             $booking = new Booking(array(

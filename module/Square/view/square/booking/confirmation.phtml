@@ -171,7 +171,11 @@ function showHide() {
             <?php else: ?>
                 <br>
                 <br>
-                <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Complete booking') ?>" class="default-button">
+                <?php if ($this->budgetpayment): ?>
+                    <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Pay with budget') ?>" class="default-button">
+                <?php else: ?>
+                    <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Complete booking') ?>" class="default-button">
+                <?php endif; ?>
             <?php endif; ?>  
         </div>
 
