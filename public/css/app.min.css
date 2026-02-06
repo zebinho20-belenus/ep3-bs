@@ -8,7 +8,7 @@
 :root {
     --bs-primary: #046bd2;
     --bs-primary-hover: #045cb4;
-    --color-accent: #28cd29;
+    --color-accent: #2e8b3c;
     --bs-danger: #DC2626;
     --color-text-heading: #1e293b;
     --color-text-body: #334155;
@@ -74,8 +74,8 @@ img { max-width: 100%; }
     color: #fff;
 }
 .btn-accent:hover {
-    background-color: #22b022;
-    border-color: #22b022;
+    background-color: #256e30;
+    border-color: #256e30;
     color: #fff;
 }
 

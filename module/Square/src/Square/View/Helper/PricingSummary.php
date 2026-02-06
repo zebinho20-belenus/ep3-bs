@@ -62,7 +62,7 @@ class PricingSummary extends AbstractHelper
         $html = '';
 
         $html .= '<table class="table table-bordered align-middle mb-0">';
-        $html .= '<tr>';
+        $html .= '<tr class="table-light">';
 
         $html .= sprintf('<td>' . $view->t('<b>%s %s</b><div class="small-text">%s</div>') . '</td>',
             $this->optionManager->need('subject.square.type'),

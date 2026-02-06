@@ -96,7 +96,7 @@ class EditForm extends Form
             'type' => 'Text',
             'attributes' => array(
                 'id' => 'bf-date-start',
-                'style' => 'width: 80px;',
+                'style' => 'width: 110px;',
             ),
             'options' => array(
                 'label' => 'Date (Start)',
@@ -120,7 +120,7 @@ class EditForm extends Form
             'type' => 'Text',
             'attributes' => array(
                 'id' => 'bf-date-end',
-                'style' => 'width: 80px;',
+                'style' => 'width: 110px;',
             ),
             'options' => array(
                 'label' => 'Date (End)',

@@ -174,7 +174,9 @@
             if (window.matchMedia('(min-width: 1024px)').matches) {
                 squarebox = $('<div class="panel"></div>').css({
                     "position": "absolute",
-                    "z-index": 1536
+                    "z-index": 1536,
+                    "max-width": "600px",
+                    "transition": "top 0.3s ease, left 0.3s ease"
                 });
             } else {
                 squarebox = $('<div class="panel squarebox-mobile"></div>').css({
