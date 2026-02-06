@@ -9,27 +9,33 @@ Fork of ep3-bs (tkrebs/ep3-bs v1.7.0) — an online booking system for courts (e
 ## Build & Run Commands
 
 ```bash
-# Setup environment config
-cp .env.example .env        # adjust values in .env
+# 1. Setup environment config
+cp .env.example .env                                        # adjust values in .env
+cp config/autoload/local.php.dist config/autoload/local.php # DB, mail, payment keys
+cp config/autoload/project.php.dist config/autoload/project.php # URLs, feature flags
 
-# Install PHP dependencies
-composer install
+# 2. Build and start (Traefik + MariaDB + MailHog + Apache)
+docker compose build
+docker compose up -d
 
-# Docker development environment (MariaDB + MailHog + Apache)
-docker-compose up --build
+# 3. Install/update PHP dependencies (run inside container)
+docker compose exec court composer update
 
-# Validate composer.json (used in CI)
-composer validate --strict
+# App available at https://court.localhost (self-signed cert)
+# Traefik dashboard at http://localhost:8080
+# MailHog UI at http://localhost:8025
 ```
 
 There is no test runner configured yet (PHPUnit skeleton exists in `module/User/test/` but CI test step is commented out).
 
 ## Configuration Setup
 
-Docker environment variables are in `.env` (from `.env.example`). Additionally, three PHP config `.dist` files must be copied and configured:
-- `config/init.php.dist` → `config/init.php` (dev mode flag, timezone, error reporting)
+Docker environment variables are in `.env` (from `.env.example`). Additionally, PHP config `.dist` files must be copied and configured:
 - `config/autoload/local.php.dist` → `config/autoload/local.php` (DB credentials, mail, payment API keys)
-- `config/autoload/project.php.dist` → `config/autoload/project.php` (instance URLs, payment method toggles, feature flags)
+- `config/autoload/project.php.dist` → `config/autoload/project.php` (instance URLs, session config, payment method toggles, feature flags)
+- `config/init.php.dist` → `config/init.php` (dev mode flag, timezone, error reporting)
+
+The `.dist` files contain Docker-friendly defaults (DB hostname `mariadb`, MailHog SMTP on port 1025).
 
 Database schema: `data/db/ep3-bs.sql`
 
@@ -102,17 +108,22 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 
 ## Docker Setup
 
-Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD, controlled via `.env` (see `.env.example`). `docker-compose.yml` is committed; `.env` is gitignored.
+Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD, controlled via `.env` (see `.env.example`). `docker-compose.yml` is committed; `.env` is gitignored. Local dev uses **Traefik** reverse proxy with HTTPS, matching the production setup.
 
 | Service | Default Port | Purpose |
 |---------|-------------|---------|
-| court | 80 | PHP 8.1 Apache app server |
+| traefik | 80, 443, 8080 | Reverse proxy with HTTPS (self-signed), dashboard |
+| court | (via Traefik) | PHP 8.1 Apache app server |
 | mariadb | 3306 | MariaDB |
-| mailhog | 8025 (UI), 1025 (SMTP) | Email testing |
+| mailhog | 8025 (UI) | Email testing (SMTP 1025 internal) |
 
 **DEV vs PROD** is toggled via `INSTALL_XDEBUG` in `.env`:
 - `INSTALL_XDEBUG=true` — installs Xdebug 3 (port 9003, IDE key: PHPSTORM)
 - `INSTALL_XDEBUG=false` — no debug tools, production-ready
+
+**Composer** is NOT run during Docker build. The volume mount `./:/var/www/html` provides `vendor/` from the host. Run `docker compose exec court composer update` to install/update dependencies.
+
+**macOS Docker Desktop**: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't reach the Docker socket.
 
 ## Writable Directories
 
