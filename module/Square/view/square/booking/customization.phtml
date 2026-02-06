@@ -13,34 +13,34 @@ echo $this->ajaxAwareScript('js/controller/square/booking/customization.js');
 
 ?>
 
-<div id="sb-customization-panel-warning" class="padded centered-text">
+<div id="sb-customization-panel-warning" class="p-4 text-center">
     <p><?= sprintf($this->t('You need to activate %sJavaScript%s in your web browser to proceed. If in doubt, switch to another web browser (e.g. Mozilla Firefox).'), '<b>', '</b>', '<br>') ?></p>
 </div>
 
-<div id="sb-customization-panel" class="padded centered-text" style="display: none;">
+<div id="sb-customization-panel" class="p-4 text-center" style="display: none;">
 
-    <p class="large-text"><?= $squareType . ' ' . $this->t($square->need('name')) ?></p>
+    <p class="fs-5"><?= $squareType . ' ' . $this->t($square->need('name')) ?></p>
 
     <?= $this->squareDateFormat($this->dateStart, $this->dateEnd) ?>
 
-    <?= sprintf('<p><span class="green">' . $this->t('You are going to book this %s.') . '</span></p>', $squareType) ?>
+    <?= sprintf('<p><span class="text-success">' . $this->t('You are going to book this %s.') . '</span></p>', $squareType) ?>
 
-    <div class="separator separator-line"></div>
+    <hr>
 
-    <div class="sandbox">
+    <div class="card card-body bg-light">
         <?= $this->squareQuantityChoice($square, $this->bookings) ?>
     </div>
 
-    <div class="separator separator-line"></div>
+    <hr>
 
     <?php
 
     $squareProducts = $this->squareProductChoice($square, $this->dateStart);
 
     if ($squareProducts) {
-        echo '<p class="gray"><em>' . $this->t('Consider our additional offers:') . '</em></p>';
-        echo '<div class="sandbox">' . $squareProducts . '</div>';
-        echo '<div class="separator separator-line"></div>';
+        echo '<p class="text-muted"><em>' . $this->t('Consider our additional offers:') . '</em></p>';
+        echo '<div class="card card-body bg-light">' . $squareProducts . '</div>';
+        echo '<hr>';
     }
 
     ?>
@@ -58,7 +58,7 @@ echo $this->ajaxAwareScript('js/controller/square/booking/customization.js');
         'gp' => 0,
         'pn' => 0]]);
 
-    echo sprintf('<a href="%s" id="sb-button" class="default-button squarebox-internal-link">%s</a>',
+    echo sprintf('<a href="%s" id="sb-button" class="btn btn-primary btn-lg squarebox-internal-link">%s</a>',
         $url, $this->t('Continue to summary'));
 
     ?>

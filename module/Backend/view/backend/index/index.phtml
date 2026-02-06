@@ -9,54 +9,41 @@ $this->setup(array(
 ?>
 
 <div>
-    <h1 class="no-ajax"><?= $this->t('Administration') ?></h1>
+    <h1 class="no-ajax mb-3"><?= $this->t('Administration') ?></h1>
 
-    <div class="no-ajax separator-small"></div>
+    <div class="list-group">
+        <a href="<?= $this->url('backend/user') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+            <span class="symbolic symbolic-user me-3 fs-5"><?= $this->t('Users') ?></span>
+            <span class="text-muted small ms-auto d-none d-md-inline"><?= $this->t('Create, edit or delete the users of your system') ?></span>
+        </a>
+        <a href="<?= $this->url('backend/user/stats') ?>" class="list-group-item list-group-item-action ps-5 small">
+            <span class="symbolic symbolic-stats"><?= $this->t('Statistic') ?></span>
+        </a>
 
-    <div style="margin-bottom: 8px;">
-        <a href="<?= $this->url('backend/user') ?>" class="default-button" style="width: 150px; text-align: left;"><span class="symbolic symbolic-user"><?= $this->t('Users') ?></span></a>
-        <span class="no-ajax gray" style="margin-left: 16px;">
-            <?= $this->t('Create, edit or delete the users of your system') ?>
-        </span>
-    </div>
+        <a href="<?= $this->url('backend/booking') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+            <span class="symbolic symbolic-booking me-3 fs-5"><?= $this->t('Bookings') ?></span>
+            <span class="text-muted small ms-auto d-none d-md-inline"><?= $this->t('Create, edit or delete the bookings of your system') ?></span>
+        </a>
+        <a href="<?= $this->url('backend/booking/stats') ?>" class="list-group-item list-group-item-action ps-5 small">
+            <span class="symbolic symbolic-stats"><?= $this->t('Statistic') ?></span>
+        </a>
 
-    <div style="margin-left: 14px; margin-bottom: 16px;">
-        <a href="<?= $this->url('backend/user/stats') ?>" class="unlined gray"><span class="symbolic symbolic-stats"><?= $this->t('Statistic') ?></span></a>
-    </div>
+        <a href="<?= $this->url('backend/squarecontrol') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+            <span class="symbolic symbolic-booking me-3 fs-5"><?= $this->t('Square control') ?></span>
+            <span class="text-muted small ms-auto d-none d-md-inline"><?= $this->t('Delete the inactive door codes of your system') ?></span>
+        </a>
 
-    <div style="margin-bottom: 8px;">
-        <a href="<?= $this->url('backend/booking') ?>" class="default-button" style="width: 150px; text-align: left;"><span class="symbolic symbolic-booking"><?= $this->t('Bookings') ?></span></a>
-        <span class="no-ajax gray" style="margin-left: 16px;">
-            <?= $this->t('Create, edit or delete the bookings of your system') ?>
-        </span>
-    </div>
+        <a href="<?= $this->url('backend/event') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+            <span class="symbolic symbolic-date me-3 fs-5"><?= $this->t('Events') ?></span>
+            <span class="text-muted small ms-auto d-none d-md-inline"><?= $this->t('Create, edit or delete the events of your system') ?></span>
+        </a>
+        <a href="<?= $this->url('backend/event/stats') ?>" class="list-group-item list-group-item-action ps-5 small">
+            <span class="symbolic symbolic-stats"><?= $this->t('Statistic') ?></span>
+        </a>
 
-    <div style="margin-left: 14px; margin-bottom: 16px;">
-        <a href="<?= $this->url('backend/booking/stats') ?>" class="unlined gray"><span class="symbolic symbolic-stats"><?= $this->t('Statistic') ?></span></a>
-    </div>
-
-    <div style="margin-bottom: 8px;">
-        <a href="<?= $this->url('backend/squarecontrol') ?>" class="default-button" style="width: 150px; text-align: left;"><span class="symbolic symbolic-booking"><?= $this->t('Square control') ?></span></a>
-        <span class="no-ajax gray" style="margin-left: 16px;">
-            <?= $this->t('Delete the inactive door codes of your system') ?>
-        </span>
-    </div>    
-
-    <div style="margin-bottom: 8px;">
-        <a href="<?= $this->url('backend/event') ?>" class="default-button" style="width: 150px; text-align: left;"><span class="symbolic symbolic-date"><?= $this->t('Events') ?></span></a>
-        <span class="no-ajax gray" style="margin-left: 16px;">
-            <?= $this->t('Create, edit or delete the events of your system') ?>
-        </span>
-    </div>
-
-    <div style="margin-left: 14px; margin-bottom: 16px;">
-        <a href="<?= $this->url('backend/event/stats') ?>" class="unlined gray"><span class="symbolic symbolic-stats"><?= $this->t('Statistic') ?></span></a>
-    </div>
-
-    <div>
-        <a href="<?= $this->url('backend/config') ?>" class="default-button" style="width: 150px; text-align: left;"><span class="symbolic symbolic-config"><?= $this->t('Configuration') ?></span></a>
-        <span class="no-ajax gray" style="margin-left: 16px;">
-            <?= $this->t('Configure your system just as you need it') ?>
-        </span>
+        <a href="<?= $this->url('backend/config') ?>" class="list-group-item list-group-item-action d-flex align-items-center">
+            <span class="symbolic symbolic-config me-3 fs-5"><?= $this->t('Configuration') ?></span>
+            <span class="text-muted small ms-auto d-none d-md-inline"><?= $this->t('Configure your system just as you need it') ?></span>
+        </a>
     </div>
 </div>

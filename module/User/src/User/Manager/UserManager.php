@@ -15,6 +15,7 @@ use Zend\Crypt\Password\Bcrypt;
 use Zend\Db\Sql\Predicate\In;
 use Zend\Db\Sql\Predicate\Like;
 use Zend\Db\Sql\Predicate\NotIn;
+use Zend\Db\Sql\Predicate\PredicateSet;
 
 class UserManager extends AbstractManager
 {
@@ -381,7 +382,20 @@ class UserManager extends AbstractManager
                 );
             }
 
-            return $this->getBy(array_merge(array(new Like('alias', '%' . $input . '%')), $where), 'alias ASC', $limit, null, $loadMeta);
+            // Support * as wildcard: "Seb*" → "Seb%", "*@gmail*" → "%@gmail%"
+            // If user provides wildcards, use their pattern; otherwise wrap with %
+            if (strpos($input, '*') !== false) {
+                $pattern = str_replace('*', '%', $input);
+            } else {
+                $pattern = '%' . $input . '%';
+            }
+
+            $searchPredicate = new PredicateSet(array(
+                new Like('alias', $pattern),
+                new Like('email', $pattern),
+            ), PredicateSet::COMBINED_BY_OR);
+
+            return $this->getBy(array_merge(array($searchPredicate), $where), 'alias ASC', $limit, null, $loadMeta);
         }
     }
 

@@ -17,7 +17,7 @@ class DeleteAccountForm extends Form
             'type' => 'Text',
             'attributes' => array(
                 'id' => 'daf-why',
-                'style' => 'width: 640px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Were you not happy with our service? Please tell us why you leave. Thank you!',
@@ -29,7 +29,7 @@ class DeleteAccountForm extends Form
             'type' => 'Password',
             'attributes' => array(
                 'id' => 'daf-pw-current',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Your current password',
@@ -41,7 +41,7 @@ class DeleteAccountForm extends Form
             'type' => 'Submit',
             'attributes' => array(
                 'value' => 'Delete account',
-                'class' => 'default-button',
+                'class' => 'btn btn-danger btn-sm',
             ),
         ));
 

@@ -1,43 +1,31 @@
-<form method="post" action="<?= $this->url('user/login') ?>">
-    <table style="height: 100%;">
-        <tr>
-            <td style="padding-right: 12px;">
-                <?php
+<div class="d-flex flex-wrap align-items-center gap-2">
+    <span>
+        <?php
+        echo sprintf($this->t('To book %s, %splease register first%s'),
+            $this->option('subject.square.type.plural'),
+            '<a href="' . $this->url('user/registration') . '" class="btn btn-sm btn-primary">', '</a>');
+        ?>
+    </span>
 
-                echo sprintf($this->t('To book %s, %splease register first%s'),
-                    $this->option('subject.square.type.plural'),
-                    '<br><a href="' . $this->url('user/registration') . '" class="symbolic symbolic-plus-link">', '</a>');
+    <a href="<?= $this->url('user/login') ?>" class="btn btn-outline-primary btn-sm d-lg-none">
+        <span class="fa fa-sign-in"></span> <?= $this->t('Login') ?>
+    </a>
 
-                ?>
-            </td>
+    <a href="<?= $this->url('service/help') ?>" class="btn btn-outline-secondary btn-sm" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>">
+        <b>?</b>
+    </a>
+</div>
 
-            <td class="responsive-pass-5" style="padding-left: 12px; padding-right: 12px; border-left: solid 1px #CCC;">
-                <?= sprintf($this->t('or simply %s login here'), '<br>') ?>
-            </td>
+<form method="post" action="<?= $this->url('user/login') ?>" class="d-none d-lg-block mt-2">
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-muted"><?= $this->t('or simply login here') ?></span>
 
-            <td class="responsive-pass-3">
-                <div class="inline-element">
-                    <label for="lf-email" class="inline-label symbolic symbolic-email"><span><?= $this->t('Email address') ?></span></label>
-                    <input type="text" name="lf-email" id="lf-email" value=""
-                        class="inline-label-container" style="padding-left: 32px; width: 150px;">
-                </div>
-            </td>
+        <input type="text" name="lf-email" id="lf-email" value=""
+            class="form-control form-control-sm" style="max-width: 200px;" placeholder="<?= $this->t('Email address') ?>">
 
-            <td class="responsive-pass-3">
-                <div class="inline-element">
-                    <label for="lf-pw" class="inline-label symbolic symbolic-pw"><span><?= $this->t('Password') ?></span></label>
-                    <input type="password" name="lf-pw" id="lf-pw" size="10" value=""
-                        class="inline-label-container" style="padding-left: 24px; width: 158px;">
-                </div>
-            </td>
+        <input type="password" name="lf-pw" id="lf-pw" value=""
+            class="form-control form-control-sm" style="max-width: 160px;" placeholder="<?= $this->t('Password') ?>">
 
-            <td style="padding-right: 12px;">
-                <input type="submit" value="<?= $this->t('Login') ?>" class="default-button">
-            </td>
-
-            <td style="padding-left: 12px; border-left: solid 1px #CCC;">
-                <a href="<?= $this->url('service/help') ?>" class="default-button" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>"><b>?</b></a>
-            </td>
-        </tr>
-    </table>
+        <input type="submit" value="<?= $this->t('Login') ?>" class="btn btn-primary btn-sm text-nowrap">
+    </div>
 </form>

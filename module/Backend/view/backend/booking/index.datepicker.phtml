@@ -12,49 +12,37 @@ if (! ($this->dateStart || $this->dateEnd)) {
 
 <div style="padding: 10px 0px 16px 0px;">
     <form id="bsf" name="bsf" method="get" action="<?= $this->url('backend/booking') ?>">
-        <table class="default-table">
-            <tr>
-                <td>
-                    <div class="default-form-label-top gray">
-                        <label for="date-start"><?= $this->t('Date') ?>:</label>
-                    </div>
+        <div class="d-flex flex-wrap align-items-end gap-2">
+            <div>
+                <label for="date-start" class="form-label small text-muted mb-1"><?= $this->t('Date') ?></label>
+                <input type="text" name="date-start" id="date-start" value="<?= $this->dateFormat($this->dateStart, IntlDateFormatter::MEDIUM) ?>"
+                       class="form-control form-control-sm datepicker" style="width: 120px;">
+            </div>
 
-                    <div class="inline-element">
-                        <label for="date-start" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date start') ?></span></label>
-                        <input type="text" name="date-start" id="date-start" value="<?= $this->dateFormat($this->dateStart, IntlDateFormatter::MEDIUM) ?>"
-                               class="inline-label-container datepicker" style="padding-left: 28px; width: 96px;">
-                    </div>
-                </td>
+            <div class="pb-1">
+                <?= $this->t('to') ?>
+            </div>
 
-                <td style="vertical-align: bottom; padding: 7px;">
-                    <?= $this->t('to') ?>
-                </td>
+            <div>
+                <label for="date-end" class="form-label small text-muted mb-1">&nbsp;</label>
+                <input type="text" name="date-end" id="date-end" value="<?= $this->dateFormat($this->dateEnd, IntlDateFormatter::MEDIUM) ?>"
+                       class="form-control form-control-sm datepicker" style="width: 120px;">
+            </div>
 
-                <td style="vertical-align: bottom;">
-                    <div class="inline-element">
-                        <label for="date-end" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date end') ?></span></label>
-                        <input type="text" name="date-end" id="date-end" value="<?= $this->dateFormat($this->dateEnd, IntlDateFormatter::MEDIUM) ?>"
-                               class="inline-label-container datepicker" style="padding-left: 28px; width: 96px;">
-                    </div>
-                </td>
-
-                <td>
-                    <div class="default-form-label-top gray">
-                        <label for="bs-filter"><?= $this->t('Filter') ?>:</label>
-                    </div>
-
-                    <input type="text" name="search" id="bs-filter" value="<?= $this->search ?>" style="width: 160px">
-
+            <div>
+                <label for="bs-filter" class="form-label small text-muted mb-1"><?= $this->t('Filter') ?></label>
+                <div class="d-flex align-items-center gap-1">
+                    <input type="text" name="search" id="bs-filter" value="<?= $this->search ?>" class="form-control form-control-sm" style="width: 180px;">
                     <a href="#" id="bs-filters-help" class="unlined gray">
                         <i class="symbolic symbolic-info symbol-shifted"></i>
                     </a>
-                </td>
+                </div>
+            </div>
 
-                <td style="vertical-align: bottom;">
-                    <input type="submit" value="<?= $this->t('Search') ?>" class="default-button">
-                </td>
-            </tr>
-        </table>
+            <div>
+                <input type="submit" value="<?= $this->t('Search') ?>" class="btn btn-primary btn-sm">
+            </div>
+        </div>
     </form>
 
     <div id="bs-filters-help-box" class="sandbox" style="display: none; margin: 26px auto 0px auto;">

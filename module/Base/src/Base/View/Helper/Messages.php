@@ -56,8 +56,9 @@ class Messages extends AbstractHelper
         }
 
         if ($html) {
-            $html = sprintf('<div class="%s messages-panel panel">%s</div>',
-                str_replace('phantom-panel', '', $view->placeholder('panel')), $html);
+            $panelClass = str_replace('phantom-panel', '', $view->placeholder('panel'));
+            $html = sprintf('<div class="%s mx-auto mb-3">%s</div>',
+                trim($panelClass), $html);
         }
 
         return $html;

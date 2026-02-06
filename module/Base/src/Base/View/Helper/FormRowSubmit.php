@@ -18,7 +18,12 @@ class FormRowSubmit extends AbstractHelper
             $formElement = $form->get($id);
         }
 
-        $html = sprintf('<tr><td>&nbsp;</td><td>%s</td></tr>',
+        $existingClass = $formElement->getAttribute('class') ?: '';
+        if (strpos($existingClass, 'btn') === false) {
+            $formElement->setAttribute('class', trim($existingClass . ' btn btn-primary'));
+        }
+
+        $html = sprintf('<div class="mb-3">%s</div>',
             $view->formElement($formElement));
 
         return $html;

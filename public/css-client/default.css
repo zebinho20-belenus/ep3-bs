@@ -1,116 +1,46 @@
-h2, h3, h4, h5, h6 { color: #547B97; }
-
-/* Layout - Calendar */
-
-a.cc-event:link,
-a.cc-event:visited { background-color: #975459; }
-a.cc-event:hover { background-color: #6A3333; }
-
-a.cc-own:link,
-a.cc-own:visited { background-color: #8BB243; }
-a.cc-own:hover { background-color: #5F8024; }
-
-a.cc-try:link,
-a.cc-try:visited { background-color: #e5e68b; }
-a.cc-try:hover { background-color: #e5e68b; }
-
-a.cc-single:link,
-a.cc-single:visited { background-color: #808D96; }
-a.cc-single:hover { background-color: #4C5359; }
-
-a.cc-multiple:link,
-a.cc-multiple:visited { background-color: #547B97; }
-a.cc-multiple:hover { background-color: #334F6A; }
-
-a.cc-conflict:link,
-a.cc-conflict:visited { background-color: #334F6A; }
-a.cc-conflict:hover { background-color: #334F6A; }
-
-/* Layout - Alternate Calendar */
-
-.cc-range-member a {
-    border-color: #547B97 !important;
-    background-color: #547B97 !important;
-}
-
-/* General Purpose - Classes */
-
-.my-highlight { color: #5F8024; }
-
-.badge { background-color: #547B97; }
-.badge-label { color: #547B97; }
-
-/* Links */
-
-a:link, a:visited { color: #334F6A; }
-
-/*  Added by TCN-Kail Tennis Club zebinho20-belenus  */
-.guest-payment-instructions {
-    font-size: 16px;
-    font-family: Arial, sans-serif;
-    margin-top: 10px;
-    font-weight: bold;
-    color: #d9534f;
-}
+/* ==========================================================================
+   css-client/default.css — Client-specific overrides
+   Calendar colors and link colors are now in app.css
+   ========================================================================== */
 
 /* Payment options */
 .payment-options {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 0.75rem;
     flex-wrap: wrap;
-    margin: 12px 0;
+    margin: 0.75rem 0;
 }
 
 .payment_radio {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
     cursor: pointer;
     transition: border-color 0.2s;
     min-height: 44px;
 }
 
-.payment_radio:hover {
-    border-color: #547B97;
-}
-
-.payment_radio input[type="radio"] {
-    margin: 0;
-}
-
-.payment_radio input[type="radio"]:checked + img,
-.payment_radio input[type="radio"]:checked + span {
-    opacity: 1;
-}
-
+.payment_radio:hover { border-color: #046bd2; }
+.payment_radio input[type="radio"] { margin: 0; }
 .payment_radio:has(input[type="radio"]:checked) {
-    border-color: #547B97;
-    background-color: #f0f6fa;
+    border-color: #046bd2;
+    background-color: #eff6ff;
 }
-
-.payment_radio img {
-    height: 24px;
-    width: auto;
-}
-
-.payment_radio .payment-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #334F6A;
-}
+.payment_radio img { height: 24px; width: auto; }
+.payment_radio .payment-label { font-size: 14px; font-weight: 600; color: #046bd2; }
 
 /* Guest payment notice on customization page */
 .guest-payment-notice {
-    margin-top: 10px;
-    padding: 12px 16px;
-    background-color: #f0f6fa;
-    border: 2px solid #547B97;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #334F6A;
+    margin-top: 0.625rem;
+    padding: 0.75rem 1rem;
+    background-color: #eff6ff;
+    border: 2px solid #046bd2;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: #046bd2;
     line-height: 1.5;
 }

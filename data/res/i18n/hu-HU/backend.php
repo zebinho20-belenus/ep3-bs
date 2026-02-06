@@ -34,7 +34,7 @@ return array(
     'Event-Administration' => 'Esemény-adminisztráció',
     'Here you can create, edit or delete the events of your system.' => 'Itt létre tud hozni, szerkeszteni, vagy törölni az eseményeket.',
 
-    'Name or number' => 'Név vagy szám',
+    'Name, email or number' => 'Név, e-mail vagy szám',
     'Search' => 'Keresés',
     'Advanced search' => 'Haladó keresés',
     '%sNo users found%s for this search' => '%sNem találhatók felhasználók%s ehhez a kereséshez',
@@ -119,6 +119,7 @@ return array(
     'Yes, delete this event' => 'Igen, törölje ezt az eseményt',
 
     'You can use filters like these to narrow your search:' => 'Használhat szűrést, amivel szűkítheti a keresést:',
+    'You can use * as a wildcard:' => 'A * helyettesítő karakterként használható:',
     'You can also combine a search term and multiple filters like this:'
         => 'Kombinálhatja is a kereső kifejezéseket és szűrőke, hasonlóan mint ez:',
 

@@ -158,10 +158,10 @@
                     });
                 } else {
                     squareboxOverlay = $('<div id="squarebox-overlay"></div>').css({
-                        "position": "absolute",
+                        "position": "fixed",
                         "z-index": 1532,
                         "opacity": 0.00,
-                        "width": $(document).width(), "height": $(document).height(),
+                        "width": "100%", "height": "100%",
                         "left": 0, "top": 0,
                         "background": "#333"
                     });
@@ -177,13 +177,15 @@
                     "z-index": 1536
                 });
             } else {
-                squarebox = $('<div class="panel"></div>').css({
-                    "position": "absolute",
-                    "top": "0!important",
-                    "left": 0,
-                    "width": "90%",
-                    "max-width": "90%",
-                    "z-index": 1536
+                squarebox = $('<div class="panel squarebox-mobile"></div>').css({
+                    "position": "fixed",
+                    "z-index": 1536,
+                    "top": "5vh",
+                    "left": "5vw",
+                    "width": "90vw",
+                    "max-height": "90vh",
+                    "overflow-y": "auto",
+                    "-webkit-overflow-scrolling": "touch"
                 });
             }
             $("body").prepend(squarebox);
@@ -208,6 +210,11 @@
     function updateSquarebox()
     {
         if (squarebox) {
+            /* On mobile, position: fixed handles centering via CSS */
+            if (squarebox.hasClass("squarebox-mobile")) {
+                return;
+            }
+
             var orientation;
 
             if ($("body").height() > $(window).height()) {

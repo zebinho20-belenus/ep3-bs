@@ -10,7 +10,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/user/inde
             <tr>
                 <td>
                     <div class="default-form-label-top gray">
-                        <label for="usf-search"><?= $this->t('Name or number') ?>:</label>
+                        <label for="usf-search"><?= $this->t('Name, email or number') ?>:</label>
                     </div>
 
                     <input type="text" name="usf-search" id="usf-search" value="<?= $this->search ?>" data-autocomplete-url="<?= $this->url('backend/user/interpret') ?>" style="width: 290px;">
@@ -49,6 +49,11 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/user/inde
         <?= $this->backendUserFilterHelp('Created', '=', new DateTime()) ?>
         <?= $this->backendUserFilterHelp('Created', '>', new DateTime()) ?>
         <?= $this->backendUserFilterHelp('Created', '<', new DateTime()) ?>
+
+        <p style="margin-top: 16px;">
+            <?= $this->t('You can use * as a wildcard:') ?>
+            <code>Seb*</code>, <code>*@gmail.com</code>, <code>*müller*</code>
+        </p>
 
         <p style="margin-top: 16px;">
             <?= $this->t('You can also combine a search term and multiple filters like this:') ?><br>

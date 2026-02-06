@@ -8,7 +8,7 @@ class FormElementErrors extends ZendFormElementErrors
 {
 
     protected $attributes = array(
-        'class' => 'default-form-errors message',
+        'class' => 'invalid-feedback d-block',
     );
 
 }

@@ -30,8 +30,9 @@ $this->setup(array(
 
     <p><?= $this->t(sprintf('Status: %s', '<code>' . $this->bookingBillingStatus . '</code>')) ?></p>
 
-    <div class="sandbox">
-        <table class="bordered-table middle-table">
+    <div class="card card-body bg-light">
+        <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0">
 
             <?php
 
@@ -68,11 +69,12 @@ $this->setup(array(
 
             <?php endforeach; ?>
 
-            <tr>
-                <td colspan="3" style="border-top: solid 2px #666;"><?= $this->t('Total') ?></td>
-                <td style="border-top: solid 2px #666;"><?= $this->priceFormat($total) ?></td>
+            <tr class="table-active fw-bold">
+                <td colspan="3"><?= $this->t('Total') ?></td>
+                <td><?= $this->priceFormat($total) ?></td>
             </tr>
 
         </table>
+        </div>
     </div>
 </div>

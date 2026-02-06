@@ -12,31 +12,34 @@ class BookingsFormat extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<table class="bordered-table">';
+        $html .= '<div class="table-responsive">';
+        $html .= '<table class="table table-bordered table-hover align-middle">';
 
-        $html .= '<tr class="gray">';
-        $html .= '<th>&nbsp;</th>';
-        $html .= '<th>' . $view->t('No.') . '</th>';
-        $html .= '<th>' . $view->t('Name') . '</th>';
-        $html .= '<th>' . $view->t('Member') . '</th>';
-        $html .= '<th>' . $view->t('Day') . '</th>';
-        $html .= '<th>' . $view->t('Date') . '</th>';
-        $html .= '<th>' . $view->t('Time') . '</th>';
-        $html .= '<th>' . $view->option('subject.square.type') . '</th>';
-        $html .= '<th class="notes-col">' . $view->t('Notes') . '</th>';
-        $html .= '<th>' . $view->t('Price') . '</th>';
-        $html .= '<th class="no-print">&nbsp;</th>';
-        $html .= '</tr>';
+        $html .= '<thead><tr>';
+        $html .= '<th data-sort-type="text">&nbsp;</th>';
+        $html .= '<th data-sort-type="number">' . $view->t('No.') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Member') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Day') . '</th>';
+        $html .= '<th data-sort-type="date-de">' . $view->t('Date') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Time') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->option('subject.square.type') . '</th>';
+        $html .= '<th data-sort-type="text" class="notes-col">' . $view->t('Notes') . '</th>';
+        $html .= '<th data-sort-type="price">' . $view->t('Price') . '</th>';
+        $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
+        $html .= '</tr></thead>';
 
+        $html .= '<tbody>';
         foreach ($reservations as $reservation) {
             $html .= $view->backendBookingFormat($reservation, $dateStart, $dateEnd, $search);
         }
+        $html .= '</tbody>';
 
         $html .= '</table>';
-
-        $html .= '<style type="text/css"> .status-col, .actions-col { border: none !important; } </style>';
+        $html .= '</div>';
 
         $view->headScript()->appendFile($view->basePath('js/controller/backend/booking/index.min.js'));
+        $view->headScript()->appendFile($view->basePath('js/controller/backend/table-sort.min.js'));
 
         return $html;
     }

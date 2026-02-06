@@ -1,45 +1,32 @@
-<table style="height: 100%;">
-    <tr>
-        <td class="responsive-pass-up" style="padding-right: 12px; border-right: solid 1px #CCC;">
-            <div id="userpanel-status" class="no-wrap">
-                <?= sprintf($this->t('Online as %s'), $this->escapeHtml($this->user->need('alias'))) ?>
-            </div>
-        </td>
+<div class="d-flex flex-wrap align-items-center gap-2">
+    <span id="userpanel-status" class="no-wrap me-2 d-none d-lg-inline">
+        <?= sprintf($this->t('Online as %s'), $this->escapeHtml($this->user->need('alias'))) ?>
+    </span>
 
-        <td class="responsive-pass-up" style="padding-right: 12px;"></td>
+    <?php if ($this->user->can('admin.see-menu')): ?>
+        <?php $this->headScript()->appendFile($this->basePath('js/controller/frontend/index.admin.min.js')) ?>
+        <a href="<?= $this->url('backend') ?>" id="admin-menu-link" class="btn btn-outline-primary btn-sm">
+            <span class="fa fa-cog"></span>
+            <span class="symbolic-label"><?= $this->t('Administration') ?></span>
+        </a>
+    <?php endif; ?>
 
-        <?php if ($this->user->can('admin.see-menu')): ?>
+    <a href="<?= $this->url('user/bookings') ?>" class="btn btn-outline-primary btn-sm" data-tooltip="<?= $this->userLastBookings($this->user) ?>">
+        <span class="fa fa-calendar"></span>
+        <span class="symbolic-label"><?= $this->t('My bookings') ?></span>
+    </a>
 
-            <?php $this->headScript()->appendFile($this->basePath('js/controller/frontend/index.admin.min.js')) ?>
+    <a href="<?= $this->url('user/settings') ?>" class="btn btn-outline-primary btn-sm">
+        <span class="fa fa-user"></span>
+        <span class="symbolic-label"><?= $this->t('My account') ?></span>
+    </a>
 
-            <td class="responsive-pass-up never-hide-table-cell" style="padding-right: 12px; border-right: solid 1px #CCC;">
-                <a href="<?= $this->url('backend') ?>" id="admin-menu-link" class="default-button"><span class="symbolic symbolic-config">&nbsp;<span class="symbolic-label"><?= $this->t('Administration') ?></span></span></a>
-            </td>
+    <a href="<?= $this->url('user/logout') ?>" class="btn btn-outline-secondary btn-sm">
+        <span class="fa fa-sign-out"></span>
+        <span class="symbolic-label"><?= $this->t('Logout') ?></span>
+    </a>
 
-            <td class="responsive-pass-up never-hide-table-cell" style="padding-right: 12px;"></td>
-
-        <?php endif; ?>
-
-        <td>
-            <a href="<?= $this->url('user/bookings') ?>" class="default-button" data-tooltip="<?= $this->userLastBookings($this->user) ?>">
-                <span class="symbolic symbolic-booking">&nbsp;<span class="symbolic-label"><?= $this->t('My bookings') ?></span></span>
-            </a>
-        </td>
-
-        <td>
-            <a href="<?= $this->url('user/settings') ?>" class="default-button">
-                <span class="symbolic symbolic-user">&nbsp;<span class="symbolic-label"><?= $this->t('My account') ?></span></span>
-            </a>
-        </td>
-
-        <td style="padding-right: 12px;">
-            <a href="<?= $this->url('user/logout') ?>" class="default-button">
-                <span class="symbolic symbolic-off">&nbsp;<span class="symbolic-label"><?= $this->t('Logout') ?></span></span>
-            </a>
-        </td>
-
-        <td style="padding-left: 12px; border-left: solid 1px #CCC;">
-            <a href="<?= $this->url('service/help') ?>" class="default-button" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>"><b>?</b></a>
-        </td>
-    </tr>
-</table>
+    <a href="<?= $this->url('service/help') ?>" class="btn btn-outline-secondary btn-sm ms-1" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>">
+        <b>?</b>
+    </a>
+</div>

@@ -18,7 +18,7 @@ class FormElementNotes extends AbstractHelper
 
         $view = $this->getView();
 
-        return '<div class="default-form-notes">' . vsprintf($view->translate($notes), $arguments) . '</div>';
+        return '<div class="form-text">' . vsprintf($view->translate($notes), $arguments) . '</div>';
     }
 
 }

@@ -18,11 +18,25 @@ class FormRowCheckbox extends AbstractHelper
             $formElement = $form->get($id);
         }
 
-        $html = sprintf('<tr><td class="default-form-label-row">&nbsp;</td><td>%s %s %s %s</td></tr>',
-            $view->formElement($formElement),
-            $view->formLabel($formElement),
-            $view->formElementNotes($formElement),
-            $view->formElementErrors($formElement));
+        $existingClass = $formElement->getAttribute('class') ?: '';
+        if (strpos($existingClass, 'form-check-input') === false) {
+            $formElement->setAttribute('class', trim($existingClass . ' form-check-input'));
+        }
+
+        // Add form-check-label class to label
+        $labelAttributes = $formElement->getLabelAttributes() ?: array();
+        $labelClass = isset($labelAttributes['class']) ? $labelAttributes['class'] : '';
+        if (strpos($labelClass, 'form-check-label') === false) {
+            $labelAttributes['class'] = trim($labelClass . ' form-check-label');
+            $formElement->setLabelAttributes($labelAttributes);
+        }
+
+        $html = '<div class="mb-3 form-check">';
+        $html .= $view->formElement($formElement);
+        $html .= ' ' . $view->formLabel($formElement);
+        $html .= $view->formElementNotes($formElement);
+        $html .= $view->formElementErrors($formElement);
+        $html .= '</div>';
 
         return $html;
     }

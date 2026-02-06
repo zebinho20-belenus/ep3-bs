@@ -34,7 +34,7 @@ return array(
     'Event-Administration' => 'Veranstaltungs-Verwaltung',
     'Here you can create, edit or delete the events of your system.' => 'Hier können Sie die Veranstaltungen Ihres Systems erstellen, bearbeiten oder löschen.',
 
-    'Name or number' => 'Name oder Nummer',
+    'Name, email or number' => 'Name, E-Mail oder Nummer',
     'Search' => 'Suche',
     'Advanced search' => 'Erweiterte Suche',
     '%sNo users found%s for this search' => '%sKeine Benutzer%s für diese Suche gefunden',
@@ -121,6 +121,7 @@ return array(
     'Yes, delete this event' => 'Ja, Veranstaltung löschen',
 
     'You can use filters like these to narrow your search:' => 'Sie können Filter einsetzen um Ihre Suche einzuschränken:',
+    'You can use * as a wildcard:' => 'Sie können * als Platzhalter verwenden:',
     'You can also combine a search term and multiple filters like this:'
         => 'Sie können Suchbegriff und Filter auch kombinieren:',
 

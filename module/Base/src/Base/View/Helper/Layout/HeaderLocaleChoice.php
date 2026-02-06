@@ -32,31 +32,19 @@ class HeaderLocaleChoice extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<div id="topbar-i18n">';
-
         foreach ($localeChoice as $locale => $title) {
-            // $uriString = $this->uri->toString();
-            $uriString = $this->optionManager->need('service.website'); 
+            $uriString = $this->optionManager->need('service.website');
             $localePattern = '/locale=[^&]+/';
 
             if (preg_match($localePattern, $uriString)) {
                 $href = preg_replace($localePattern, 'locale=' . $locale, $uriString);
             } else {
-                /*
-                if ($this->uri->getQuery()) {
-                    $href = $uriString . '&locale=' . $locale;
-                } else {
-                    $href = $uriString . '?locale=' . $locale;
-                }
-                 */
                 $href = $uriString . '?locale=' . $locale;
             }
 
-            $html .= sprintf('<div><a href="%1$s" title="%2$s" class="unlined white"><img src="%3$s" alt="%2$s"></a></div>',
+            $html .= sprintf('<li class="nav-item"><a href="%1$s" title="%2$s" class="nav-link py-1"><img src="%3$s" alt="%2$s" style="height: 16px; border-radius: 2px;"></a></li>',
                 $href, $title, $view->basePath('imgs/icons/locale/' . $locale . '.png'));
         }
-
-        $html .= '</div>';
 
         return $html;
     }
