@@ -150,16 +150,16 @@ class PaymentController extends AbstractActionController
             }
 
             # redefine user budget
-            if ($booking->getMeta('hasBudget')) {
+            if ($booking->getMeta('hasBudget') == 'true') {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $user = $userManager->get($booking->get('uid'));
                 $user->setMeta('budget', $booking->getMeta('newbudget'));
                 $userManager->save($user);
                 # set booking to paid
-                $notes = $notes . "payment with user budget | ";
+                $notes = $notes . "payment with user budget (budget: " . $booking->getMeta('budget') . " -> " . $booking->getMeta('newbudget') . ") | ";
             }
 
-            $notes = $notes . "payment_status: " . $status->getValue() . ' ' . $payment['status'];
+            $notes = $notes . "paymentMethod: " . $booking->getMeta('paymentMethod') . " | payment_status: " . $status->getValue() . ' ' . $payment['status'];
             $booking->setMeta('notes', $notes);
             $bookingService->updatePaymentSingle($booking);
         }

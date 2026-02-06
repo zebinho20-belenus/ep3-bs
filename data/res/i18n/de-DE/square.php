@@ -45,8 +45,9 @@ return array(
     'no member' => 'kein Mitglied',
     'member' => 'Mitglied', 
 
-    'new budget' => 'neues Budget', 
+    'new budget' => 'neues Budget',
     'payment from open budget' => 'Zahlung aus verfügbarem Budget',
+    'Pay with budget' => 'Mit Budget zahlen',
 
     'Summary of your booking:' => 'Übersicht über Ihre Buchung:',
     '%s items' => '%s Stück',

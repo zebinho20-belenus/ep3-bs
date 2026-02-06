@@ -110,19 +110,21 @@ class BookingController extends AbstractActionController
             // Get the pricing manager to calculate the non-member price
             try {
                 $squarePricingManager = $this->getServiceLocator()->get('Square\Manager\SquarePricingManager');
-                
+
                 // Convert string dates to DateTime objects
                 $dateStart = new \DateTime($dateStartParam . ' ' . $timeStartParam);
                 $dateEnd = new \DateTime($dateEndParam . ' ' . $timeEndParam);
-                
+
                 $nonMemberPricing = $squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, $quantityParam, false);
-                
+
                 // Store non-member pricing for later use
                 if (isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
-                    // Apply 50% discount for guest players
-                    $nonMemberPricing['price'] = $nonMemberPricing['price'] / 2;
+                    if ($user->getMeta('member')) {
+                        // Member with guest: 50% of non-member price
+                        $nonMemberPricing['price'] = $nonMemberPricing['price'] / 2;
+                    }
+                    // Non-member with guest: full non-member price (no discount)
                     $byproducts['price'] = $nonMemberPricing['price'];
-                    error_log("DEBUG: Using calculated pricing for guest player (half price): " . $byproducts['price']);
                 }
             } catch (\Exception $e) {
                 error_log("Error calculating non-member pricing: " . $e->getMessage());
@@ -130,11 +132,9 @@ class BookingController extends AbstractActionController
             }
         }
         elseif ($user->getMeta('member')) {
-            // If a member is playing, set billing status to member
+            // Members use member pricing from DB (may be 0 = free, or > 0 = paid)
+            // statusBilling will be updated to 'paid' later if total > 0
             $statusBilling = 'member';
-            // Set the price to 0 for members
-            $byproducts['price'] = 0;
-            $byproducts['total'] = 0;
         } else {
             // If not a guest player, set billing status to the default
             $statusBilling = 'paid'; // Set this to whatever the default billing status should be
@@ -232,24 +232,25 @@ class BookingController extends AbstractActionController
 
         // Check guest player checkbox
         $guestPlayerCheckbox = $this->params()->fromQuery('gp', 0); // Default to 0 if not provided
-        // If member is playing with guest, set price to half of square price instead of 0
+        // Calculate court price based on member/guest status
         if ($finalPricing != null && ($finalPricing['price'] || $guestPlayerCheckbox == 1)) {
-            if ($guestPlayerCheckbox == 1) {
-                // Get the original square price before member discount
+            if ($guestPlayerCheckbox == 1 && $member) {
+                // Member with guest: half of non-member price
                 $nonMemberPricing = $squarePricingManager->getFinalPricingInRange($byproducts['dateStart'], $byproducts['dateEnd'], $square, $quantityParam, false);
-
-                // Set the half price for the square
                 $total += $nonMemberPricing['price'] / 2;
+            } elseif ($guestPlayerCheckbox == 1) {
+                // Non-member with guest: full non-member price
+                $total += $finalPricing['price'];
             } else {
-                // Calculate the normal price
-            $total+=$finalPricing['price'];
+                // Normal booking: price from DB (member or non-member)
+                $total += $finalPricing['price'];
             }
         }
 
         foreach ($products as $product) {
             $productPrice = $product->need('price') * $product->needExtra('amount');
-            if ($guestPlayerCheckbox == 1) {
-                // Set the half price for products
+            if ($guestPlayerCheckbox == 1 && $member) {
+                // Only members with guest get half price on products
                 $productPrice = $productPrice / 2;
             }
             $bills[] = new Bill(array(
@@ -267,7 +268,14 @@ class BookingController extends AbstractActionController
         }
         $byproducts['total'] = $total;
 
-        if ($guestPlayerCheckbox == 1 && isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
+        // Members with total > 0 (without guest) need to pay (via budget or payment gateway)
+        // For guest bookings (gp=1), statusBilling stays 'pending' until payment completes
+        if ($member && $total > 0 && $guestPlayerCheckbox != 1) {
+            $statusBilling = 'paid';
+        }
+
+        if ($guestPlayerCheckbox == 1 && $member && isset($nonMemberPricing) && isset($nonMemberPricing['price'])) {
+            // Member with guest: half non-member price
             $byproducts['courtPrice'] = $nonMemberPricing['price'] / 2;
         } elseif ($finalPricing != null && isset($finalPricing['price'])) {
             $byproducts['courtPrice'] = $finalPricing['price'];
@@ -322,7 +330,8 @@ class BookingController extends AbstractActionController
         $budgetpayment = false;
 
         // calculate end total from user budget
-        if ($user != null && $user->getMeta('budget') != null && $user->getMeta('budget') > 0 && $total > 0 && $guestPlayerCheckbox != 1) {
+        // Budget allowed for: non-members (gp=0) and members with guest (gp=1, member=1)
+        if ($user != null && $user->getMeta('budget') != null && $user->getMeta('budget') > 0 && $total > 0 && ($guestPlayerCheckbox != 1 || $member)) {
             $byproducts['hasBudget'] = true;
             $budget = $user->getMeta('budget');
             $byproducts['budget'] = $budget;
@@ -348,6 +357,7 @@ class BookingController extends AbstractActionController
         }
 
         $byproducts['payable'] = $payable;
+        $byproducts['budgetpayment'] = $budgetpayment;
 
         /* Check booking form submission */
 
@@ -399,6 +409,21 @@ class BookingController extends AbstractActionController
 
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
                    $meta['directpay'] = 'true';
+            }
+
+            // Add payment and budget info to meta (needed for email notification)
+            if ($payservice) {
+                $meta['paymentMethod'] = $payservice;
+            }
+            if ($budgetpayment) {
+                $meta['budgetpayment'] = 'true';
+            }
+            $meta['hasBudget'] = $byproducts['hasBudget'] ? 'true' : 'false';
+            if (array_key_exists('budget', $byproducts)) {
+                $meta['budget'] = $byproducts['budget'];
+            }
+            if (array_key_exists('newbudget', $byproducts)) {
+                $meta['newbudget'] = $byproducts['newbudget'];
             }
 
             $booking = $bookingService->createSingle($user, $square, $quantityParam, $byproducts['dateStart'], $byproducts['dateEnd'], $bills, array_merge($meta, [
@@ -522,17 +547,17 @@ class BookingController extends AbstractActionController
                 # no paymentservice
                
                 # redefine user budget
-                if ($budgetpayment) { 
+                if ($budgetpayment) {
                     $userManager = $serviceManager->get('User\Manager\UserManager');
                     $user->setMeta('budget', $newbudget);
                     $userManager->save($user);
                     $booking->setMeta('budget', $budget);
                     $booking->setMeta('newbudget', $newbudget);
-                    # set booking to paid  
+                    # set booking to paid
                     $booking->set('status_billing', 'paid');
-                    $notes = $notes . " payment with user budget";
+                    $notes = $notes . " payment with user budget | budget: " . $budget . " -> " . $newbudget;
                     $booking->setMeta('notes', $notes);
-                    $bookingManager->save($booking);                   
+                    $bookingManager->save($booking);
                 }
                 
                 if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
@@ -883,16 +908,16 @@ class BookingController extends AbstractActionController
             }
 
             # redefine user budget
-            if ($booking->getMeta('hasBudget')) {
+            if ($booking->getMeta('hasBudget') == 'true') {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $user = $userManager->get($booking->get('uid'));
                 $user->setMeta('budget', $booking->getMeta('newbudget'));
                 $userManager->save($user);
                 # set booking to paid
-                $notes = $notes . " payment with user budget | ";
+                $notes = $notes . " payment with user budget (budget: " . $booking->getMeta('budget') . " -> " . $booking->getMeta('newbudget') . ") | ";
             }
 
-            $notes = $notes . " payment_status: " . $status->getValue() . ' ' . $payment['status'];
+            $notes = $notes . " paymentMethod: " . $booking->getMeta('paymentMethod') . " | payment_status: " . $status->getValue() . ' ' . $payment['status'];
             $booking->setMeta('notes', $notes);
             $bookingService->updatePaymentSingle($booking);
 	    }

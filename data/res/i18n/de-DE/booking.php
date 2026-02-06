@@ -71,5 +71,10 @@ return array(
         => 'Die Buchung ist erst nach vollständiger Bezahlung gültig.',
     'Payment status:' => 'Zahlungsstatus:',
     'Paid via %s' => 'Bezahlt per %s',
+    'Payment information:' => 'Zahlungsinformation:',
+    'Payment method:' => 'Zahlungsart:',
+    'Budget' => 'Budget',
+    'Invoice' => 'Rechnung',
+    'Budget: %s → new budget: %s' => 'Budget: %s → neues Budget: %s',
     'Notes:' => 'Anmerkungen:',
 );

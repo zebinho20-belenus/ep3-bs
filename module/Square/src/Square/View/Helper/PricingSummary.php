@@ -49,19 +49,14 @@ class PricingSummary extends AbstractHelper
         // Check for guest player parameter
         $guestPlayer = isset($_GET['gp']) && $_GET['gp'] == '1';
 
-        // If member is playing with guest, set price to half of square price instead of 0
+        // Member with guest: half of non-member price
         if ($member && $guestPlayer && $finalPricing['price'] == 0) {
-            // Get the original square price before member discount
             $nonMemberPricing = $this->squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, $quantity, false);
             if ($nonMemberPricing) {
                 $finalPricing['price'] = $nonMemberPricing['price'] / 2;
-                //$finalPricing['nonMemberPrice'] = $nonMemberPricing['price']; // Store for reference if needed
             }
         }
-// If guest player but not already handled above, apply half price
-        else if ($guestPlayer) {
-            $finalPricing['price'] = $finalPricing['price'] / 2;
-        }
+        // Non-member with guest: full price (no discount)
 
         $view = $this->getView();
         $html = '';
@@ -103,7 +98,8 @@ class PricingSummary extends AbstractHelper
             $html .= '<tr>';
 
             $productTotal = $product->need('price') * $product->needExtra('amount');
-            if ($guestPlayer) {
+            if ($member && $guestPlayer) {
+                // Only members with guest get half price on products
                 $productTotal = $productTotal / 2;
             }
 
