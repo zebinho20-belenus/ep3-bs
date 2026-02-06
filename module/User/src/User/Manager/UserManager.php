@@ -363,7 +363,7 @@ class UserManager extends AbstractManager
             throw new InvalidArgumentException('User interpretation requires either numeric or string input');
         }
 
-        if (! is_numeric($input) && is_string($input) && strlen($input) < 3) {
+        if (! is_numeric($input) && is_string($input) && strlen($input) < 3 && strpos($input, '*') === false) {
             return array();
         }
 
