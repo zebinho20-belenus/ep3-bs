@@ -39,6 +39,18 @@ The `.dist` files contain Docker-friendly defaults (DB hostname `mariadb`, MailH
 
 Database schema: `data/db/ep3-bs.sql`
 
+### Loading a Production DB Dump
+
+```bash
+# Fetch SQL dump from prod server (adjust credentials/path)
+scp user@your-server:/backup/mycourt-pay.sql .
+
+# Import into local MariaDB (adjust credentials)
+docker compose exec -T mariadb mariadb -u <user> -p<password> <database> < mycourt-pay.sql
+```
+
+**Important**: After importing, check `bs_squares_pricing.date_end` — pricing entries must cover the current date, otherwise `$payable` stays `false` and payment options (PayPal etc.) won't appear on the confirmation page.
+
 ## Architecture
 
 **PHP 8.1 / Zend Framework 2 MVC** with a custom Entity-Manager-Service layered pattern:
@@ -92,6 +104,8 @@ Defined in each module's `config/module.config.php`. Key routes:
 ### Payment Flow
 
 Uses Payum framework with token-based security. Stripe supports PaymentIntents (SCA), webhooks for async payment confirmation, and multiple methods (card, SEPA, iDEAL, giropay, Apple Pay, Google Pay). Stripe twig templates live in `vendor/payum/stripe/`.
+
+Payment options (PayPal/Stripe/Klarna) are only shown on the confirmation page when `$payable == true`, which requires `$total > 0`. The total is calculated via `SquarePricingManager::getFinalPricingInRange()` using `bs_squares_pricing` — if no pricing rule matches the booking date range, `$total` stays 0 and no payment buttons appear. Key pricing logic is in `module/Square/src/Square/Controller/BookingController.php`.
 
 Unpaid bookings are auto-removed via a MySQL scheduled event (every 15 min, bookings older than 3 hours with `directpay=true` and `status_billing=pending`).
 

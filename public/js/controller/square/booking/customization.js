@@ -52,12 +52,23 @@
 
         if (sbButton.length) {
             var quantity = $("#sb-quantity").val();
+            var isGuestPlayer = $("#guest-player").is(":checked");
 
             var playerNameMode = $(".sb-player-names-mode").data("mode");
             var playerNameInputs = $(".sb-player-names input:visible");
 
             if (quantity > 1) {
                 var playerNameData = playerNameInputs.serializeArray();
+
+                if (isGuestPlayer) {
+                    playerNameData = playerNameData.map(function(item) {
+                        if (item.value.trim() && !item.value.trim().endsWith(" Gastspieler")) {
+                            item.value = item.value.trim() + " Gastspieler";
+                        }
+                        return item;
+                    });
+                }
+
                 var playerNameJson = JSON.stringify(playerNameData);
                 var playerNameQuery = "pn=" + encodeURIComponent(playerNameJson);
             } else {
@@ -83,30 +94,22 @@
     function onGuestCheckboxChange() {
         var isChecked = $("#guest-player").is(":checked");
         var sbButton = $("#sb-button");
-        // Debugging
-        console.log("isChecked: " + isChecked);
-
 
         if (sbButton.length) {
             var oldHref = sbButton.attr("href");
             var withGuest = isChecked ? "1" : "0";
 
-            // Update the guest parameter (gp) in the URL
             if (oldHref.indexOf("gp=") > -1) {
-                // Replace existing parameter
                 var newHref = oldHref.replace(/gp=[01]/, "gp=" + withGuest);
                 sbButton.attr("href", newHref);
-                // Debugging
-                console.log("newHref: " + newHref);
-
             } else {
-                // Add new parameter
                 sbButton.attr("href", oldHref + "&gp=" + withGuest);
             }
         }
+
+        // Re-serialize player names with/without Gastspieler suffix
+        onPlayerNameUpdate();
     }
-    // Debugging
-    console.log("guest player: " + $("#guest-player").is(":checked"));
 
     $(document).ready(function() {
         // Add event handler for the with_guest checkbox
