@@ -54,5 +54,7 @@ return array(
     '%sPayment and admittance temporarily at %s!%s' => '%sBezahlung und Einlass vorübergehend bei %s!%s',
     '%sSorry online booking not possible at the moment!%s' => '%sEntschuldigung im Augenblick ist keine online Buchung möglich!%s',
     'Please transfer the amount as a PayPal friends payment to platzbuchung@tcn-kail.de or use the Money letterbox at the office' => 'Bitte transferieren Sie den Betrag als PayPal Friends & Family Zahlung an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro',
-    'Please pay the price of the booking via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro'
+    'Please pay the price of the booking via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro',
+    'Guest booking: You can pay now via PayPal or choose to pay later.' => 'Gastbuchung: Sie können jetzt per PayPal bezahlen oder später zahlen.',
+    'Pay later' => 'Später zahlen',
 );
