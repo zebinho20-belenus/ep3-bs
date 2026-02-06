@@ -92,6 +92,8 @@ Defined in each module's `config/module.config.php`. Key routes:
 - `/` — Frontend calendar
 - `/square/booking/*` — Booking flow (customization → confirmation → payment)
 - `/backend/*` — Admin area
+- `/backend/booking` — Booking list with edit/cancel/delete actions
+- `/backend/booking/delete/:rid` — Booking cancel/delete confirmation page
 - `/payment/booking/*` — Payment processing and Stripe webhooks
 - `/user/*` — Login, account
 
@@ -110,7 +112,10 @@ Defined in each module's `config/module.config.php`. Key routes:
 
 **Layout** (`module/Base/view/layout/layout.phtml`): BS5 navbar + `container-xl` + footer. Content wrapped in `.content-panel` div with panel class from `$this->placeholder('panel')` (e.g. `centered-panel`, `phantom-panel`).
 
-**Squarebox (calendar popup)**: jQuery-based modal loaded via AJAX. Mobile: `position: fixed`, `squarebox-mobile` CSS class, `max-height: 90vh`, `overflow-y: auto`, content centered via `text-align: center`. BS5 `.form-select` needs `display: inline-block; width: auto` override to respect centering. JS source in `public/js/controller/calendar/index.js` + manually minified `index.min.js` (no build tool — both must be kept in sync).
+**Squarebox (calendar popup)**: jQuery-based modal loaded via AJAX. Two modes:
+- **Desktop** (`squarebox-desktop` class): `position: absolute`, `max-width: 720px`, 2-column CSS grid layout for the booking form (4 sections in 2x2 grid). Centered via jQuery UI `.position()`.
+- **Mobile** (`squarebox-mobile` class): `position: fixed`, `90vw` width, `max-height: 90vh`, `overflow-y: auto`, sections stacked vertically. BS5 `.form-select` needs `display: inline-block; width: auto` override for centering.
+- JS source in `public/js/controller/calendar/index.js` + manually minified `index.min.js` (no build tool — **both must be kept in sync**).
 
 ### Payment Flow
 
@@ -131,7 +136,7 @@ Users can have a prepaid budget stored in `bs_users_meta` (key: `budget`, value 
 4. Budget deducted: immediately for budget-only; after gateway success for partial payments
 5. Budget info stored in booking meta: `hasBudget`, `budget`, `newbudget`, `budgetpayment`
 
-**Budget refund on cancellation**: budget is restored to user account.
+**Budget refund on cancellation or deletion**: budget is restored to user account. Refund logic exists in both the cancel path and the delete path of `Backend\Controller\BookingController` (checks `status_billing == 'paid'` and `refunded != 'true'`).
 
 ### Member/Guest Pricing Logic
 
@@ -151,6 +156,16 @@ Key file: `module/Booking/src/Booking/Service/Listener/NotificationListener.php`
 
 Email includes: booking details, player names, itemized bill, payment information (method + budget deduction), guest payment instructions (only when not paid by budget/gateway).
 
+### Backend Booking Management
+
+**Booking list** (`/backend/booking`): Sortable table with columns for status, ID, user, member flag, date/time, court, notes, price, billing status, and budget. Each row has action links:
+- **Edit** — opens booking edit form
+- **Cancel/Delete** — links to confirmation page (`/backend/booking/delete/:rid`)
+
+**Delete confirmation page** (`delete.phtml`): Shows cancel and delete options. Delete button only visible to admin users (`admin.all` permission). Cancel sets status to `cancelled` and keeps the booking in DB. Delete removes the booking entirely. Both paths refund budget if the booking was paid.
+
+**Booking format helper**: `Backend\View\Helper\Booking\BookingFormat` — renders each booking row including billing status badges and budget info.
+
 ### Dependency Injection
 
 Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factories implement `FactoryInterface` and are registered in each module's `module.config.php`.
@@ -162,6 +177,26 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 - Views: `module/{Module}/view/{module-lowercase}/{controller}/{action}.phtml`
 - Config per module: `module/{Module}/config/module.config.php`
 - Translations: `data/res/i18n/de-DE/{module}.php` — key = English, value = German
+
+## Key File Locations
+
+| Area | File |
+|------|------|
+| Booking controller (payment logic) | `module/Square/src/Square/Controller/BookingController.php` |
+| Backend booking controller (cancel/delete) | `module/Backend/src/Backend/Controller/BookingController.php` |
+| Backend booking list format helper | `module/Backend/src/Backend/View/Helper/Booking/BookingFormat.php` |
+| Booking confirmation view | `module/Square/view/square/booking/confirmation.phtml` |
+| Email notification listener | `module/Booking/src/Booking/Service/Listener/NotificationListener.php` |
+| Pricing manager | `module/Square/src/Square/Manager/SquarePricingManager.php` |
+| Pricing summary (view helper) | `module/Square/src/Square/View/Helper/PricingSummary.php` |
+| Stripe webhook handler | `module/Payment/src/Payment/Controller/PaymentController.php` |
+| Backend user edit (budget field) | `module/Backend/src/Backend/Form/User/EditForm.php` |
+| Backend booking delete confirmation | `module/Backend/view/backend/booking/delete.phtml` |
+| Layout template | `module/Base/view/layout/layout.phtml` |
+| Custom CSS | `public/css/app.css` (+ `app.min.css` copy) |
+| Calendar squarebox JS | `public/js/controller/calendar/index.js` (+ `index.min.js`) |
+| Translations (German) | `data/res/i18n/de-DE/booking.php`, `square.php`, `backend.php` |
+| Backend pricing config view | `module/Backend/view/backend/config-square/pricing.phtml` |
 
 ## Docker Setup
 

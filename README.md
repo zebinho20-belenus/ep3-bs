@@ -1,62 +1,174 @@
+# ep3-bs Payment Edition
 
-# ep-3 Bookingsystem with direct payment via payum  
-fork of 1.8.1 from tkrebs/ep3-bs
+Online-Buchungssystem fuer Tennisplaetze (und andere Sportplaetze) mit integrierter Direktzahlung.
 
-modified with payum / payumModule (https://github.com/Payum/PayumModule) for direct payment via paypal and stripe (credit cards, ( apple pay, google pay via PaymentRequest API), SEPA direct debit, iDEAL, Giropay) 
+Fork von [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (v1.7.0), erweitert um:
 
-you can combine it with classic behaviour book on billing too
+- **Direktzahlung** via PayPal, Stripe (Kreditkarte, SEPA, iDEAL, Giropay, Apple Pay, Google Pay) und Klarna
+- **Budget/Guthaben-System** (Prepaid, Geschenkgutscheine)
+- **Mitglieder-/Gastpreise** mit differenzierter Preisgestaltung und 50%-Gastrabatt
+- **Tuercode-Integration** fuer Loxone MiniServer (automatische Codes pro Buchung)
+- **PWA-Unterstuetzung** (App-aehnlich auf Smartphones nutzbar)
+- **Bootstrap 5 UI** mit responsivem Design fuer Desktop und Mobile
+- **Docker-Setup** mit Traefik, MariaDB und MailHog
 
-runnnig with PHP 8.1 - at the moment only some fixes in the existing payum, stripe and twig module for php 8.1 compatibility
+## Voraussetzungen
 
-vendor path completely from our instance (tennis-rudolstadt.de) with extended payumModule and payumStripe
+- Docker & Docker Compose
+- Git
 
-css, images (logo) from our instance (to be changed if somebody want's to use this version of ep3-bs)
+## Schnellstart
 
-in addition to the original config there is a projetc.php in config/autoload and the extended local.php for the payment provider options 
+```bash
+# 1. Repository klonen
+git clone git@github.com:zebinho20-belenus/ep3-bs.git
+cd ep3-bs
 
-in addition to the original project there is a manifest.json, js/sw.js and modified layout.phtml for pwa abbility (use like an app on smartphones) and the hammer.js for swiping left/right in the calendar
+# 2. Konfiguration erstellen
+cp .env.example .env                                        # Docker-Umgebungsvariablen anpassen
+cp config/autoload/local.php.dist config/autoload/local.php # DB, Mail, Payment-Keys
+cp config/autoload/project.php.dist config/autoload/project.php # URLs, Session, Features
 
-for the pwa functionality you must set your "square rules document" in the new extern dir where our hallenordnung.pdf exists - otherwise the handling of the booking is bit blocked when the user wants to read the "square rules" because the pdf is opened in pwa directly and you have no back button or something else   
+# 3. Starten
+docker compose build
+docker compose up -d
 
-the layout is a bit modified for better usability on smartphones (even the administration)
-
-in addition to the original project there you can set a membership flag (for tennis club members) for users in the administration and so you can set different prices for members and others incuding vat
-
-in addition to that you can set a time slot for squares in the administration which is reserved for the members of the club - so that only members ca are able to book in that time slot
-
-also you can set a "budget" for activated users in the administration section - maybe 100 Euro - and then the user can book from this budget - this is for selling gift cards or something like that - users can pay a "budget" at the beginning of the winter and then you do not need pay so much to paypal ;-)
-
-we have a door code system provided by a "loxone miniserver" - so there is a little squareControl module integrated -  we generate the door code according to the booking - this functionality can be ativated or deactivated in the config 
-
-
-
-
-# Payment
-
-## paypal
-create an account at paypal.com - first sandbox for developing later live - get the NVP/SOAP credentials (username,password,signature) and put them in your config/autoload/local.php
-
-## stripe
-create an account at stripe.com - get the API keys (publishable and secret key) - first test later live - and put them in your config/autoload/local.php - enable your preferred payment methods at the stripe dashboard
-
-sepa_debit and other asynchronous payments will remain "pending" status in the app - you have to check manually at the stripe dashboard if the payment is fullfilled - this can happens after a few days - then you can update the booking manually in the app as "paid" - or you can create a webhook at the stripe developer dashboard to your site at https://whatever/public/backend/booking/webhook with events "payment_intent.canceled, payment_intent.payment_failed, payment_intent.succeeded" and then will stripe do it for you
-
-## apple pay via stripe
-verify your domain for apple pay
-
-https://stripe.com/docs/stripe-js/elements/payment-request-button#verifying-your-domain-with-apple-pay
-
-## removing unpaid booking try's
-cancelling bookings is not allowed in our version - so we remove unpaid user online bookings automatically if they are not completed during the payment process - we remove that bookings after 3 hours (the standard lifetime of a paypal token) in the db with following sql
+# 4. PHP-Abhaengigkeiten (im Container)
+docker compose exec court composer update
 ```
-DROP EVENT remove_unpaid_bookings;
+
+Die App ist dann erreichbar unter:
+- **App**: https://court.localhost (selbstsigniertes Zertifikat)
+- **Traefik-Dashboard**: http://localhost:8080
+- **MailHog** (E-Mail-Test): http://localhost:8025
+
+## Architektur
+
+**PHP 8.1 / Zend Framework 2 MVC** mit Entity-Manager-Service-Pattern:
+
+```
+Entity (Datenobjekt)
+  -> Manager (CRUD, DB via TableGateway)
+    -> Service (Geschaeftslogik)
+      -> Controller (HTTP)
+        -> View (.phtml Templates)
+```
+
+### Module
+
+| Modul | Aufgabe |
+|-------|---------|
+| **Base** | Kern-Utilities, AbstractEntity/Manager, View-Helpers, Mail-Service |
+| **Backend** | Admin-Dashboard: Benutzer-, Buchungs-, Systemverwaltung |
+| **Booking** | Buchungserstellung, Billing, E-Mail-Benachrichtigungen |
+| **Square** | Platz-Definitionen, oeffentliche Buchungs-UI |
+| **Calendar** | Kalender-Widget |
+| **Event** | Veranstaltungen und Platzsperren |
+| **Frontend** | Oeffentliche Startseite mit Kalender |
+| **User** | Authentifizierung, Kontoverwaltung |
+| **Payment** | Payum-Integration (PayPal, Stripe, Klarna), Webhooks |
+| **SquareControl** | Tuercode-Generierung fuer Loxone MiniServer |
+
+### Frontend-Technologie
+
+- **Bootstrap 5.3.3** (lokal geladen)
+- **jQuery + jQuery UI** (Kalender, Datepicker, Squarebox-Popup)
+- **Custom CSS** in `public/css/app.css` mit Design-Tokens
+- **PWA** via Service Worker (`public/js/sw.js` + `manifest.json`)
+
+## Docker-Setup
+
+Ein einzelnes `Dockerfile` (PHP 8.1-apache) fuer DEV und PROD, gesteuert ueber `.env`:
+
+```bash
+# Lokal (mit Traefik, Xdebug, MailHog):
+docker compose up -d
+
+# Produktion (ohne lokalen Traefik, nutzt externen):
+docker compose -f docker-compose.yml up -d
+
+# DEV-Server (neben Produktion):
+docker compose -f docker-compose.dev-server.yml up -d
+```
+
+| Service | Port | Zweck |
+|---------|------|-------|
+| traefik | 80, 443, 8080 | Reverse-Proxy mit HTTPS |
+| court | (via Traefik) | PHP 8.1 Apache |
+| mariadb | 3306 | Datenbank |
+| mailhog | 8025 | E-Mail-Testing |
+
+**DEV vs PROD**: `INSTALL_XDEBUG=true/false` in `.env`
+
+**Hinweis**: `vendor/` ist im Git committed (Produktion-Workflow). Composer wird **nicht** im Docker-Build ausgefuehrt.
+
+## Zahlungssystem
+
+### PayPal
+PayPal-Konto erstellen (zuerst Sandbox, dann Live). NVP/SOAP-Credentials (Username, Password, Signature) in `config/autoload/local.php` eintragen.
+
+### Stripe
+Stripe-Konto erstellen, API-Keys (publishable + secret) in `config/autoload/local.php`. Gewuenschte Zahlungsmethoden im Stripe-Dashboard aktivieren.
+
+**Webhook** fuer asynchrone Zahlungen (SEPA etc.):
+- URL: `https://<domain>/payment/booking/webhook`
+- Events: `payment_intent.canceled`, `payment_intent.payment_failed`, `payment_intent.succeeded`
+
+**Apple Pay**: Domain im Stripe-Dashboard verifizieren.
+
+### Klarna
+Ueber Stripe als Zahlungsmethode verfuegbar.
+
+### Unbezahlte Buchungen entfernen
+Automatisches Loeschen via MySQL Scheduled Event (alle 15 Min, Buchungen aelter als 3 Stunden mit `directpay=true` und `status_billing=pending`):
+
+```sql
 SET GLOBAL event_scheduler = ON;
-CREATE EVENT remove_unpaid_bookings ON SCHEDULE EVERY 15 MINUTE ON COMPLETION PRESERVE DO delete from bs_bookings where `status` = 'single' and `status_billing` = 'pending' and created < (NOW() - INTERVAL 3 HOUR) and bid in (select bid from bs_bookings_meta where `key` = 'directpay' and `value` = 'true');
+CREATE EVENT remove_unpaid_bookings
+  ON SCHEDULE EVERY 15 MINUTE ON COMPLETION PRESERVE
+  DO DELETE FROM bs_bookings
+     WHERE status = 'single'
+       AND status_billing = 'pending'
+       AND created < (NOW() - INTERVAL 3 HOUR)
+       AND bid IN (SELECT bid FROM bs_bookings_meta
+                   WHERE `key` = 'directpay' AND `value` = 'true');
 ```
-if a user is actively cancelling the payment via paypal or the stripe checkout - the booking is automatically cancelled too 
 
-## stripe payment site
-can be changed via the twig templates of payumStripe - for other language support than German and English you have to extend these templates too
+## Budget-System (Guthaben)
 
-vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_js.html.twig
-vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_confirm.html.twig
+Benutzer koennen ein Prepaid-Guthaben haben (z.B. fuer Geschenkgutscheine). Verwaltung im Backend unter Benutzer-Bearbeitung.
+
+- Budget deckt vollen Betrag ab: direkte Buchung ohne Payment-Gateway
+- Budget deckt Teilbetrag ab: Restbetrag ueber PayPal/Stripe/Klarna
+- Budget wird bei Stornierung/Loeschung zurueckerstattet
+
+## Mitglieder-/Gast-Preise
+
+Preisregeln in `bs_squares_pricing` mit `member`-Spalte:
+- **Mitglieder**: Mitgliederpreis (z.B. kostenlos)
+- **Nicht-Mitglieder**: voller Preis
+- **Mitglied mit Gast**: 50% des Nicht-Mitglieder-Preises
+- **Nicht-Mitglied mit Gast**: voller Preis (kein Rabatt)
+
+## Konfiguration
+
+| Datei | Zweck |
+|-------|-------|
+| `.env` | Docker-Umgebungsvariablen (Ports, DB-Credentials, Xdebug) |
+| `config/autoload/local.php` | DB, Mail, Payment-API-Keys |
+| `config/autoload/project.php` | URLs, Session, Payment-Toggles, Features |
+| `config/init.php` | Dev-Modus, Timezone, Error-Reporting |
+
+Alle `.dist`-Dateien enthalten Docker-kompatible Defaults.
+
+**Wichtig**: Nach DB-Import pruefen, dass `bs_squares_pricing.date_end` das aktuelle Datum abdeckt, sonst werden keine Zahlungsoptionen angezeigt.
+
+## Stripe-Templates
+
+Die Stripe-Checkout-Seiten koennen ueber Twig-Templates angepasst werden:
+- `vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_js.html.twig`
+- `vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_confirm.html.twig`
+
+## Lizenz
+
+Basierend auf [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs). Siehe [LICENSE](LICENSE).
