@@ -69,4 +69,7 @@ return array(
         => 'Bitte überweisen Sie den Betrag per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro.',
     'The booking is only valid after payment is completed.'
         => 'Die Buchung ist erst nach vollständiger Bezahlung gültig.',
+    'Payment status:' => 'Zahlungsstatus:',
+    'Paid via %s' => 'Bezahlt per %s',
+    'Notes:' => 'Anmerkungen:',
 );

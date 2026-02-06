@@ -182,9 +182,28 @@ class NotificationListener extends AbstractListenerAggregate
              //$this->optionManager->get('client.contact.email'));
                 str_replace('mailto:', '', $this->optionManager->get('client.website.contact')));
 
-        if ($square->get('allow_notes') && $booking->getMeta('notes')) {
-            $message .= "\n\nAnmerkungen:";
-            $message .= "\n" . $booking->getMeta('notes');
+        # payment status for email
+        $paymentMethod = $booking->getMeta('paymentMethod');
+        if ($booking->get('status_billing') == 'paid' && $paymentMethod) {
+            $methodLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna'];
+            $methodLabel = isset($methodLabels[$paymentMethod]) ? $methodLabels[$paymentMethod] : $paymentMethod;
+            $message .= "\n" . $this->t('Payment status:') . ' ' . sprintf($this->t('Paid via %s'), $methodLabel);
+        }
+
+        # user notes (strip internal payment tracking)
+        $notes = $booking->getMeta('notes');
+        if ($square->get('allow_notes') && $notes) {
+            $userNotes = $notes;
+            if (strpos($userNotes, ' || ') !== false) {
+                $userNotes = trim(substr($userNotes, 0, strpos($userNotes, ' || ')));
+            } elseif (preg_match('/^\s*(direct pay|payment with|payment_status)/', $userNotes)) {
+                $userNotes = '';
+            }
+            $userNotes = str_replace("Anmerkungen des Benutzers:\n", '', $userNotes);
+            if (trim($userNotes)) {
+                $message .= "\n\n" . $this->t('Notes:');
+                $message .= "\n" . trim($userNotes);
+            }
         }
 
         if ($user->getMeta('notification.bookings', 'true') == 'true') {
