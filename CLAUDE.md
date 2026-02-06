@@ -95,11 +95,22 @@ Defined in each module's `config/module.config.php`. Key routes:
 - `/payment/booking/*` — Payment processing and Stripe webhooks
 - `/user/*` — Login, account
 
-### Frontend Assets
+### Frontend Assets & UI Framework
 
+- **Bootstrap 5.3.3** loaded locally from `public/vendor/bootstrap/css/bootstrap.min.css` + JS bundle
+- **Custom CSS** in `public/css/app.css` — design tokens, BS5 overrides, legacy compatibility; copied to `app.min.css`
+- CSS load order: `bootstrap.min.css` → `jquery-ui.min.css` → `app.css` → `font-awesome` → `tennis-tcnkail.min.css`
 - `public/js/` — jQuery, jQuery UI, TinyMCE, controller-specific scripts in `js/controller/`
-- `public/css/` — Main styles in `default.css`, client customizations in `css-client/`
 - `public/js/sw.js` + `manifest.json` — PWA service worker
+
+**View helpers** (Base module, registered in `module/Base/config/module.config.php`):
+- Form helpers: `FormDefault`, `FormRowDefault`, `FormRowSubmit`, `FormRowCheckbox`, `FormRowCompact`, `FormElementErrors`, `FormElementNotes`
+- Layout helpers: `HeaderLocaleChoice`, `SessionUser` (provides logged-in user to layout for admin nav)
+- Display helpers: `Message`, `Messages`, `Tabs`, `Links`, `Setup`
+
+**Layout** (`module/Base/view/layout/layout.phtml`): BS5 navbar + `container-xl` + footer. Content wrapped in `.content-panel` div with panel class from `$this->placeholder('panel')` (e.g. `centered-panel`, `phantom-panel`).
+
+**Squarebox (calendar popup)**: jQuery-based modal loaded via AJAX. Mobile: `position: fixed`, `squarebox-mobile` CSS class, `max-height: 90vh`, `overflow-y: auto`, content centered via `text-align: center`. BS5 `.form-select` needs `display: inline-block; width: auto` override to respect centering. JS source in `public/js/controller/calendar/index.js` + manually minified `index.min.js` (no build tool — both must be kept in sync).
 
 ### Payment Flow
 

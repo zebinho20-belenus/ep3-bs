@@ -84,8 +84,8 @@ class TimeBlockChoice extends AbstractHelper
 
         $view = $this->getView();
         $html = '';
-        $html .= '<label for="sb-alternate-times" ><span><b>' . $view->t('Timeblock choice:') . '</b></span></label>';
-        $html .= '<select id="sb-alternate-times" style="display: none; margin-right: 16px;">';
+        $html .= '<label for="sb-alternate-times" class="form-label small fw-semibold">' . $view->t('Timeblock choice:') . '</label> ';
+        $html .= '<select id="sb-alternate-times" class="form-select form-select-sm" style="display: none; width: auto;">';
 
         $walkingTimeStartParts = explode(':', $dateTimeStart->format('H:i'));
         $walkingTimeStart = $walkingTimeStartParts[0] * 3600 + $walkingTimeStartParts[1] * 60;
@@ -214,7 +214,7 @@ class TimeBlockChoice extends AbstractHelper
             's' => $square->need('sid'),
             'f' => 'fb']]);
 
-        $html .= sprintf('<a href="%s" id="sb-reload-button" class="default-button squarebox-internal-link" style="display: none;">%s</a>',
+        $html .= sprintf('<a href="%s" id="sb-reload-button" class="btn btn-outline-primary btn-sm squarebox-internal-link" style="display: none;">%s</a>',
             $url, $view->translate('Update'));
 
         return $html;

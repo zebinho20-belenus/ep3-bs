@@ -17,7 +17,7 @@ class EditPhoneForm extends Form
             'type' => 'Text',
             'attributes' => array(
                 'id' => 'epf-phone',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'We only use this to inform you<br>about changes to your bookings',
@@ -29,7 +29,7 @@ class EditPhoneForm extends Form
             'type' => 'Submit',
             'attributes' => array(
                 'value' => 'Update phone number',
-                'class' => 'default-button',
+                'class' => 'btn btn-primary btn-sm',
             ),
         ));
 

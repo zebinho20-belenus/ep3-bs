@@ -34,7 +34,7 @@ return array(
     'Event-Administration' => 'Evènements-Administration',
     'Here you can create, edit or delete the events of your system.' => 'Ici vous pouvez créer, éditer ou supprimer des événements.',
 
-    'Name or number' => 'Nom ou numéro',
+    'Name, email or number' => 'Nom, e-mail ou numéro',
     'Search' => 'Recherche',
     'Advanced search' => 'Recherche avancée',
     '%sNo users found%s for this search' => '%saucun utilisateur trouvé pour cette recherche',
@@ -119,6 +119,7 @@ return array(
     'Yes, delete this event' => 'Oui, supprimer',
 
     'You can use filters like these to narrow your search:' => 'Vous pouvez utiliser des filtres afin de restreindre votre recherche, comme ceci:',
+    'You can use * as a wildcard:' => 'Vous pouvez utiliser * comme caractère générique :',
     'You can also combine a search term and multiple filters like this:'
         => 'Vous pouvez aussi combiner la recherche textuelle et de multiples filtres, comme ceci:',
 

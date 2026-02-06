@@ -12,28 +12,31 @@ class SquaresFormat extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<table class="bordered-table">';
+        $html .= '<div class="table-responsive">';
+        $html .= '<table class="table table-bordered table-hover align-middle">';
 
-        $html .= '<tr class="gray">';
-        $html .= '<th>&nbsp;</th>';
-        $html .= '<th>' . $view->t('Name') . '</th>';
-        $html .= '<th>' . $view->t('Status') . '</th>';
-        $html .= '<th>' . $view->t('Time') . '</th>';
-        $html .= '<th>' . $view->t('Time block') . '</th>';
-        $html .= '<th>' . $view->t('Time block (min. bookable)') . '</th>';
-        $html .= '<th>' . $view->t('Time block (max. bookable)') . '</th>';
-        $html .= '<th class="no-print">&nbsp;</th>';
-        $html .= '</tr>';
+        $html .= '<thead><tr>';
+        $html .= '<th data-sort-type="number">&nbsp;</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Status') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Time') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Time block') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Time block (min. bookable)') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Time block (max. bookable)') . '</th>';
+        $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
+        $html .= '</tr></thead>';
 
+        $html .= '<tbody>';
         foreach ($squares as $square) {
             $html .= $view->backendSquareFormat($square);
         }
+        $html .= '</tbody>';
 
         $html .= '</table>';
-
-        $html .= '<style type="text/css"> .priority-col, .actions-col { border: none !important; } </style>';
+        $html .= '</div>';
 
         $view->headScript()->appendFile($view->basePath('js/controller/backend/config-square/index.min.js'));
+        $view->headScript()->appendFile($view->basePath('js/controller/backend/table-sort.min.js'));
 
         return $html;
     }

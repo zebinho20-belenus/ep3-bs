@@ -21,7 +21,7 @@ $this->setup(array(
 function showHide() {
    var div = document.getElementById('hidden_div');
    if (div.style.display == 'none') {
-     div.style = 'position:absolute; top:0; right:0; bottom:0; left:0; background-color: gray; opacity: .5;';
+     div.style = 'position:fixed; top:0; right:0; bottom:0; left:0; background-color: gray; opacity: .5; z-index: 9999;';
    }
    else {
      div.style.display = 'none';
@@ -29,9 +29,7 @@ function showHide() {
 }
 </script>
 
-
-<div class="padded">
-
+<div class="p-3">
 
     <form id="confirmform" method="post" onSubmit="showHide();" action="<?= $this->url ?>">
 <?php
@@ -39,93 +37,84 @@ function showHide() {
         $pricingSummary = $this->squarePricingSummary($dateStart, $dateEnd, $square, $this->quantityChoosen, $this->products);
 
         if ($pricingSummary) {
-            echo '<p class="centered-text gray"><em>' . $this->t('Summary of your booking:') . '</em></p>';
-            echo '<div class="sandbox">' . $pricingSummary . '</div>';
-            echo '<div class="separator separator-line"></div>';
+            echo '<p class="text-center text-muted"><em>' . $this->t('Summary of your booking:') . '</em></p>';
+            echo '<div class="card card-body bg-light mb-3">' . $pricingSummary . '</div>';
         }
 
 ?>
 
         <?php if ($this->hasBudget): ?>
-        <p class="symbolic symbolic-warning"><b><?= $this->t('payment from open budget') ?>:</b></p>
-        <div style="margin-left: 22px;margin-bottom: 22px;"><b>Budget: <?= $this->budget ?> -> <?= $this->t('new budget') ?> : <?= $this->newbudget ?></b></div>   
+        <div class="alert alert-info">
+            <strong><?= $this->t('payment from open budget') ?>:</strong><br>
+            Budget: <?= $this->budget ?> &rarr; <?= $this->t('new budget') ?>: <?= $this->newbudget ?>
+        </div>
         <?php endif; ?>
 
         <?php if ($square->getMeta('rules.document.file')): ?>
 
-            <p class="symbolic symbolic-warning"><b><?= $this->t('Please note') ?>:</b></p>
+            <div class="alert alert-warning">
+                <p class="mb-2"><strong><?= $this->t('Please note') ?>:</strong></p>
 
-            <p style="margin-left: 32px;">
-                <!-- <a href="<?= $this->basePath($square->getMeta('rules.document.file')) ?>" class="default-button" target="_blank"> -->
-                <a href="<?= $this->basePath('../extern/hallenordnung11.pdf') ?>" class="default-button" target="_blank">
-                    <span class="symbolic symbolic-attachment"><?= $square->getMeta('rules.document.name', $this->t('Rules-document')) ?></span>
-                </a>
+                <p>
+                    <a href="<?= $this->basePath('../extern/hallenordnung11.pdf') ?>" class="btn btn-outline-secondary btn-sm" target="_blank">
+                        <span class="fa fa-file-pdf-o"></span> <?= $square->getMeta('rules.document.name', $this->t('Rules-document')) ?>
+                    </a>
+                    <span class="text-muted small">(<?= $this->t('this will open in a new window') ?>)</span>
+                </p>
 
-                <span class="small-text gray">(<?= $this->t('this will open in a new window') ?>)</span>
-            </p>
-
-            <div style="margin-left: 32px;">
-                <input type="checkbox" name="bf-accept-rules-document" id="bf-accept-rules-document" checked="true">
-                <label for="bf-accept-rules-document"><?= sprintf($this->t('Yes, I have %1$sread and accepted%2$s the "%3$s"'), '<b>', '</b>', $square->getMeta('rules.document.name', $this->t('Rules-document'))) ?></label>
+                <div class="form-check">
+                    <input type="checkbox" name="bf-accept-rules-document" id="bf-accept-rules-document" checked="true" class="form-check-input">
+                    <label for="bf-accept-rules-document" class="form-check-label"><?= sprintf($this->t('Yes, I have %1$sread and accepted%2$s the "%3$s"'), '<b>', '</b>', $square->getMeta('rules.document.name', $this->t('Rules-document'))) ?></label>
+                </div>
             </div>
-
-            <div class="separator separator-line"></div>
 
         <?php endif; ?>
 
         <?php if ($square->getMeta('rules.text')): ?>
 
-            <p class="symbolic symbolic-warning"><b><?= $this->t('Please note') ?>:</b></p>
-
-            <div style="margin-left: 32px;"><?= $square->getMeta('rules.text') ?></div>
-
-            <div style="margin-left: 32px;">
-                <input type="checkbox" name="bf-accept-rules-text" id="bf-accept-rules-text" checked="true">
-                <label for="bf-accept-rules-text"><?= sprintf($this->t('Yes, I have %sread and accepted%s these rules and notes'), '<b>', '</b>') ?></label>
+            <div class="alert alert-warning">
+                <p class="mb-2"><strong><?= $this->t('Please note') ?>:</strong></p>
+                <div class="mb-2"><?= $square->getMeta('rules.text') ?></div>
+                <div class="form-check">
+                    <input type="checkbox" name="bf-accept-rules-text" id="bf-accept-rules-text" checked="true" class="form-check-input">
+                    <label for="bf-accept-rules-text" class="form-check-label"><?= sprintf($this->t('Yes, I have %sread and accepted%s these rules and notes'), '<b>', '</b>') ?></label>
+                </div>
             </div>
 
-            <div class="separator separator-line"></div>
-
         <?php endif; ?>
-        
+
         <?php if ($square->get('allow_notes')): ?>
-
-            <textarea name="bf-user-notes" placeholder="Optionale Anmerkungen" style="width: 95%; height: 3.1rem"></textarea>
-
-            <div class="separator separator-line"></div>
-
+            <div class="mb-3">
+                <textarea name="bf-user-notes" placeholder="Optionale Anmerkungen" class="form-control" rows="2"></textarea>
+            </div>
         <?php endif; ?>
 
-        <div class="centered-text small-text gray" style="margin-bottom: 12px;">
+        <div class="text-center text-muted small mb-3">
 
         <?php
 
-	        $cancelRange = $square->need('range_cancel');
+            $cancelRange = $square->need('range_cancel');
 
-	        if ($cancelRange) {
-
-		        printf($this->t('Your booking will be binding, however, you can cancel it up to %s before it takes place.'),
+            if ($cancelRange) {
+                printf($this->t('Your booking will be binding, however, you can cancel it up to %s before it takes place.'),
                     $this->prettyTime($cancelRange));
-	        } else {
+            } else {
+                echo $this->t('Your booking will be binding.');
+            }
 
-		        echo $this->t('Your booking will be binding.');
-	        }
-            // Check for guest player parameter
             $guestPlayer = isset($_GET['gp']) && $_GET['gp'] == '1';
 
-            // Add payment instructions if guest player is set
             if ($guestPlayer) {
-                echo '<div class="guest-payment-instructions" style="margin-top: 10px; font-size: 18px; font-weight: bold; color: #d9534f;">';
+                echo '<div class="guest-payment-instructions mt-2">';
                 echo $this->t('Guest booking: You can pay now via PayPal or choose to pay later.');
                 echo '</div>';
             }
 
+            ?>
+        </div>
 
-	        ?>
-        </b></div>
-
-        <div class="centered-text">
-            <input type="hidden" name="bf-confirm" value="<?= sha1('Quick and dirty' . floor(time() / 1800)) ?>">   
+        <div class="text-center">
+            <input type="hidden" name="bf-confirm" value="<?= sha1('Quick and dirty' . floor(time() / 1800)) ?>">
 
             <?php if ($this->payable): ?>
 
@@ -163,25 +152,22 @@ function showHide() {
             </div>
 
             <?php if ($this->paypal || $this->stripe || $this->klarna): ?>
-                <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('go to payment') ?>" class="default-button">
+                <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('go to payment') ?>" class="btn btn-primary btn-lg w-100 mt-2">
             <?php else: ?>
-                <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Complete booking') ?>" class="default-button">
-            <?php endif; ?>                       
+                <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Complete booking') ?>" class="btn btn-primary btn-lg w-100 mt-2">
+            <?php endif; ?>
 
             <?php else: ?>
-                <br>
-                <br>
                 <?php if ($this->budgetpayment): ?>
-                    <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Pay with budget') ?>" class="default-button">
+                    <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Pay with budget') ?>" class="btn btn-accent btn-lg w-100 mt-2">
                 <?php else: ?>
-                    <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Complete booking') ?>" class="default-button">
+                    <input type="submit" name="bf-submit" id="bf-submit" value="<?= $this->t('Complete booking') ?>" class="btn btn-primary btn-lg w-100 mt-2">
                 <?php endif; ?>
-            <?php endif; ?>  
+            <?php endif; ?>
         </div>
 
     </form>
 
 </div>
 
-<div id="hidden_div" style="display:none" >
-</div>
+<div id="hidden_div" style="display:none"></div>

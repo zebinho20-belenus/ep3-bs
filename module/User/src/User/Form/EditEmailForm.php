@@ -27,7 +27,7 @@ class EditEmailForm extends Form
             'type' => 'Text',
             'attributes' => array(
                 'id' => 'eef-email1',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Please provide your email address',
@@ -39,7 +39,7 @@ class EditEmailForm extends Form
             'type' => 'Text',
             'attributes' => array(
                 'id' => 'eef-email2',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Please type your email address again<br>to prevent typing errors',
@@ -51,7 +51,7 @@ class EditEmailForm extends Form
             'type' => 'Submit',
             'attributes' => array(
                 'value' => 'Update email address',
-                'class' => 'default-button',
+                'class' => 'btn btn-primary btn-sm',
             ),
         ));
 

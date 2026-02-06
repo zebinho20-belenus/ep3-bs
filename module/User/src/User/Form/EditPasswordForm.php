@@ -17,7 +17,7 @@ class EditPasswordForm extends Form
             'type' => 'Password',
             'attributes' => array(
                 'id' => 'epf-pw-current',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Your current password',
@@ -29,7 +29,7 @@ class EditPasswordForm extends Form
             'type' => 'Password',
             'attributes' => array(
                 'id' => 'epf-pw1',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Your new password',
@@ -41,7 +41,7 @@ class EditPasswordForm extends Form
             'type' => 'Password',
             'attributes' => array(
                 'id' => 'epf-pw2',
-                'style' => 'width: 235px;',
+                'class' => 'form-control',
             ),
             'options' => array(
                 'notes' => 'Please type your new password again<br>to prevent typing errors',
@@ -53,7 +53,7 @@ class EditPasswordForm extends Form
             'type' => 'Submit',
             'attributes' => array(
                 'value' => 'Update password',
-                'class' => 'default-button',
+                'class' => 'btn btn-primary btn-sm',
             ),
         ));
 

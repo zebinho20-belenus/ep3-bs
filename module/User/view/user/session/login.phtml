@@ -25,9 +25,9 @@ $this->setup(array(
             $this->option('subject.square.type.plural')) ?>
     </p>
 
-    <div class="separator separator-line"></div>
+    <hr>
 
-    <div class="padded">
+    <div class="py-3" style="max-width: 400px; margin: 0 auto;">
 
         <?php
 
@@ -40,26 +40,9 @@ $this->setup(array(
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table">
-            <tr>
-                <td class="default-form-label-row">
-                    <?= $this->formLabel($form->get('lf-email')) ?>
-                </td>
-                <td>
-                    <?= $this->formElement($form->get('lf-email')) ?>
-                </td>
-            </tr>
-            <tr>
-                <td class="default-form-label-row">
-                    <?= $this->formLabel($form->get('lf-pw')) ?>
-                </td>
-                <td>
-                    <?= $this->formElement($form->get('lf-pw')) ?>
-                </td>
-            </tr>
-
-            <?= $this->formRowSubmit($form, 'lf-submit') ?>
-        </table>
+        <?= $this->formRowDefault($form, 'lf-email') ?>
+        <?= $this->formRowDefault($form, 'lf-pw') ?>
+        <?= $this->formRowSubmit($form, 'lf-submit') ?>
 
         <?= $this->form()->closeTag() ?>
 

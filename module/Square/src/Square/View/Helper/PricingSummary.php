@@ -61,7 +61,7 @@ class PricingSummary extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<table class="bordered-table middle-table">';
+        $html .= '<table class="table table-bordered align-middle mb-0">';
         $html .= '<tr>';
 
         $html .= sprintf('<td>' . $view->t('<b>%s %s</b><div class="small-text">%s</div>') . '</td>',
@@ -114,8 +114,10 @@ class PricingSummary extends AbstractHelper
 
         /* Render total */
 
-        $html .= '<td colspan="3" style="border-top: solid 2px #666;">'. $view->t('Total') . '</td>';
-        $html .= '<td style="border-top: solid 2px #666;">' . $view->priceFormat($total) . '</td>';
+        $html .= '<tr class="table-active fw-bold">';
+        $html .= '<td colspan="3">'. $view->t('Total') . '</td>';
+        $html .= '<td>' . $view->priceFormat($total) . '</td>';
+        $html .= '</tr>';
 
         $html .= '</table>';
 

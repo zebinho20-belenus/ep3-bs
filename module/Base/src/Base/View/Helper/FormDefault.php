@@ -21,8 +21,6 @@ class FormDefault extends AbstractHelper
 
         $html .= $view->form()->openTag($form);
 
-        $html .= '<table class="default-table">';
-
         $formElements = $form->getElements();
 
         foreach ($formElements as $formElement) {
@@ -34,8 +32,6 @@ class FormDefault extends AbstractHelper
                 $html .= $view->formRowDefault($form, $formElement);
             }
         }
-
-        $html .= '</table>';
 
         $html .= $view->form()->closeTag();
 

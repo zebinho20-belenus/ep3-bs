@@ -26,13 +26,11 @@ $this->setup(array(
 
     <?php if (count($this->bookings) > 0): ?>
 
-        <div class="separator separator-line"></div>
+        <hr>
 
-        <style type="text/css">
-            .default-table td { padding-right: 16px; padding-bottom: 8px; height: 24px; }
-        </style>
-
-        <table class="default-table middle-table">
+        <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <tbody>
             <?php
 
             $todayMentioned = false;
@@ -57,20 +55,20 @@ $this->setup(array(
                 }
 
                 $cancellable = false;
-                $classes = array();
+                $rowClass = '';
 
                 $square = $this->squareManager->get($booking->need('sid'));
 
                 if ($this->now > $bookingDateTimeStart) {
-                    $classes['color'] = 'gray';
+                    $rowClass = ' class="text-muted"';
 
                     if (! $todayMentioned) {
-                        echo '<tr><td colspan="4"><div class="gray" style="position: relative;">';
-
-                        echo '<div style="position: absolute; left: 50%; top: -16px; margin-left: -23px; padding: 8px; background: #FFF;">' . $this->t('Now') . '</div>';
-                        echo '<div class="separator-small separator-line"></div>';
-
-                        echo '</div></td></tr>';
+                        echo '<tr><td colspan="4">';
+                        echo '<div class="text-center position-relative py-2">';
+                        echo '<hr class="my-0">';
+                        echo '<span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">' . $this->t('Now') . '</span>';
+                        echo '</div>';
+                        echo '</td></tr>';
 
                         $todayMentioned = true;
                     }
@@ -87,36 +85,34 @@ $this->setup(array(
                         $price += $bill->need('price');
                     }
 
-                    $pricing = '';
-                    $pricing .= '<a href="' . $this->url('user/bookings/bills', ['bid' => $bid]) . '" class="default-button mini-button" style="min-width: 80px;">';
+                    $pricing = '<a href="' . $this->url('user/bookings/bills', ['bid' => $bid]) . '" class="btn btn-outline-primary btn-sm">';
                     $pricing .= $this->priceFormat($price);
                     $pricing .= '</a>';
                 } else {
-                    $pricing = '<div class="centered-text gray">&middot;</div>';
+                    $pricing = '<span class="text-muted">&middot;</span>';
                 }
 
-                echo '<tr>';
+                echo '<tr' . $rowClass . '>';
 
-                $class = implode(' ', $classes);
-
-                echo '<td class="' . $class . (! isset($classes['color']) ? 'my-highlight' : '') . '">' . $this->option('subject.square.type') . ' ' . $this->t($square->need('name')) . '</td>';
-                echo '<td class="' . $class . '">' . $this->dateRange($bookingDateTimeStart, $bookingDateTimeEnd) . '</td>';
-                echo '<td class="' . $class . '" style="padding-left: 16px;">' . $pricing . '</td>';
+                $nameClass = ($this->now <= $bookingDateTimeStart) ? 'text-success fw-semibold' : 'text-muted';
+                echo '<td class="' . $nameClass . '">' . $this->option('subject.square.type') . ' ' . $this->t($square->need('name')) . '</td>';
+                echo '<td>' . $this->dateRange($bookingDateTimeStart, $bookingDateTimeEnd) . '</td>';
+                echo '<td>' . $pricing . '</td>';
 
                 if ($cancellable) {
-                    echo sprintf('<td style="padding-left: 16px;"><a href="%s" class="default-button mini-button">%s</a></td>',
+                    echo sprintf('<td><a href="%s" class="btn btn-outline-danger btn-sm">%s</a></td>',
                         $this->url('square/booking/cancellation', [], ['query' => ['bid' => $booking->need('bid')]]), $this->t('Cancel booking'));
                 } else {
-                    echo '<td class="centered-text gray" style="padding-left: 16px;">&middot;</td>';
+                    echo '<td class="text-center text-muted">&middot;</td>';
                 }
 
                 echo '</tr>';
             }
 
             ?>
+            </tbody>
         </table>
-
-        <div class="separator-small"></div>
+        </div>
 
     <?php endif; ?>
 

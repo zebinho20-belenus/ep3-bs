@@ -12,27 +12,30 @@ class UsersFormat extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<table class="bordered-table">';
+        $html .= '<div class="table-responsive">';
+        $html .= '<table class="table table-bordered table-hover align-middle">';
 
-        $html .= '<tr class="gray">';
-        $html .= '<th>' . $view->t('No.') . '</th>';
-        $html .= '<th>' . $view->t('Name') . '</th>';
-        $html .= '<th>' . $view->t('Member') . '</th>';
-        $html .= '<th>' . $view->t('Status') . '</th>';
-        $html .= '<th class="email-col">' . $view->t('Email address') . '</th>';
-        $html .= '<th class="notes-col">' . $view->t('Notes') . '</th>';
-        $html .= '<th class="no-print">&nbsp;</th>';
-        $html .= '</tr>';
+        $html .= '<thead><tr>';
+        $html .= '<th data-sort-type="number">' . $view->t('No.') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Member') . '</th>';
+        $html .= '<th data-sort-type="text">' . $view->t('Status') . '</th>';
+        $html .= '<th data-sort-type="text" class="email-col">' . $view->t('Email address') . '</th>';
+        $html .= '<th data-sort-type="text" class="notes-col">' . $view->t('Notes') . '</th>';
+        $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
+        $html .= '</tr></thead>';
 
+        $html .= '<tbody>';
         foreach ($users as $user) {
             $html .= $view->backendUserFormat($user, $search);
         }
+        $html .= '</tbody>';
 
         $html .= '</table>';
-
-        $html .= '<style type="text/css"> .actions-col { border: none !important; } </style>';
+        $html .= '</div>';
 
         $view->headScript()->appendFile($view->basePath('js/controller/backend/user/index.min.js'));
+        $view->headScript()->appendFile($view->basePath('js/controller/backend/table-sort.min.js'));
 
         return $html;
     }

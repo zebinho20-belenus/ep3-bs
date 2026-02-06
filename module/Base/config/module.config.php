@@ -98,6 +98,8 @@ return array(
             /* Layout */
 
             'HeaderLocaleChoice' => 'Base\View\Helper\Layout\HeaderLocaleChoiceFactory',
+
+            'SessionUser' => 'Base\View\Helper\SessionUserFactory',
         ),
 
         'aliases' => array(

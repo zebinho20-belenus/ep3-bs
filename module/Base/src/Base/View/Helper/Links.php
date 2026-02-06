@@ -16,28 +16,25 @@ class Links extends AbstractHelper
         $backTitle = $view->placeholder('back-title')->getValue();
 
         if ($backHref && $backTitle) {
-            $html .= sprintf('<div class="links-back left-text"><a href="%s" class="unlined white back-button"><span class="light-gray">%s:</span><br>%s</a></div>',
+            $html .= sprintf('<a href="%s" class="btn btn-outline-secondary btn-sm me-3 mb-2"><span class="fa fa-chevron-left"></span> %s: %s</a>',
                 $backHref, $view->translate('Back to'), $backTitle);
         }
 
         $links = $view->placeholder('links')->getValue();
 
         if ($links) {
-            $html .= '<div class="links-forth left-text no-wrap">';
-            $html .= '<div class="light-gray">' . $view->translate('Related pages') . ':</div>';
-            $html .= '<ul>';
+            $html .= '<span class="d-inline-flex flex-wrap gap-2">';
 
             foreach ($links as $title => $href) {
-                $html .= sprintf('<li><a href="%s" class="unlined white">%s</a></li>',
+                $html .= sprintf('<a href="%s" class="btn btn-outline-primary btn-sm mb-2">%s</a>',
                     $href, $view->translate($title));
             }
 
-            $html .= '</ul>';
-            $html .= '</div>';
+            $html .= '</span>';
         }
 
         if ($html) {
-            $html = '<div class="links centered-text no-print">' . $html . '</div>';
+            $html = '<nav class="links-nav mt-4 pt-3 border-top border-secondary-subtle text-center no-print">' . $html . '</nav>';
         }
 
         return $html;
