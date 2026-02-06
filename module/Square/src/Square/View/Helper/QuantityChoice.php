@@ -63,8 +63,9 @@ class QuantityChoice extends AbstractHelper
                                         </label>
                                     </div>';
 
-            $paymentNotice = '<div id="payment-notice" style="margin-top: 8px; display: none; border: 1px solid red; padding: 8px;">
-                                  ' . $view->t('Please transfer the amount as a PayPal friends payment to platzbuchung@tcn-kail.de or use the Money letterbox at the office') . '
+            $paymentNotice = '<div id="payment-notice" class="guest-payment-notice" style="display: none;">
+                                  <b>ℹ ' . $view->t('Guest booking info') . '</b><br>
+                                  ' . $view->t('As a member with a guest, you pay half the court fee. You can pay directly via PayPal or later at the office.') . '
                               </div>';
         } else {
             $guestPlayerCheckbox = '';
