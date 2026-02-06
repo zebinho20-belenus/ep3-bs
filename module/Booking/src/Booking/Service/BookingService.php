@@ -231,11 +231,7 @@ class BookingService extends AbstractService
 
     public function updatePaymentSingle(Booking $booking)
     {
-        // syslog(LOG_EMERG, 'updatePaymentSingle');        
-        
         $this->bookingManager->save($booking);
-
-        $this->getEventManager()->trigger('create.single', $booking);
 
         return $booking;
     }
