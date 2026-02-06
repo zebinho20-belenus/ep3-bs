@@ -2,8 +2,12 @@
 /**
  * Local application configuration
  *
- * Insert your local database credentials here
- * and provide the email address the system should use.
+ * Copy this file to local.php and adjust values:
+ *   cp config/autoload/local.php.dist config/autoload/local.php
+ *
+ * Docker dev defaults:
+ *   - DB hostname: 'mariadb' (docker service name)
+ *   - Mail type: 'smtp' with host 'mailhog' port 1025
  */
 
 $detailsClass = 'Application\Model\PaymentDetails';
@@ -12,24 +16,23 @@ $project_config = require 'config/autoload/project.php';
 
 return array_merge($project_config, array(
     'db' => array(
-        'database' => '?',
-        'username' => '?',
-        'password' => '?',
+        'database' => 'mycourt',
+        'username' => 'mycourt',
+        'password' => 'mycourt',
 
-        'hostname' => 'localhost',
+        'hostname' => 'mariadb', // Docker service name; use 'localhost' for non-Docker
         'port' => null,
     ),
     'mail' => array(
-        'type' => 'sendmail', // or 'smtp' or 'smtp-tls' (or 'file', to not send, but save to file (data/mails/))
-        'address' => 'info@bookings.example.com',
-            // Make sure 'bookings.example.com' matches the hosting domain when using type 'sendmail'
+        'type' => 'smtp', // 'smtp' for MailHog in Docker, or 'sendmail' / 'smtp-tls' / 'file'
+        'address' => 'info@court.localhost',
 
-        'host' => '?', // for 'smtp' type only, otherwise remove or leave as is
-        'user' => '?', // for 'smtp' type only, otherwise remove or leave as is
-        'pw' => '?', // for 'smtp' type only, otherwise remove or leave as is
+        'host' => 'mailhog', // Docker service name; MailHog UI at http://localhost:8025
+        'user' => '',
+        'pw' => '',
 
-        'port' => 'auto', // for 'smtp' type only, otherwise remove or leave as is
-        'auth' => 'plain', // for 'smtp' type only, change this to 'login' if you have problems with SMTP authentication
+        'port' => 1025,
+        'auth' => 'plain',
     ),
     'i18n' => array(
         'choice' => array(

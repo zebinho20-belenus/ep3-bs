@@ -1,12 +1,33 @@
 services:
+  traefik:
+    image: traefik:latest
+    restart: always
+    environment:
+      - DOCKER_API_VERSION=1.44
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "${TRAEFIK_HTTP_PORT}:80"
+      - "${TRAEFIK_HTTPS_PORT}:443"
+      - "${TRAEFIK_DASHBOARD_PORT}:8080"
+    volumes:
+      - ${DOCKER_SOCKET:-/var/run/docker.sock}:/var/run/docker.sock:ro
+    networks:
+      - courtnet
+
   mailhog:
     image: mailhog/mailhog:latest
     restart: always
     ports:
-      - ${MAILHOG_SMTP_PORT}:1025
       - ${MAILHOG_UI_PORT}:8025
     volumes:
       - ./tmp/mail:/maildir
+    networks:
+      - courtnet
 
   mariadb:
     image: mariadb:latest
@@ -20,6 +41,8 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - ./tmp/db:/var/lib/mysql
+    networks:
+      - courtnet
 
   court:
     build:
@@ -27,10 +50,33 @@ services:
       args:
         INSTALL_XDEBUG: ${INSTALL_XDEBUG}
     restart: always
-    ports:
-      - ${COURT_PORT}:80
     volumes:
       - ./:/var/www/html
     depends_on:
       - mailhog
       - mariadb
+    networks:
+      - courtnet
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=courtnet"
+
+      # Secure Header Middleware
+      - "traefik.http.middlewares.secure-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.court.middlewares=secure-headers"
+
+      # HTTP -> HTTPS Redirect
+      - "traefik.http.routers.court-redirect.entrypoints=web"
+      - "traefik.http.routers.court-redirect.rule=Host(`${APP_HOSTNAME}`)"
+      - "traefik.http.routers.court-redirect.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+
+      # HTTPS Router
+      - "traefik.http.routers.court.rule=Host(`${APP_HOSTNAME}`)"
+      - "traefik.http.routers.court.entrypoints=websecure"
+      - "traefik.http.routers.court.tls=true"
+      - "traefik.http.services.court.loadbalancer.server.port=80"
+
+networks:
+  courtnet:
+    driver: bridge
