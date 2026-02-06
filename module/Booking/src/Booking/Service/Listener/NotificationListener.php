@@ -94,8 +94,9 @@ class NotificationListener extends AbstractListenerAggregate
         ;
         $vCalendar->addComponent($vEvent);
 
-        $subject = sprintf($this->t('Your %s-booking for %s'),
+        $subject = sprintf($this->t('Your %s-booking %s for %s'),
             $this->optionManager->get('subject.square.type'),
+            $square->need('name'),
             $dateFormatHelper($reservationStart, \IntlDateFormatter::MEDIUM, \IntlDateFormatter::SHORT));
 
         if ($this->configManager->get('genDoorCode') != null && $this->configManager->get('genDoorCode') == true && $square->getMeta('square_control') == true) { 
@@ -167,9 +168,15 @@ class NotificationListener extends AbstractListenerAggregate
         $message .= "\n\n";
         $message .= $this->t('Total');
         $message .= " -> ";
-        $message .= $priceFormatHelper($total);    
+        $message .= $priceFormatHelper($total);
 
-        $message .= "\n\n"; 
+        if ($booking->get('status_billing') == 'pending' && $booking->getMeta('gp') == '1' && $booking->getMeta('directpay') != 'true') {
+            $message .= "\n\n" . $this->t('Payment instructions:');
+            $message .= "\n" . $this->t('Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.');
+            $message .= "\n" . $this->t('The booking is only valid after payment is completed.');
+        }
+
+        $message .= "\n\n";
 
         $message = $message . sprintf($this->t('Should you have any questions and commentaries, please contact us through Email - %s'),
              //$this->optionManager->get('client.contact.email'));

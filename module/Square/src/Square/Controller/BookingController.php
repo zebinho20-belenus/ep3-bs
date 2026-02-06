@@ -549,9 +549,15 @@ class BookingController extends AbstractActionController
                 else{
                     $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sCongratulations:%s Your %s has been booked!'),
                         '<b>', '</b>',$this->option('subject.square.type')));
-                }  
+                }
 
-                if ($this->config('tmpBookingAt') != null) {    
+                if ($guestPlayerCheckbox == 1) {
+                    $this->flashMessenger()->addInfoMessage(
+                        $this->t('Please pay the booking amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.')
+                    );
+                }
+
+                if ($this->config('tmpBookingAt') != null) {
                     $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sPayment and admittance temporarily at %s!%s'),
                         '<b>', $this->config('tmpBookingAt'), '</b>'));
                 }

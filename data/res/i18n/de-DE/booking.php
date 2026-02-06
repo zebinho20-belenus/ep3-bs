@@ -37,6 +37,7 @@ return array(
     'This reservation does not exist' => 'Diese Reservierung gibt es nicht',
 
     'Your %s-booking for %s' => 'Ihre %s-Buchung am %s',
+    'Your %s-booking %s for %s' => 'Ihre Buchung auf %s %s am %s',
     'we have reserved %s "%s", %s for you (booking id: %s). Thank you for your booking.'
         => 'wir haben den %s "%s" am %s für Sie reserviert (Buchungs-Nr: %s). Vielen Dank für Ihre Buchung.',
     'we have reserved %s "%s", %s for you (booking id: %s). Thank you for your booking. Door code: %s . The booking and the code is only valid after payment is fully completed.'
@@ -57,4 +58,15 @@ return array(
     'Please pay the price of the booking via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro',
     'Guest booking: You can pay now via PayPal or choose to pay later.' => 'Gastbuchung: Sie können jetzt per PayPal bezahlen oder später zahlen.',
     'Pay later' => 'Später zahlen',
+
+    'Guest booking info' => 'Gastbuchung Info',
+    'As a member with a guest, you pay half the court fee. You can pay directly via PayPal or later at the office.'
+        => 'Als Mitglied mit Gast zahlen Sie den halben Platzpreis. Sie können direkt per PayPal bezahlen oder später im Büro.',
+    'Please pay the booking amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.'
+        => 'Bitte bezahlen Sie den Buchungsbetrag per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro.',
+    'Payment instructions:' => 'Zahlungshinweise:',
+    'Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.'
+        => 'Bitte überweisen Sie den Betrag per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro.',
+    'The booking is only valid after payment is completed.'
+        => 'Die Buchung ist erst nach vollständiger Bezahlung gültig.',
 );

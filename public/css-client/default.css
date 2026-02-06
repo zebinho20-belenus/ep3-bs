@@ -102,3 +102,15 @@ a:link, a:visited { color: #334F6A; }
     font-weight: 600;
     color: #334F6A;
 }
+
+/* Guest payment notice on customization page */
+.guest-payment-notice {
+    margin-top: 10px;
+    padding: 12px 16px;
+    background-color: #f0f6fa;
+    border: 2px solid #547B97;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #334F6A;
+    line-height: 1.5;
+}
