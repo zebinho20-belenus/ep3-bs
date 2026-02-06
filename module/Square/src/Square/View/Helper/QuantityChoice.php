@@ -151,7 +151,6 @@ class QuantityChoice extends AbstractHelper
                 if (paymentNotice) {
                     paymentNotice.style.display = checkbox.checked ? "block" : "none";
                 }
-                updateBookingUrl(checkbox.checked);
             }
 
             document.addEventListener("DOMContentLoaded", function() {
@@ -162,65 +161,6 @@ class QuantityChoice extends AbstractHelper
                     }
                     toggleGuestPlayerCheckbox(parseInt(quantitySelect.value));
                 }
-            });
-
-            function updateBookingUrl(isGuestPlayer) {
-                var sbButton = document.getElementById("sb-button");
-                if (!sbButton) return;
-
-                var quantity = document.getElementById("sb-quantity").value;
-                var playerData = [];
-
-                for (var i = 2; i <= quantity; i++) {
-                    var nameInput = document.getElementById("sb-name-" + i);
-                    if (nameInput && nameInput.value.trim()) {
-                        var playerName = nameInput.value.trim();
-                        if (isGuestPlayer && !playerName.endsWith(" Gastspieler")) {
-                            playerName += " Gastspieler";
-                        }
-                        playerData.push({
-                            "name": "sb-player-name-" + i,
-                            "value": playerName
-                        });
-                    }
-                }
-
-                var playerNamesJson = JSON.stringify(playerData);
-
-                var currentHref = sbButton.getAttribute("href");
-                var newHref = currentHref;
-
-                if (newHref.includes("pn=")) {
-                    newHref = newHref.replace(/pn=[^&]+/, "pn=" + encodeURIComponent(playerNamesJson));
-                } else {
-                    newHref += (newHref.includes("?") ? "&" : "?") + "pn=" + encodeURIComponent(playerNamesJson);
-                }
-
-                if (newHref.includes("gp=")) {
-                    newHref = newHref.replace(/gp=[^&]+/, "gp=" + (isGuestPlayer ? "1" : "0"));
-                } else {
-                    newHref += "&gp=" + (isGuestPlayer ? "1" : "0");
-                }
-
-                sbButton.setAttribute("href", newHref);
-            }
-
-            function handlePlayerNameChange() {
-                var guestCheckbox = document.getElementById("guest-player");
-                updateBookingUrl(guestCheckbox.checked);
-            }
-
-            document.addEventListener("DOMContentLoaded", function() {
-                var quantity = document.getElementById("sb-quantity").value;
-                toggleGuestPlayerCheckbox(quantity);
-
-                var playerInputs = document.querySelectorAll(".sb-player-names input[type=\'text\']");
-                playerInputs.forEach(function(input) {
-                    input.addEventListener("input", handlePlayerNameChange);
-                });
-
-                var guestCheckbox = document.getElementById("guest-player");
-                updateBookingUrl(guestCheckbox.checked);
             });
         </script>';
 

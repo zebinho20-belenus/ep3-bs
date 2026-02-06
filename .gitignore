@@ -16,3 +16,7 @@ Thumbs.db
 /config/autoload/project.php
 config/secrets.php
 
+# Backups
+*.tar.gz
+mycourt-pay.sql
+
