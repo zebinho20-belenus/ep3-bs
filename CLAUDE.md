@@ -108,11 +108,21 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 
 ## Docker Setup
 
-Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD, controlled via `.env` (see `.env.example`). `docker-compose.yml` is committed; `.env` is gitignored. Local dev uses **Traefik** reverse proxy with HTTPS, matching the production setup.
+Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD. Two compose files:
+- `docker-compose.yml` — production-compatible base (court, mariadb, mailhog + Traefik labels, external `traefik_web` network)
+- `docker-compose.override.yml` — local dev additions (Traefik service, self-signed HTTPS, local `traefik_web` network)
+
+```bash
+# Local dev (override auto-loaded):
+docker compose up -d
+
+# Production (base only, uses external Traefik):
+docker compose -f docker-compose.yml up -d
+```
 
 | Service | Default Port | Purpose |
 |---------|-------------|---------|
-| traefik | 80, 443, 8080 | Reverse proxy with HTTPS (self-signed), dashboard |
+| traefik | 80, 443, 8080 | Reverse proxy with HTTPS (self-signed locally, Let's Encrypt on prod), dashboard |
 | court | (via Traefik) | PHP 8.1 Apache app server |
 | mariadb | 3306 | MariaDB |
 | mailhog | 8025 (UI) | Email testing (SMTP 1025 internal) |
@@ -121,7 +131,7 @@ Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD, controlled via `.env
 - `INSTALL_XDEBUG=true` — installs Xdebug 3 (port 9003, IDE key: PHPSTORM)
 - `INSTALL_XDEBUG=false` — no debug tools, production-ready
 
-**Composer** is NOT run during Docker build. The volume mount `./:/var/www/html` provides `vendor/` from the host. Run `docker compose exec court composer update` to install/update dependencies.
+**Composer** is NOT run during Docker build. `vendor/` is committed to git (matching production workflow). The volume mount `./:/var/www/html` provides `vendor/` at runtime. Run `docker compose exec court composer update` to update dependencies.
 
 **macOS Docker Desktop**: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't reach the Docker socket.
 
