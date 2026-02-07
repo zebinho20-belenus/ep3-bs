@@ -795,8 +795,11 @@ a.squarebox-primary-close-link:hover {
 @media screen and (max-width: 512px) {
     .responsive-pass-5 { display: none; }
 
-    /* Hide time column on small phones — not enough horizontal space */
-    .calendar-time-col { display: none; }
+    /* Compact time column on small phones */
+    .calendar-time-col { width: 50px !important; }
+    .calendar-time-table { width: 50px !important; }
+    .calendar-time-col .cts-label { font-size: 11px; }
+    .calendar-time-col .cte-label { display: none; }
 }
 
 /* ---------- Cookie Consent ---------- */
