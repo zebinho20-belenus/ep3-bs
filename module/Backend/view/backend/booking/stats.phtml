@@ -26,30 +26,19 @@ $total = $single + $subscription;
 
     <div class="separator separator-line"></div>
 
-    <table class="bordered-table">
+    <table class="table table-bordered" style="max-width: 400px;">
         <tr>
             <td><b><?= $this->t('Bookings') ?></b></td>
             <td class="right-text"><b><code><?= $this->numberFormat($total) ?></code></b></td>
         </tr>
-
         <tr>
             <td><span class="gray">&lfloor;</span> <?= $this->t('Single') ?></td>
-            <td class="right-text">
-                <code>
-                    <?= $this->numberFormat($single) ?>
-                </code>
-            </td>
+            <td class="right-text"><code><?= $this->numberFormat($single) ?></code></td>
         </tr>
-
         <tr>
             <td><span class="gray">&lfloor;</span> <?= $this->t('Subscription') ?></td>
-            <td class="right-text">
-                <code>
-                    <?= $this->numberFormat($subscription) ?>
-                </code>
-            </td>
+            <td class="right-text"><code><?= $this->numberFormat($subscription) ?></code></td>
         </tr>
-
         <tr>
             <td><b><?= $this->t('Cancelled') ?></b></td>
             <td class="right-text"><b><code><?= $this->numberFormat($cancelled) ?></code></b></td>
