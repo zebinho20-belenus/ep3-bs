@@ -19,18 +19,16 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
 
         <?php if ($this->squares): ?>
             <?= $this->backendSquaresFormat($this->squares) ?>
         <?php endif; ?>
 
-        <div class="centered-text" style="margin-top: 32px;">
-            <p>
-                <a href="<?= $this->url('backend/config/square/edit') ?>" class="default-button">
-                    <span class="symbolic symbolic-plus"><?= sprintf($this->t('New %s'), $this->option('subject.square.type')) ?></span>
-                </a>
-            </p>
+        <div class="centered-text mt-4">
+            <a href="<?= $this->url('backend/config/square/edit') ?>" class="default-button">
+                <span class="symbolic symbolic-plus"><?= sprintf($this->t('New %s'), $this->option('subject.square.type')) ?></span>
+            </a>
         </div>
 
     </div>

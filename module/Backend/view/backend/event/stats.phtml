@@ -26,19 +26,14 @@ $total = $enabled;
 
     <div class="separator separator-line"></div>
 
-    <table class="bordered-table">
+    <table class="table table-bordered" style="max-width: 400px;">
         <tr>
             <td><b><?= $this->t('Events') ?></b></td>
             <td class="right-text"><b><code><?= $this->numberFormat($total) ?></code></b></td>
         </tr>
-
         <tr>
             <td><span class="gray">&lfloor;</span> <?= $this->t('Enabled') ?></td>
-            <td class="right-text">
-                <code>
-                    <?= $this->numberFormat($enabled) ?>
-                </code>
-            </td>
+            <td class="right-text"><code><?= $this->numberFormat($enabled) ?></code></td>
         </tr>
     </table>
 </div>

@@ -8,38 +8,25 @@ if (! ($this->dateStart || $this->dateEnd)) {
 
 ?>
 
-<div style="padding: 10px 0px 16px 0px;">
+<div class="py-3">
     <form id="esf" name="esf" method="get" action="<?= $this->url('backend/event') ?>">
-        <table class="default-table">
-            <tr>
-                <td>
-                    <div class="default-form-label-top gray">
-                        <label for="date-start"><?= $this->t('Date') ?>:</label>
-                    </div>
+        <label class="form-label text-muted"><?= $this->t('Date') ?>:</label>
+        <div class="d-flex align-items-end flex-wrap gap-2">
+            <div class="inline-element">
+                <label for="date-start" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date start') ?></span></label>
+                <input type="text" name="date-start" id="date-start" value="<?= $this->dateFormat($this->dateStart, IntlDateFormatter::MEDIUM) ?>"
+                       class="inline-label-container datepicker form-control form-control-sm" style="padding-left: 28px; width: 110px;">
+            </div>
 
-                    <div class="inline-element">
-                        <label for="date-start" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date start') ?></span></label>
-                        <input type="text" name="date-start" id="date-start" value="<?= $this->dateFormat($this->dateStart, IntlDateFormatter::MEDIUM) ?>"
-                               class="inline-label-container datepicker" style="padding-left: 28px; width: 96px;">
-                    </div>
-                </td>
+            <span class="text-muted"><?= $this->t('to') ?></span>
 
-                <td style="vertical-align: bottom; padding: 7px;">
-                    <?= $this->t('to') ?>
-                </td>
+            <div class="inline-element">
+                <label for="date-end" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date end') ?></span></label>
+                <input type="text" name="date-end" id="date-end" value="<?= $this->dateFormat($this->dateEnd, IntlDateFormatter::MEDIUM) ?>"
+                       class="inline-label-container datepicker form-control form-control-sm" style="padding-left: 28px; width: 110px;">
+            </div>
 
-                <td style="vertical-align: bottom;">
-                    <div class="inline-element">
-                        <label for="date-end" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date end') ?></span></label>
-                        <input type="text" name="date-end" id="date-end" value="<?= $this->dateFormat($this->dateEnd, IntlDateFormatter::MEDIUM) ?>"
-                               class="inline-label-container datepicker" style="padding-left: 28px; width: 96px;">
-                    </div>
-                </td>
-
-                <td style="vertical-align: bottom;">
-                    <input type="submit" value="<?= $this->t('Search') ?>" class="default-button">
-                </td>
-            </tr>
-        </table>
+            <input type="submit" value="<?= $this->t('Search') ?>" class="default-button">
+        </div>
     </form>
 </div>

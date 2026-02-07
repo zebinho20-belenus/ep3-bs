@@ -19,18 +19,16 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
 
         <?php if ($this->squareProducts): ?>
             <?= $this->backendSquareProductsFormat($this->squareProducts) ?>
         <?php endif; ?>
 
-        <div class="centered-text" style="margin-top: 32px;">
-            <p>
-                <a href="<?= $this->url('backend/config/square/product/edit') ?>" class="default-button">
-                    <span class="symbolic symbolic-plus"><?= $this->t('New product') ?></span>
-                </a>
-            </p>
+        <div class="centered-text mt-4">
+            <a href="<?= $this->url('backend/config/square/product/edit') ?>" class="default-button">
+                <span class="symbolic symbolic-plus"><?= $this->t('New product') ?></span>
+            </a>
         </div>
 
     </div>

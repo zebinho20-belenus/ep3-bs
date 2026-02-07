@@ -19,22 +19,16 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
-   
-    <h3><?php ($this->codes) ?></h3>
-
-    <?php ($this->codes) ?>
+    <div class="py-3">
 
         <?php if ($this->codes): ?>
             <?= $this->backendDoorCodesFormat($this->codes) ?>
         <?php endif; ?>
 
-        <div class="centered-text" style="margin-top: 32px;">
-            <p>
-                <a href="<?= $this->url('backend/squarecontrol/removeinactivedoorcodes') ?>" class="default-button">
-                     <span class="symbolic symbolic-cross"><?= sprintf($this->t('Remove all inactive codes'), $this->t('Door codes')) ?></span>
-                </a>
-            </p>
+        <div class="centered-text mt-4">
+            <a href="<?= $this->url('backend/squarecontrol/removeinactivedoorcodes') ?>" class="default-button default-button-danger">
+                 <span class="symbolic symbolic-cross"><?= sprintf($this->t('Remove all inactive codes'), $this->t('Door codes')) ?></span>
+            </a>
         </div>
 
     </div>
