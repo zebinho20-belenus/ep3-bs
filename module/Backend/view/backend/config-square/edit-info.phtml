@@ -23,7 +23,7 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.light.
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
         <?php
 
         $form = $this->editForm;
@@ -35,26 +35,23 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.light.
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table">
-            <?= $this->formRowDefault($form, 'cf-info-pre') ?>
-            <?= $this->formRowDefault($form, 'cf-info-post') ?>
-            <?= $this->formRowDefault($form, 'cf-rules-text') ?>
+        <?= $this->formRowDefault($form, 'cf-info-pre') ?>
+        <?= $this->formRowDefault($form, 'cf-info-post') ?>
+        <?= $this->formRowDefault($form, 'cf-rules-text') ?>
 
-            <?= $this->formRowDefault($form, 'cf-rules-document-file') ?>
+        <?= $this->formRowDefault($form, 'cf-rules-document-file') ?>
 
-            <?php if ($this->square->getMeta('rules.document.file')): ?>
-                <tr>
-                    <td class="default-form-label-row">&nbsp;</td>
-                    <td>
-                        <?= $this->t('Current file:') ?> <a href="<?= $this->basePath($this->square->getMeta('rules.document.file')) ?>" target="_blank"><?= basename($this->square->getMeta('rules.document.file')) ?></a>
-                    </td>
-                </tr>
-            <?php endif; ?>
+        <?php if ($this->square->getMeta('rules.document.file')): ?>
+            <div class="small text-muted mb-3">
+                <?= $this->t('Current file:') ?> <a href="<?= $this->basePath($this->square->getMeta('rules.document.file')) ?>" target="_blank"><?= basename($this->square->getMeta('rules.document.file')) ?></a>
+            </div>
+        <?php endif; ?>
 
-            <?= $this->formRowDefault($form, 'cf-rules-document-name') ?>
+        <?= $this->formRowDefault($form, 'cf-rules-document-name') ?>
 
-            <?= $this->formRowSubmit($form, 'cf-submit') ?>
-        </table>
+        <div class="edit-actions">
+            <?= $this->formElement($form->get('cf-submit')) ?>
+        </div>
 
         <?= $this->form()->closeTag() ?>
     </div>

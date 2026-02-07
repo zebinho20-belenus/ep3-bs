@@ -23,7 +23,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config/be
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
         <?php
 
         $form = $this->behaviourForm;
@@ -35,37 +35,30 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config/be
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table">
-            <?= $this->formRowDefault($form, 'cf-maintenance') ?>
-            <?= $this->formRowDefault($form, 'cf-maintenance-message') ?>
-            <?= $this->formRowDefault($form, 'cf-registration') ?>
-            <?= $this->formRowDefault($form, 'cf-registration-message') ?>
-            <?= $this->formRowDefault($form, 'cf-activation') ?>
-            <?= $this->formRowDefault($form, 'cf-calendar-days') ?>
-            <?= $this->formRowDefault($form, 'cf-calendar-day-exceptions') ?>
-            <?= $this->formRowDefault($form, 'cf-calendar-club-exceptions') ?>
-            <?= $this->formRowDefault($form, 'cf-calendar-display-club-exceptions') ?>
+        <?= $this->formRowDefault($form, 'cf-maintenance') ?>
+        <?= $this->formRowDefault($form, 'cf-maintenance-message') ?>
+        <?= $this->formRowDefault($form, 'cf-registration') ?>
+        <?= $this->formRowDefault($form, 'cf-registration-message') ?>
+        <?= $this->formRowDefault($form, 'cf-activation') ?>
+        <?= $this->formRowDefault($form, 'cf-calendar-days') ?>
+        <?= $this->formRowDefault($form, 'cf-calendar-day-exceptions') ?>
+        <?= $this->formRowDefault($form, 'cf-calendar-club-exceptions') ?>
+        <?= $this->formRowDefault($form, 'cf-calendar-display-club-exceptions') ?>
 
-            <tr>
-                <td class="default-form-label-row">&nbsp;</td>
-                <td>
-                    <a href="<?= $this->url('backend/config/behaviour/rules') ?>" class="default-button">
-                        <span class="symbolic symbolic-edit"><?= $this->t('Edit business terms and privacy policy') ?></span>
-                    </a>
-                </td>
-            </tr>
+        <hr class="my-3">
 
-            <tr>
-                <td class="default-form-label-row">&nbsp;</td>
-                <td>
-                    <a href="<?= $this->url('backend/config/behaviour/status-colors') ?>" class="default-button">
-                        <span class="symbolic symbolic-edit"><?= $this->t('Edit billing status names and colors') ?></span>
-                    </a>
-                </td>
-            </tr>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <a href="<?= $this->url('backend/config/behaviour/rules') ?>" class="default-button default-button-outline">
+                <span class="symbolic symbolic-edit"><?= $this->t('Edit business terms and privacy policy') ?></span>
+            </a>
+            <a href="<?= $this->url('backend/config/behaviour/status-colors') ?>" class="default-button default-button-outline">
+                <span class="symbolic symbolic-edit"><?= $this->t('Edit billing status names and colors') ?></span>
+            </a>
+        </div>
 
-            <?= $this->formRowSubmit($form, 'cf-submit') ?>
-        </table>
+        <div class="edit-actions">
+            <?= $this->formElement($form->get('cf-submit')) ?>
+        </div>
 
         <?= $this->form()->closeTag() ?>
     </div>
