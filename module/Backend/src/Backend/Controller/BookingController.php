@@ -38,6 +38,7 @@ class BookingController extends AbstractActionController
 
         if ($dateEnd) {
             $dateEnd = new \DateTime($dateEnd);
+            $dateEnd->setTime(23, 59);
         }
 
         if (($dateStart && $dateEnd) || $search) {
@@ -608,6 +609,14 @@ class BookingController extends AbstractActionController
                     }
                     
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
+
+                    return $this->redirect()->toRoute('backend/booking/edit', [], ['query' => [
+                        'ds' => $reservation->get('date'),
+                        'ts' => substr($reservation->get('time_start'), 0, 5),
+                        'te' => substr($reservation->get('time_end'), 0, 5),
+                        's'  => $booking->get('sid'),
+                        'r'  => $reservation->get('rid'),
+                    ]]);
                 } else {
                     $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
 
@@ -668,7 +677,9 @@ class BookingController extends AbstractActionController
                 }
             }
 
-            return $this->redirect()->toRoute('frontend', [], ['query' => []]);
+            return $this->redirect()->toRoute('frontend', [], ['query' => [
+                'date' => $reservation->get('date'),
+            ]]);
         }
 
         if ($editMode == 'reservation') {
