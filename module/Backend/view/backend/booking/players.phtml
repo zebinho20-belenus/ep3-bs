@@ -2,7 +2,7 @@
 
 $this->setup(array(
     'title' => 'Player\'s names',
-    'panel' => 'centered-panel',
+    'panel' => 'centered-panel large-sized',
     'back' => true,
 ));
 
@@ -13,65 +13,42 @@ $this->setup(array(
 
     <div class="separator-small"></div>
 
-    <?php
+    <p>
+        <?= $this->translate('Booked by') ?>
+        <a href="<?= $this->url('backend/user/edit', ['uid' => $this->user->need('uid')]) ?>"><?= $this->escapeHtml($this->user->need('alias')) ?></a>
+    </p>
 
-    printf('<p>%s <a href="%s">%s</a></p>',
-        $this->translate('Booked by'),
-        $this->url('backend/user/edit', ['uid' => $this->user->need('uid')]),
-        $this->escapeHtml($this->user->need('alias')));
+    <div class="separator separator-line"></div>
 
-    echo '<div class="separator separator-line"></div>';
-
-    echo '<table class="default-table middle-table" style="margin-left: 0;">';
-
-    $i = 1;
-
-    foreach ($this->players as $player) {
-        echo '<tr>';
-
-        printf('<td>%s.</td>',
-            $i++);
-
-        if (isset($player['name'])) {
-            printf('<td>%s</td>',
-                $player['name']);
-        } else {
-            echo '<td></td>';
-        }
-
-        if (isset($player['email'])) {
-            printf('<td><span class="gray">%s:</span> <a href="mailto:%s">%s</a></td>',
-                $this->translate('Email'),
-                $player['email'], $player['email']);
-        } else {
-            echo '<td></td>';
-        }
-
-        if (isset($player['phone'])) {
-            printf('<td><span class="gray">%s:</span> %s</td>',
-                $this->translate('Phone'),
-                $player['phone']);
-        } else {
-            echo '<td></td>';
-        }
-
-        if (isset($player['user']) && isset($player['userMatch'])) {
-            $user = $player['user'];
-            $userMatch = $player['userMatch'];
-
-            printf('<td><span class="gray">%s %s:</span> <a href="%s">%s</a></td>',
-                $this->translate('User matched by'),
-                $this->translate(ucfirst($userMatch)),
-                $this->url('backend/user/edit', ['uid' => $user->need('uid')]),
-                $this->escapeHtml($user->need('alias')));
-        } else {
-            echo '<td></td>';
-        }
-
-        echo '</tr>';
-    }
-
-    echo '</table>';
-
-    ?>
+    <table class="table table-sm align-middle">
+        <thead>
+            <tr>
+                <th style="width: 2rem;">#</th>
+                <th><?= $this->t('Name') ?></th>
+                <th><?= $this->t('Email') ?></th>
+                <th><?= $this->t('Phone') ?></th>
+                <th><?= $this->t('Matched user') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $i = 1; foreach ($this->players as $player): ?>
+                <tr>
+                    <td><?= $i++ ?>.</td>
+                    <td><?= isset($player['name']) ? $this->escapeHtml($player['name']) : '' ?></td>
+                    <td>
+                        <?php if (isset($player['email'])): ?>
+                            <a href="mailto:<?= $player['email'] ?>"><?= $player['email'] ?></a>
+                        <?php endif; ?>
+                    </td>
+                    <td><?= isset($player['phone']) ? $this->escapeHtml($player['phone']) : '' ?></td>
+                    <td>
+                        <?php if (isset($player['user']) && isset($player['userMatch'])): ?>
+                            <span class="text-muted"><?= $this->translate('User matched by') ?> <?= $this->translate(ucfirst($player['userMatch'])) ?>:</span>
+                            <a href="<?= $this->url('backend/user/edit', ['uid' => $player['user']->need('uid')]) ?>"><?= $this->escapeHtml($player['user']->need('alias')) ?></a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>
