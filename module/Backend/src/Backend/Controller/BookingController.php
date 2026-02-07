@@ -151,14 +151,51 @@ class BookingController extends AbstractActionController
 
                     /* Update booking/reservation */
 
-                    $savedBooking = $this->backendBookingUpdate($d['bf-rid'], $d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'],
+                    $updateResult = $this->backendBookingUpdate($d['bf-rid'], $d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'],
                         $d['bf-sid'], $d['bf-status-billing'], $d['bf-quantity'], $d['bf-notes'], $params['editMode']);
+
+                    $savedBooking = $updateResult['booking'];
+                    $oldData = $updateResult['oldData'];
 
                     $bid = $savedBooking->get('bid');
                     $square = $squareManager->get($savedBooking->get('sid'));
 
                     if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
                             $squareControlService->updateDoorCode($bid);
+                    }
+
+                    /* Detect changes and send edit notification email */
+
+                    $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                    $reservations = $reservationManager->getBy(['bid' => $savedBooking->need('bid')], 'date ASC', 1);
+                    $currentReservation = !empty($reservations) ? current($reservations) : null;
+
+                    $newData = array(
+                        'sid' => $savedBooking->get('sid'),
+                        'uid' => $savedBooking->get('uid'),
+                        'status_billing' => $savedBooking->get('status_billing'),
+                        'quantity' => $savedBooking->get('quantity'),
+                        'notes' => $savedBooking->getMeta('notes', ''),
+                        'date' => $currentReservation ? $currentReservation->get('date') : $oldData['date'],
+                        'time_start' => $currentReservation ? $currentReservation->get('time_start') : $oldData['time_start'],
+                        'time_end' => $currentReservation ? $currentReservation->get('time_end') : $oldData['time_end'],
+                    );
+
+                    $changes = array();
+                    foreach ($oldData as $key => $oldValue) {
+                        if (isset($newData[$key]) && $oldValue != $newData[$key]) {
+                            $changes[$key] = array('old' => $oldValue, 'new' => $newData[$key]);
+                        }
+                    }
+
+                    if (!empty($changes)) {
+                        try {
+                            $userManager = $serviceManager->get('User\Manager\UserManager');
+                            $bookingUser = $userManager->get($savedBooking->get('uid'));
+                            $this->sendAdminBookingEditEmail($savedBooking, $bookingUser, $changes, $sessionUser, $squareManager);
+                        } catch (\Exception $e) {
+                            error_log(sprintf("Fehler beim Senden der Änderungsemail für Buchung %s: %s", $savedBooking->get('bid'), $e->getMessage()));
+                        }
                     }
 
                 } else {
@@ -1592,9 +1629,230 @@ class BookingController extends AbstractActionController
     }
     
     /**
+     * Send an edit notification email when an admin modifies a booking
+     *
+     * @param Booking $booking
+     * @param User $user
+     * @param array $changes Array of changed fields with 'old' and 'new' values
+     * @param User $sessionUser The admin user who made the change
+     * @param mixed $squareManager
+     * @return boolean
+     */
+    public function sendAdminBookingEditEmail(Booking $booking, User $user, array $changes, $sessionUser, $squareManager = null)
+    {
+        if (empty($user->need('email'))) {
+            return false;
+        }
+
+        try {
+            // Resolve square manager if not passed
+            if (!$squareManager) {
+                $squareManager = $this->serviceLocator->get('Square\Manager\SquareManager');
+            }
+
+            // Current booking details for the email
+            $squareName = $this->t('not specified');
+            $formattedDate = '[Datum nicht verfügbar]';
+            $formattedTime = '[Startzeit nicht verfügbar]';
+            $formattedEndTime = '[Endzeit nicht verfügbar]';
+
+            try {
+                if ($booking->get('sid')) {
+                    $square = $squareManager->get($booking->need('sid'));
+                    $squareName = $square->need('name');
+                }
+            } catch (\Exception $e) {
+                // Fallback
+            }
+
+            try {
+                $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
+                $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+                if (!empty($reservations)) {
+                    $reservation = current($reservations);
+                    if ($reservation->get('date')) {
+                        $date = new \DateTime($reservation->need('date'));
+                        $formattedDate = $date->format('d.m.Y');
+                    }
+                    if ($reservation->get('time_start')) {
+                        $formattedTime = substr($reservation->get('time_start'), 0, 5);
+                    }
+                    if ($reservation->get('time_end')) {
+                        $formattedEndTime = substr($reservation->get('time_end'), 0, 5);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Fallback
+            }
+
+            // Personalized greeting
+            $anrede = 'Hallo';
+            if ($user->getMeta('gender') == 'male') {
+                $anrede = 'Sehr geehrter Herr';
+            } elseif ($user->getMeta('gender') == 'female') {
+                $anrede = 'Sehr geehrte Frau';
+            }
+            if ($user->getMeta('lastname')) {
+                $anrede .= ' ' . $user->getMeta('lastname');
+            } else {
+                $anrede .= ' ' . $user->need('alias');
+            }
+
+            // Build changes text
+            $changesText = $this->t('Changes') . ":\n";
+            foreach ($changes as $field => $change) {
+                $label = '';
+                $oldFormatted = $change['old'];
+                $newFormatted = $change['new'];
+
+                switch ($field) {
+                    case 'sid':
+                        $label = $this->t('Square');
+                        try {
+                            $oldSquare = $squareManager->get($change['old']);
+                            $oldFormatted = $oldSquare->need('name');
+                        } catch (\Exception $e) {
+                            $oldFormatted = $change['old'];
+                        }
+                        try {
+                            $newSquare = $squareManager->get($change['new']);
+                            $newFormatted = $newSquare->need('name');
+                        } catch (\Exception $e) {
+                            $newFormatted = $change['new'];
+                        }
+                        break;
+                    case 'date':
+                        $label = $this->t('Date');
+                        try {
+                            $oldDate = new \DateTime($change['old']);
+                            $oldFormatted = $oldDate->format('d.m.Y');
+                        } catch (\Exception $e) {}
+                        try {
+                            $newDate = new \DateTime($change['new']);
+                            $newFormatted = $newDate->format('d.m.Y');
+                        } catch (\Exception $e) {}
+                        break;
+                    case 'time_start':
+                        $label = $this->t('Time (Start)');
+                        $oldFormatted = substr($change['old'], 0, 5) . ' ' . $this->t('Clock');
+                        $newFormatted = substr($change['new'], 0, 5) . ' ' . $this->t('Clock');
+                        break;
+                    case 'time_end':
+                        $label = $this->t('Time (End)');
+                        $oldFormatted = substr($change['old'], 0, 5) . ' ' . $this->t('Clock');
+                        $newFormatted = substr($change['new'], 0, 5) . ' ' . $this->t('Clock');
+                        break;
+                    case 'quantity':
+                        $label = $this->t('Number of players');
+                        break;
+                    case 'status_billing':
+                        $label = $this->t('Billing status');
+                        break;
+                    case 'notes':
+                        $label = $this->t('Notes');
+                        break;
+                    case 'uid':
+                        // Skip user change in customer email
+                        continue 2;
+                    default:
+                        $label = $field;
+                }
+
+                $changesText .= sprintf("\n- %s: %s → %s", $label, $oldFormatted, $newFormatted);
+            }
+
+            $buchungsDetails = sprintf(
+                $this->t("Current booking details") . ":\n\n- %s: %s\n\n- %s: %s\n\n- %s: %s - %s %s\n\n- %s: %s",
+                $this->t('Square'), $squareName,
+                $this->t('Date'), $formattedDate,
+                $this->t('Time'), $formattedTime, $formattedEndTime, $this->t('Clock'),
+                $this->t('Booking nr.'), $booking->need('bid')
+            );
+
+            $subject = sprintf($this->t('Your booking has been modified (Booking nr. %s)'), $booking->need('bid'));
+
+            // Contact info footer
+            $contactInfo = '';
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('This message was sent automatically. If you have questions, please contact our support team');
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf(' %s %s', $this->t('at'), $contactEmail);
+                }
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= ' ' . $this->t('or');
+                    }
+                    $contactInfo .= sprintf(' %s %s %s', $this->t('on'), $this->t('our website'), $clientWebsite);
+                }
+                $contactInfo .= '.';
+            }
+
+            $emailText = sprintf(
+                "%s,\n\n%s\n\n%s\n\n%s",
+                $anrede,
+                $this->t('Your booking has been modified by our team.'),
+                $changesText,
+                $buchungsDetails
+            );
+
+            // Send via Backend MailService
+            if ($this->serviceLocator->has('Backend\Service\MailService')) {
+                $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
+
+                $backendMailService->sendCustomEmail(
+                    $subject,
+                    $emailText,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    [],
+                    $contactInfo,
+                    false
+                );
+
+                // Admin copy
+                $adminName = method_exists($sessionUser, 'need') ? $sessionUser->need('alias') : 'Unbekannt';
+                $adminEmail = method_exists($sessionUser, 'need') ? $sessionUser->need('email') : '';
+
+                $adminInfo = sprintf(
+                    "\n\n\n==================================================\n%s:\n--------------------------------------------------\n%s: %s (%s)\n%s: %s\n==================================================\n\n",
+                    $this->t('Internal admin information'),
+                    $this->t('Booking modified by'),
+                    $adminName,
+                    $adminEmail,
+                    $this->t('Time of modification'),
+                    date('d.m.Y H:i:s')
+                );
+
+                $clientContactEmail = $this->option('client.contact.email', '');
+                if (!empty($clientContactEmail)) {
+                    $backendMailService->sendCustomEmail(
+                        '[ADMIN-KOPIE] ' . $subject,
+                        $emailText . $adminInfo,
+                        $clientContactEmail,
+                        'Administrator',
+                        [],
+                        $contactInfo,
+                        true
+                    );
+                }
+
+                return true;
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            error_log(sprintf("Fehler beim Senden der Änderungsemail: %s", $e->getMessage()));
+            return false;
+        }
+    }
+
+    /**
      * Fallback-Methode zum Senden der Buchungsbestätigungsemail, wenn Backend\Service\MailService nicht verfügbar ist
      */
-    protected function sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails, 
+    protected function sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails,
         $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede)
     {
         try {
