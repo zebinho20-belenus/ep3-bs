@@ -20,3 +20,12 @@ config/secrets.php
 *.tar.gz
 mycourt-pay.sql
 
+#kail data
+/data/kail
+/data/kail/info-page-2026.html
+/data/kail/help-page-2026.html
+/data/kail/old-info.html
+/data/kail/old-help.html
+
+
+
