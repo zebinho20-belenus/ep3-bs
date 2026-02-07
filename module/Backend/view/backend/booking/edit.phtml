@@ -166,7 +166,7 @@ $this->setup(array(
                                 <br>
 
                                 <?= sprintf($this->t('Booking cancelled:<br>%s by %s'),
-                                    $this->prettyDate(new \DateTime($this->booking->get('cancelled'))),
+                                    $this->prettyDate(new \DateTime($this->booking->getMeta('cancelled'))),
                                     $this->booking->getMeta('cancellor')) ?>
                             <?php endif; ?>
                         </div>

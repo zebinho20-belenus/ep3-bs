@@ -147,6 +147,7 @@ class SquarePricingManager extends AbstractManager
         foreach ($this->rules as $rule) {
             $dateStart = new DateTime($rule['date_start']);
             $dateEnd = new DateTime($rule['date_end']);
+            $dateEnd->setTime(23, 59, 59);
 
             if ($dateTime <= $dateEnd && $dateTime >= $dateStart) {
                 $dateTimeDay = ($dateTime->format('w') + 6) % 7;
