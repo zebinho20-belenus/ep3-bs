@@ -15,13 +15,10 @@ $this->setup(array(
 <div class="padded centered-text">
     <p><span class="symbolic symbolic-warning"><?= $this->t('Are you sure you want to delete this product?') ?></span></p>
 
-    <p class="no-wrap">
-        <a href="<?= $this->url('backend/config/square/product/delete', ['spid' => $this->spid], ['query' => ['confirmed' => 'true']]) ?>" class="default-button">
+    <div class="edit-actions">
+        <a href="<?= $this->url('backend/config/square/product/delete', ['spid' => $this->spid], ['query' => ['confirmed' => 'true']]) ?>" class="default-button default-button-danger">
             <span class="symbolic symbolic-cross"><?= $this->t('Yes, delete this product') ?></span>
         </a>
-
-        &nbsp;
-
-        <a href="<?= $backUrl ?>" class="default-button"><?= $this->t('No, go back') ?></a>
-    </p>
+        <a href="<?= $backUrl ?>" class="default-button default-button-outline"><?= $this->t('No, go back') ?></a>
+    </div>
 </div>

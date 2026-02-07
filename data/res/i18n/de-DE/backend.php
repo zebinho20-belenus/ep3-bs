@@ -355,11 +355,12 @@ return array(
     'Amount of products to choose from,<br>e.g. 1,2,3 to choose between 1 and 3 items'
         => 'Auswahlmöglichkeiten der Anzahl dieses Produktes,<br>z.B. 1,2,3 um zwischen 1 und 3 Stück zu wählen',
 
+    'From' => 'Von',
     'New price' => 'Neuer Preis',
     'New time' => 'Neue Zeit',
     'New day' => 'Neuer Wochentag',
     'New period' => 'Neuer Zeitraum',
-    'New rule' => 'Neue Regel', 
+    'New rule' => 'Neue Regel',
 
     'Display pricing:' => 'Preise anzeigen:',
     'For no one' => 'Für niemanden',
@@ -416,6 +417,7 @@ return array(
 
     'Who?' => 'Wer?',
 
+    'Player names' => 'Spielernamen',
     'Player\'s names' => 'Spielernamen',
     'Booked by' => 'Gebucht von',
 

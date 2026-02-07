@@ -12,7 +12,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
 
 ?>
 
-<div style="width: auto;">
+<div>
     <h1><?= $this->t('Pricing') ?></h1>
 
     <div class="separator-small"></div>
@@ -20,28 +20,6 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
     <p><?= sprintf($this->t('How much do bookings cost for your %s?'), $this->option('subject.square.type.plural')) ?></p>
 
     <div class="separator separator-line"></div>
-
-    <style type="text/css">
-        .datepicker { width: 110px; }
-        .timepicker { width: 60px; }
-        .pricepicker { width: 80px; color: #333 !important; font-weight: bold; text-align: right; }
-        .timeblockpicker { width: 45px; text-align: right; }
-
-        .pricing-grammar { margin: 0 6px; color: #777; cursor: default; }
-        .pricing-grammar:last-child { margin: 0 0 0 6px; }
-
-        .pricing-delete { color: #777 !important; text-decoration: none; cursor: pointer; }
-        .pricing-delete:hover { color: #333; }
-
-        .default-table td { padding-bottom: 3px !important; }
-
-        #pricing-table-template { display: none; }
-
-        #pricing-table input[type="text"],
-        #pricing-table select,
-        #pricing-table-template input[type="text"],
-        #pricing-table-template select { font-size: 14px; padding: 0.25rem 0.375rem; border: 1px solid #dee2e6; border-radius: 0.25rem; }
-    </style>
 
     <script type="text/javascript">
         <?php
@@ -65,168 +43,123 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
         ?>
 
         var pricingRules = [ <?= implode(', ', $jsRules) ?> ];
-         
     </script>
 
-        <div id="pricing-table-template">
+    <!-- Template for cloning -->
+    <div id="pricing-template">
+        <div class="pricing-rule card mb-3">
+            <div class="card-header d-flex align-items-center gap-2 py-2">
+                <span class="pricing-grammar"><?= $this->t('From') ?></span>
+                <input type="text" value="" class="pricing-dateStart datepicker form-control form-control-sm" style="width: 110px;">
+                <span class="pricing-grammar"><?= $this->t('to') ?></span>
+                <input type="text" value="" class="pricing-dateEnd datepicker form-control form-control-sm" style="width: 110px;">
+                <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+            </div>
+            <div class="card-body p-2">
+                <div class="pricing-day-block border-start border-2 border-primary ps-3 mb-2">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <?php
+                        $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
 
-        <?php // echo 'pricingRules: ' . implode(', ', $jsRules) ?>
-     
-        <table><tbody>
-            <tr>
-                <td class="pricing-date-range">
-                    <input type="text" value="" class="pricing-dateStart datepicker"><span class="pricing-grammar"><?= $this->t('to') ?></span><input type="text" value="" class="pricing-dateEnd datepicker">
-                </td>
-                <td>
-                    <table><tbody>
-                        <tr>
-                            <td>
-                                <table><tbody>
-                                    <tr>
-                                        <td class="pricing-day-range">
-                                            <?php
+                        echo '<select class="pricing-dayStart form-select form-select-sm" style="width: auto;">';
+                        foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 0 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
+                        echo '</select>';
 
-                                            $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+                        echo '<span class="pricing-grammar">' . $this->t('to') . '</span>';
 
-                                            echo '<select class="pricing-dayStart">';
-                                            foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 0 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
-                                            echo '</select>';
+                        echo '<select class="pricing-dayEnd form-select form-select-sm" style="width: auto;">';
+                        foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 4 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
+                        echo '</select>';
+                        ?>
+                        <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                    </div>
 
-                                            echo '<span class="pricing-grammar">' . $this->t('to') . '</span>';
+                    <div class="pricing-time-block ps-3 mb-2">
+                        <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                            <input type="text" value="06:00" maxlength="5" class="pricing-timeStart timepicker form-control form-control-sm" style="width: 65px;">
+                            <span class="pricing-grammar"><?= $this->t('to') ?></span>
+                            <input type="text" value="24:00" maxlength="5" class="pricing-timeEnd timepicker form-control form-control-sm" style="width: 65px;">
+                            <span class="pricing-grammar"><?= $this->t('Clock') ?></span>
+                            <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                        </div>
 
-                                            echo '<select class="pricing-dayEnd">';
-                                            foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 4 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
-                                            echo '</select>';
+                        <div class="pricing-price-line d-flex align-items-center flex-wrap gap-1 mb-1">
+                            <?php
+                            echo '<input type="text" value="0,00" maxlength="6" class="pricing-price-number pricepicker form-control form-control-sm" style="width: 80px;">';
+                            echo '<span class="pricing-grammar">' . $this->config('i18n.currency') . '</span>';
 
-                                            ?>
-                                        </td>
-                                        <td>
-                                            <table><tbody>
-                                                <tr>
-                                                    <td>
-                                                        <table><tbody>
-                                                            <tr>
-                                                                <td class="pricing-time-range">
-                                                                    <input type="text" value="06:00" maxlength="5" class="pricing-timeStart timepicker"><span class="pricing-grammar"><?= $this->t('to') ?></span><input type="text" value="24:00" maxlength="5" class="pricing-timeEnd timepicker"><span class="pricing-grammar"><?= $this->t('Clock') ?></span>
-                                                                </td>
-                                                                <td>
-                                                                    <table><tbody>
-                                                                        <tr>
-                                                                            <td class="pricing-price">
-                                                                                <?php
+                            echo '<select class="pricing-rate-gross form-select form-select-sm" style="width: auto;">';
+                            echo '<option value="0">' . $this->t('plus') . '</option>';
+                            echo '<option value="1" selected="selected">' . $this->t('including') . '</option>';
+                            echo '</select>';
 
-                                                                                echo '<input type="text" value="0,00" maxlength="6" class="pricing-price-number pricepicker"><span class="pricing-grammar">' . $this->config('i18n.currency') . '</span>';
+                            echo '<input type="text" value="19" maxlength="3" class="pricing-rate form-control form-control-sm" style="width: 45px;">';
+                            echo '<span class="pricing-grammar">% ' . $this->t('VAT') . '</span>';
 
-                                                                                echo '<select class="pricing-rate-gross" style="width: 60px;">';
-                                                                                echo '<option value="0">' . $this->t('plus') . '</option>';
-                                                                                echo '<option value="1" selected="selected">' . $this->t('including') . '</option>';
-                                                                                echo '</select>';
+                            echo '<span class="pricing-grammar">' . $this->t('for') . '</span>';
 
-                                                                                echo '<input type="text" value="19" maxlength="3" class="pricing-rate" style="width: 20px;">';
-                                                                                echo '<span class="pricing-grammar">% ' . $this->t('VAT') . '</span>';
+                            echo '<select class="pricing-sid form-select form-select-sm" style="width: auto;">';
+                            echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
+                            foreach ($this->squares as $square) {
+                                echo '<option value="' . $square->get('sid') . '">' . $this->option('subject.square.type') . ' ' . $square->get('name') . '</option>';
+                            }
+                            echo '</select>';
 
-                                                                                echo '<span class="pricing-grammar">' . $this->t('for') . '</span>';
+                            echo '<select class="pricing-member form-select form-select-sm" style="width: auto;">';
+                            echo '<option value="0" selected="selected">' . $this->t('no member') . '</option>';
+                            echo '<option value="1">' . $this->t('member') . '</option>';
+                            echo '</select>';
 
-                                                                                echo '<select class="pricing-sid">';
-                                                                                echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
-                                                                                foreach ($this->squares as $square) {
-                                                                                    echo '<option value="' . $square->get('sid') . '">' . $this->option('subject.square.type') . ' ' . $square->get('name') . '</option>';
-                                                                                }
-                                                                                echo '</select>';
+                            echo '<span class="pricing-grammar">' . $this->t('and') . '</span>';
+                            echo '<input type="text" value="' . round($this->squaresTimeBlock / 60) . '" maxlength="3" class="pricing-timeBlock timeblockpicker form-control form-control-sm" style="width: 50px;">';
+                            echo '<span class="pricing-grammar">Min.</span>';
+                            ?>
+                            <a href="#" class="pricing-delete ms-1" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                        </div>
 
-                                                                                echo '<select class="pricing-member" style="width: 110px;">';
-                                                                                echo '<option value="0" selected="selected">' . $this->t('no member') . '</option>';
-                                                                                echo '<option value="1" >' . $this->t('member') . '</option>';
-                                                                                echo '</select>';
-                                                                                 
-                                                                                echo '<span class="pricing-grammar">' . $this->t('and') . '</span>';
-                                                                                echo '<input type="text" value="' . round($this->squaresTimeBlock / 60) . '" maxlength="3" class="pricing-timeBlock timeblockpicker">';
-                                                                                echo '<span class="pricing-grammar">Min.</span>';
+                        <a href="#" class="pricing-price-new small text-muted"><em>+ <?= $this->t('New price') ?></em></a>
+                    </div>
 
-                                                                                echo '<a href="#" class="pricing-grammar pricing-delete tooltip">x</a>';
+                    <a href="#" class="pricing-time-range-new small text-muted"><em>+ <?= $this->t('New time') ?></em></a>
+                </div>
 
-                                                                                ?>
-                                                                            </td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td>
-                                                                                <a href="#" class="pricing-price-new unlined gray"><em><?= $this->t('New price') ?></em></a>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </tbody></table>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody></table>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>
-                                                        <a href="#" class="pricing-time-range-new unlined gray"><em><?= $this->t('New time') ?></em></a>
-                                                    </td>
-                                                </tr>
-                                            </tbody></table>
-                                        </td>
-                                    </tr>
-                                </tbody></table>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="#" class="pricing-day-range-new unlined gray"><em><?= $this->t('New day') ?></em></a>
-                            </td>
-                        </tr>
-                    </tbody></table>
-                </td>
-            </tr>
-        </tbody></table>
+                <a href="#" class="pricing-day-range-new small text-muted"><em>+ <?= $this->t('New day') ?></em></a>
+            </div>
+        </div>
     </div>
 
-    <div id="pricing-table">
-        <table class="default-table">
-            <tr>
-                <td>
-                    <a href="#" class="pricing-date-range-new unlined gray"><em><?= $this->t('New rule') ?></em></a>
-                </td>
-            </tr>
-        </table>
+    <!-- Active pricing rules container -->
+    <div id="pricing-container">
+        <a href="#" class="pricing-date-range-new small text-muted"><em>+ <?= $this->t('New rule') ?></em></a>
     </div>
 
     <div class="separator separator-line"></div>
 
-    <div class="centered-text">
+    <div class="py-3">
         <form method="post" action="<?= $this->url('backend/config/square/pricing') ?>" id="pricing-form">
             <div id="pricing-form-rules"></div>
 
-            <div class="sandbox">
-                <table class="default-table">
-                    <tr>
-                        <td class="default-form-label-row">
-                            <label for="pricing-visibility"><?= $this->t('Display pricing:') ?></label>
-                        </td>
-                        <td>
-                            <?php
+            <div class="mb-3">
+                <label for="pricing-visibility" class="form-label"><?= $this->t('Display pricing:') ?></label>
+                <?php
+                $element = new \Zend\Form\Element\Select('pricing-visibility');
+                $element->setAttribute('id', 'pricing-visibility');
+                $element->setAttribute('class', 'form-select');
+                $element->setValueOptions(array(
+                    'never' => 'For no one',
+                    'private' => 'For users',
+                    'public' => 'For users and visitors',
+                ));
+                $element->setValue($this->option('service.pricing.visibility', 'never'));
 
-                            $element = new \Zend\Form\Element\Select('pricing-visibility');
-                            $element->setAttribute('id', 'pricing-visibility');
-                            $element->setValueOptions(array(
-                                'never' => 'For no one',
-                                'private' => 'For users',
-                                'public' => 'For users and visitors',
-                            ));
-                            $element->setValue($this->option('service.pricing.visibility', 'never'));
-
-                            echo $this->formSelect($element);
-
-                            ?>
-                        </td>
-                    </tr>
-                </table>
+                echo $this->formSelect($element);
+                ?>
             </div>
 
-            <div class="separator separator-line"></div>
-
-            <input type="hidden" name="pricing-rules-count" id="pricing-rules-count" value="0">
-            <input type="submit" id="pricing-save" value="<?= $this->t('Save') ?>" class="btn btn-primary">
+            <div class="edit-actions">
+                <input type="hidden" name="pricing-rules-count" id="pricing-rules-count" value="0">
+                <input type="submit" id="pricing-save" value="<?= $this->t('Save') ?>" class="default-button">
+            </div>
         </form>
     </div>
 </div>

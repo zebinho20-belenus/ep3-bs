@@ -21,7 +21,7 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
         <?php
 
         $form = $this->textForm;
@@ -33,47 +33,25 @@ $this->setup(array(
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table">
-            <?php foreach (\Backend\Form\Config\TextForm::$definitions as $key => $value): $key = str_replace('.', '_', $key); ?>
+        <?php foreach (\Backend\Form\Config\TextForm::$definitions as $key => $value): $key = str_replace('.', '_', $key); ?>
+            <?php
+            if (isset($value[2]) && $value[2]) {
+                $type = $value[2];
+            } else {
+                $type = 'Text';
+            }
+            ?>
 
-	            <?php
+            <?php if ($type == 'Checkbox'): ?>
+                <?= $this->formRowCheckbox($form, 'cf-' . $key) ?>
+            <?php else: ?>
+                <?= $this->formRowDefault($form, 'cf-' . $key) ?>
+            <?php endif; ?>
+        <?php endforeach; ?>
 
-	            if (isset($value[2]) && $value[2]) {
-			        $type = $value[2];
-		        } else {
-			        $type = 'Text';
-		        }
-
-	            ?>
-
-	            <?php if ($type == 'Checkbox'): ?>
-	                <tr>
-	                    <td class="default-form-label-row"></td>
-	                    <td colspan="2">
-		                    <div style="position: relative; top: -8px;">
-	                            <?= $this->formElement($form->get('cf-' . $key)) ?>
-		                        <?= $this->formLabel($form->get('cf-' . $key)) ?>
-		                    </div>
-	                    </td>
-	                </tr>
-	            <?php elseif ($type == 'Text'): ?>
-		            <tr>
-	                    <td class="default-form-label-row">
-	                        <?= $this->formLabel($form->get('cf-' . $key)) ?>
-	                    </td>
-	                    <td>
-	                        <?= $this->formElement($form->get('cf-' . $key)) ?>
-	                    </td>
-	                    <td>
-	                        <?= $this->formElementErrors($form->get('cf-' . $key)) ?>
-	                        <?= $this->formElementNotes($form->get('cf-' . $key)) ?>
-	                    </td>
-	                </tr>
-	            <?php endif; ?>
-            <?php endforeach; ?>
-
-            <?= $this->formRowSubmit($form, 'cf-submit') ?>
-        </table>
+        <div class="edit-actions">
+            <?= $this->formElement($form->get('cf-submit')) ?>
+        </div>
 
         <?= $this->form()->closeTag() ?>
     </div>

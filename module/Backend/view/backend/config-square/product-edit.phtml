@@ -25,9 +25,58 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
 
-        <?= $this->formDefault($this->editForm, $this->url('backend/config/square/product/edit', ['spid' => $spid])) ?>
+        <?php
+        $form = $this->editForm;
+        $form->setAttribute('method', 'post');
+        $form->setAttribute('action', $this->url('backend/config/square/product/edit', ['spid' => $spid]));
+        $form->prepare();
+        ?>
+
+        <?= $this->form()->openTag($form) ?>
+
+        <?= $this->formRowDefault($form, 'cf-name') ?>
+        <?= $this->formRowDefault($form, 'cf-description') ?>
+        <?= $this->formRowDefault($form, 'cf-options') ?>
+
+        <div class="row">
+            <div class="col-md-6">
+                <?= $this->formRowDefault($form, 'cf-square') ?>
+            </div>
+            <div class="col-md-6">
+                <?= $this->formRowDefault($form, 'cf-priority') ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <?= $this->formRowDefault($form, 'cf-date-start') ?>
+            </div>
+            <div class="col-md-6">
+                <?= $this->formRowDefault($form, 'cf-date-end') ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <?= $this->formRowDefault($form, 'cf-price') ?>
+            </div>
+            <div class="col-md-4">
+                <?= $this->formRowDefault($form, 'cf-gross') ?>
+            </div>
+            <div class="col-md-4">
+                <?= $this->formRowDefault($form, 'cf-rate') ?>
+            </div>
+        </div>
+
+        <?= $this->formRowDefault($form, 'cf-locale') ?>
+
+        <div class="edit-actions">
+            <?= $this->formElement($form->get('cf-submit')) ?>
+        </div>
+
+        <?= $this->form()->closeTag() ?>
 
     </div>
 </div>

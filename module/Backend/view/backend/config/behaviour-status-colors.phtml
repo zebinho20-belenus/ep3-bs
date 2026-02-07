@@ -19,7 +19,7 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
+    <div class="py-3">
         <?php
 
         $form = $this->statusColorsForm;
@@ -31,11 +31,11 @@ $this->setup(array(
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table">
-            <?= $this->formRowDefault($form, 'cf-status-colors') ?>
+        <?= $this->formRowDefault($form, 'cf-status-colors') ?>
 
-            <?= $this->formRowSubmit($form, 'cf-submit') ?>
-        </table>
+        <div class="edit-actions">
+            <?= $this->formElement($form->get('cf-submit')) ?>
+        </div>
 
         <?= $this->form()->closeTag() ?>
     </div>

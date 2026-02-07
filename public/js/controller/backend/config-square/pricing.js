@@ -2,93 +2,148 @@
 
     $(document).ready(function() {
 
-        $("#pricing-table").on("click", ".pricing-date-range-new", function(event) {
+        var $container = $("#pricing-container");
+        var $template = $("#pricing-template");
+
+        /* --- Add new date range (top-level rule) --- */
+        $container.on("click", ".pricing-date-range-new", function(event) {
             event.preventDefault();
 
-            var template = $("#pricing-table-template").html();
+            var $rule = $template.children(".pricing-rule").clone();
+            $rule.hide();
+            $(this).before($rule);
+            $rule.fadeIn();
 
-            $(this).closest("table").find("tr:last").before('<tr><td>' + template + '</td></tr>');
-            $(this).closest("table").find("tr:last").siblings("tr:last").hide().fadeIn();
-
-            $(".datepicker").datepicker();
+            $rule.find(".datepicker").datepicker();
         });
 
-        $("#pricing-table").on("click", ".pricing-day-range-new", function(event) {
+        /* --- Add new day range --- */
+        $container.on("click", ".pricing-day-range-new", function(event) {
             event.preventDefault();
 
-            var template = $("#pricing-table-template").find(".pricing-day-range").closest("table").closest("td").html();
-
-            $(this).closest("table").find("tr:last").before('<tr><td>' + template + '</td></tr>');
-            $(this).closest("table").find("tr:last").siblings("tr:last").hide().fadeIn();
+            var $dayBlock = $template.find(".pricing-day-block").first().clone();
+            $dayBlock.hide();
+            $(this).before($dayBlock);
+            $dayBlock.fadeIn();
         });
 
-        $("#pricing-table").on("click", ".pricing-time-range-new", function(event) {
+        /* --- Add new time range --- */
+        $container.on("click", ".pricing-time-range-new", function(event) {
             event.preventDefault();
 
-            var template = $("#pricing-table-template").find(".pricing-time-range").closest("tr").closest("td").html();
-
-            $(this).closest("table").find("tr:last").before('<tr><td>' + template + '</td></tr>');
-            $(this).closest("table").find("tr:last").siblings("tr:last").hide().fadeIn();
+            var $timeBlock = $template.find(".pricing-time-block").first().clone();
+            $timeBlock.hide();
+            $(this).before($timeBlock);
+            $timeBlock.fadeIn();
         });
 
-        $("#pricing-table").on("click", ".pricing-price-new", function(event) {
+        /* --- Add new price line --- */
+        $container.on("click", ".pricing-price-new", function(event) {
             event.preventDefault();
 
-            var template = $("#pricing-table-template").find(".pricing-price").closest("tr").html();
-
-            $(this).closest("table").find("tr:last").before('<tr>' + template + '</tr>');
-            $(this).closest("table").find("tr:last").siblings("tr:last").hide().fadeIn();
-
-            $(".tooltip").tooltip();
+            var $priceLine = $template.find(".pricing-price-line").first().clone();
+            $priceLine.hide();
+            $(this).before($priceLine);
+            $priceLine.fadeIn();
         });
 
-        $("#pricing-table").on("click", ".pricing-delete", function(event) {
+        /* --- Delete handler --- */
+        $container.on("click", ".pricing-delete", function(event) {
             event.preventDefault();
 
             var fadeTime = 200;
+            var $this = $(this);
 
-            if ($(this).closest("tbody").children("tr").length > 2) {
-                $(this).closest("tr").fadeOut(fadeTime, function() { $(this).remove(); });
-            } else {
-                if ($(this).parents("tbody:eq(2)").children("tr").length > 2) {
-                    $(this).parents("tr:eq(2)").fadeOut(fadeTime, function() { $(this).remove(); });
-                } else {
-                    if ($(this).parents("tbody:eq(4)").children("tr").length > 2) {
-                        $(this).parents("tr:eq(4)").fadeOut(fadeTime, function() { $(this).remove(); });
-                    } else {
-                        $(this).parents("tr:eq(6)").fadeOut(fadeTime, function() { $(this).remove(); });
-                    }
+            // Determine which level to delete based on parent context
+            var $priceLine = $this.closest(".pricing-price-line");
+            if ($priceLine.length) {
+                // Deleting a price line — check if siblings exist
+                var $timeBlock = $priceLine.closest(".pricing-time-block");
+                if ($timeBlock.find(".pricing-price-line").length > 1) {
+                    $priceLine.fadeOut(fadeTime, function() { $(this).remove(); });
+                    return;
                 }
+                // Only one price line left — try to delete the time block
+                var $dayBlock = $timeBlock.closest(".pricing-day-block");
+                if ($dayBlock.find(".pricing-time-block").length > 1) {
+                    $timeBlock.fadeOut(fadeTime, function() { $(this).remove(); });
+                    return;
+                }
+                // Only one time block left — try to delete the day block
+                var $rule = $dayBlock.closest(".pricing-rule");
+                if ($rule.find(".pricing-day-block").length > 1) {
+                    $dayBlock.fadeOut(fadeTime, function() { $(this).remove(); });
+                    return;
+                }
+                // Only one day block left — delete entire rule
+                $rule.fadeOut(fadeTime, function() { $(this).remove(); });
+                return;
+            }
+
+            // Deleting a time range header
+            var $timeBlock = $this.closest(".pricing-time-block");
+            if ($timeBlock.length) {
+                var $dayBlock = $timeBlock.closest(".pricing-day-block");
+                if ($dayBlock.find(".pricing-time-block").length > 1) {
+                    $timeBlock.fadeOut(fadeTime, function() { $(this).remove(); });
+                    return;
+                }
+                var $rule = $dayBlock.closest(".pricing-rule");
+                if ($rule.find(".pricing-day-block").length > 1) {
+                    $dayBlock.fadeOut(fadeTime, function() { $(this).remove(); });
+                    return;
+                }
+                $rule.fadeOut(fadeTime, function() { $(this).remove(); });
+                return;
+            }
+
+            // Deleting a day range header
+            var $dayBlock = $this.closest(".pricing-day-block");
+            if ($dayBlock.length) {
+                var $rule = $dayBlock.closest(".pricing-rule");
+                if ($rule.find(".pricing-day-block").length > 1) {
+                    $dayBlock.fadeOut(fadeTime, function() { $(this).remove(); });
+                    return;
+                }
+                $rule.fadeOut(fadeTime, function() { $(this).remove(); });
+                return;
+            }
+
+            // Deleting a date range (top-level rule)
+            var $rule = $this.closest(".pricing-rule");
+            if ($rule.length) {
+                $rule.fadeOut(fadeTime, function() { $(this).remove(); });
             }
         });
 
+        /* --- Save handler --- */
         $("#pricing-save").on("click", function(event) {
             $("#pricing-form-rules input").remove();
 
             var i = 0;
 
-            $("#pricing-table .pricing-price").each(function(index, element) {
-                var pricing = $(element);
-                var timeRange = pricing.parents("tbody:eq(1)").find(".pricing-time-range");
-                var dayRange = timeRange.parents("tbody:eq(2)").find(".pricing-day-range");
-                var dateRange = dayRange.parents("tbody:eq(2)").find(".pricing-date-range");
+            $container.find(".pricing-price-line").each(function(index, element) {
+                var $pricing = $(element);
+                var $timeBlock = $pricing.closest(".pricing-time-block");
+                var $dayBlock = $timeBlock.closest(".pricing-day-block");
+                var $rule = $dayBlock.closest(".pricing-rule");
 
-                var dateStart = dateRange.find("input.datepicker:first").val();
-                var dateEnd = dateRange.find("input.datepicker:last").val();
-                var dayStart = dayRange.find("select:first").val();
-                var dayEnd = dayRange.find("select:last").val();
-                var timeStart = timeRange.find("input.timepicker:first").val();
-                var timeEnd = timeRange.find("input.timepicker:last").val();
-                var price = pricing.find("input.pricepicker").val();
-                var gross = pricing.find("select.pricing-rate-gross").val();
-                var rate = pricing.find("input.pricing-rate").val();
-                var member = pricing.find("select.pricing-member").val();
+                var dateStart = $rule.find(".pricing-dateStart").first().val();
+                var dateEnd = $rule.find(".pricing-dateEnd").first().val();
+                var dayStart = $dayBlock.find(".pricing-dayStart").first().val();
+                var dayEnd = $dayBlock.find(".pricing-dayEnd").first().val();
+                var timeStart = $timeBlock.children(".d-flex").first().find(".pricing-timeStart").first().val();
+                var timeEnd = $timeBlock.children(".d-flex").first().find(".pricing-timeEnd").first().val();
+                var price = $pricing.find(".pricing-price-number").val();
+                var gross = $pricing.find(".pricing-rate-gross").val();
+                var rate = $pricing.find(".pricing-rate").val();
+                var member = $pricing.find(".pricing-member").val();
 
                 var priority = index;
 
-                var sid = pricing.find("select.pricing-sid").val();
+                var sid = $pricing.find(".pricing-sid").val();
 
-                var timeBlock = pricing.find("input.timeblockpicker").val();
+                var timeBlock = $pricing.find(".timeblockpicker").val();
 
                 // Check date
                 if (! dateStart.match(/^(0[1-9]|[1-2][0-9]|3[0-1])\.(0[1-9]|1[0-2])\.[0-9]{4}$/)) {
@@ -155,9 +210,9 @@
             $("#pricing-rules-count").val(i);
         });
 
-        /* Reconstruct ruleset */
+        /* --- Reconstruct existing rules from DB --- */
 
-        var pricingRules = window.pricingRules; // Quick and dirty, I know :O
+        var pricingRules = window.pricingRules;
 
         var latestStartEndDate;
         var latestStartEndDay;
@@ -187,21 +242,21 @@
             var thisStartEndTime = "" + timeStart + timeEnd;
 
             if (thisStartEndDate !== latestStartEndDate) {
-                var template = $("#pricing-table-template").html();
-
-                $("#pricing-table").find("tr:last").before('<tr><td>' + template + '</td></tr>');
+                // New date range — clone full rule
+                var $rule = $template.children(".pricing-rule").clone();
+                $container.find(".pricing-date-range-new").before($rule);
             } else if (thisStartEndDay !== latestStartEndDay) {
-                var template = $("#pricing-table-template").find(".pricing-day-range").closest("table").closest("td").html();
-
-                $("#pricing-table").find(".pricing-day-range:last").parents("tbody:eq(1)").find("tr:last").before('<tr><td>' + template + '</td></tr>');
+                // New day range within existing date range
+                var $dayBlock = $template.find(".pricing-day-block").first().clone();
+                $container.find(".pricing-rule:last .pricing-day-range-new").before($dayBlock);
             } else if (thisStartEndTime !== latestStartEndTime) {
-                var template = $("#pricing-table-template").find(".pricing-time-range").closest("table").closest("td").html();
-
-                $("#pricing-table").find(".pricing-time-range:last").parents("tbody:eq(1)").find("tr:last").before('<tr><td>' + template + '</td></tr>');
+                // New time range within existing day range
+                var $timeBlock = $template.find(".pricing-time-block").first().clone();
+                $container.find(".pricing-rule:last .pricing-day-block:last .pricing-time-range-new").before($timeBlock);
             } else {
-                var template = $("#pricing-table-template").find(".pricing-price").html();
-
-                $("#pricing-table").find(".pricing-price:last").parents("tbody:eq(1)").find("tr:last").before('<tr><td class="pricing-price">' + template + '</td></tr>');
+                // New price line within existing time range
+                var $priceLine = $template.find(".pricing-price-line").first().clone();
+                $container.find(".pricing-rule:last .pricing-day-block:last .pricing-time-block:last .pricing-price-new").before($priceLine);
             }
 
             if (price >= 100) {
@@ -212,18 +267,18 @@
                 price = "0,0" + price;
             }
 
-            $("#pricing-table .pricing-dateStart:last").val(dateStart);
-            $("#pricing-table .pricing-dateEnd:last").val(dateEnd);
-            $("#pricing-table .pricing-dayStart:last").val(dayStart);
-            $("#pricing-table .pricing-dayEnd:last").val(dayEnd);
-            $("#pricing-table .pricing-timeStart:last").val(timeStart.substring(0, 5));
-            $("#pricing-table .pricing-timeEnd:last").val(timeEnd.substring(0, 5));
-            $("#pricing-table .pricing-price-number:last").val(price);
-            $("#pricing-table .pricing-rate-gross:last").val(gross);
-            $("#pricing-table .pricing-rate:last").val(rate);
-            $("#pricing-table .pricing-sid:last").val(sid);
-            $("#pricing-table .pricing-timeBlock:last").val(Math.round(timeBlock / 60));
-            $("#pricing-table .pricing-member:last").val(member);
+            $container.find(".pricing-dateStart:last").val(dateStart);
+            $container.find(".pricing-dateEnd:last").val(dateEnd);
+            $container.find(".pricing-dayStart:last").val(dayStart);
+            $container.find(".pricing-dayEnd:last").val(dayEnd);
+            $container.find(".pricing-timeStart:last").val(timeStart.substring(0, 5));
+            $container.find(".pricing-timeEnd:last").val(timeEnd.substring(0, 5));
+            $container.find(".pricing-price-number:last").val(price);
+            $container.find(".pricing-rate-gross:last").val(gross);
+            $container.find(".pricing-rate:last").val(rate);
+            $container.find(".pricing-sid:last").val(sid);
+            $container.find(".pricing-timeBlock:last").val(Math.round(timeBlock / 60));
+            $container.find(".pricing-member:last").val(member);
 
             latestStartEndDate = thisStartEndDate;
             latestStartEndDay = thisStartEndDay;
