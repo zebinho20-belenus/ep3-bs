@@ -49,6 +49,19 @@ class Update extends AbstractPlugin
             $reservation = $this->reservationManager->get($rid);
             $booking = $this->bookingManager->get($reservation->get('bid'));
 
+            /* Capture old values before update */
+
+            $oldData = array(
+                'sid' => $booking->get('sid'),
+                'uid' => $booking->get('uid'),
+                'status_billing' => $booking->get('status_billing'),
+                'quantity' => $booking->get('quantity'),
+                'notes' => $booking->getMeta('notes', ''),
+                'date' => $reservation->get('date'),
+                'time_start' => $reservation->get('time_start'),
+                'time_end' => $reservation->get('time_end'),
+            );
+
             /* Update booking */
 
             if ($mode == null || $mode == 'booking') {
@@ -118,7 +131,7 @@ class Update extends AbstractPlugin
                 $transaction = false;
             }
 
-            return $booking;
+            return array('booking' => $booking, 'oldData' => $oldData);
 
         } catch (\Exception $e) {
             if ($transaction) {
