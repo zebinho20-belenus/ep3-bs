@@ -181,47 +181,41 @@ $this->setup(array(
         </tr>
 
         <tr>
-            <td colspan="4" class="centered-text" style="padding-top: 16px; border-top: solid 1px #CCC;">
-                <?php if ($this->sessionUser->can('admin.booking')): ?>
-                    <?= $this->formElement($form->get('bf-submit')) ?>
-                <?php endif; ?>
+            <td colspan="4">
+                <div class="edit-actions">
+                    <?php if ($this->sessionUser->can('admin.booking')): ?>
+                        <?= $this->formElement($form->get('bf-submit')) ?>
+                    <?php endif; ?>
 
-                <?php if ($this->booking && $this->booking->get('status') == 'cancelled' && $this->sessionUser->can('admin.booking')): ?>
-                    <span class="gray" style="margin: 0 8px;"><?= $this->t('or') ?></span>
+                    <?php if ($this->booking && $this->booking->get('status') == 'cancelled' && $this->sessionUser->can('admin.booking')): ?>
+                        <button type="submit" name="bf-reactivate" value="1" class="default-button">
+                            <span class="symbolic symbolic-reload"><?= $this->t('Reactivate') ?></span>
+                        </button>
+                    <?php endif; ?>
 
-                    <button type="submit" name="bf-reactivate" value="1" class="default-button">
-                        <span class="symbolic symbolic-reload"><?= $this->t('Reactivate') ?></span>
-                    </button>
-                <?php endif; ?>
-
-                <?php if ($this->reservation): ?>
-                    <?php if ($this->booking && $this->booking->get('status') != 'cancelled'): ?>
-                        <?php if ($this->sessionUser->can(['admin.booking', 'calendar.cancel-single-bookings', 'calendar.cancel-subscription-bookings'])): ?>
-                            <span class="gray" style="margin: 0 8px;"><?= $this->t('or') ?></span>
-
-                            <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->reservation->get('rid')], ['query' => ['edit-mode' => $this->editMode]]) ?>" class="default-button squarebox-internal-link" style="background-color: #DC2626; border-color: #DC2626;">
-                                <span class="symbolic symbolic-cross"><?= $this->t('Cancel booking') ?></span>
-                            </a>
+                    <?php if ($this->reservation): ?>
+                        <?php if ($this->booking && $this->booking->get('status') != 'cancelled'): ?>
+                            <?php if ($this->sessionUser->can(['admin.booking', 'calendar.cancel-single-bookings', 'calendar.cancel-subscription-bookings'])): ?>
+                                <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->reservation->get('rid')], ['query' => ['edit-mode' => $this->editMode]]) ?>" class="default-button default-button-danger squarebox-internal-link">
+                                    <span class="symbolic symbolic-cross"><?= $this->t('Cancel booking') ?></span>
+                                </a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <?php if ($this->sessionUser->can(['admin.booking', 'calendar.delete-single-bookings', 'calendar.delete-subscription-bookings'])): ?>
+                                <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->reservation->get('rid')], ['query' => ['edit-mode' => $this->editMode]]) ?>" class="default-button default-button-danger squarebox-internal-link">
+                                    <span class="symbolic symbolic-cross"><?= $this->t('Delete') ?></span>
+                                </a>
+                            <?php endif; ?>
                         <?php endif; ?>
+
                     <?php else: ?>
-                        <?php if ($this->sessionUser->can(['admin.booking', 'calendar.delete-single-bookings', 'calendar.delete-subscription-bookings'])): ?>
-                            <span class="gray" style="margin: 0 8px;"><?= $this->t('or') ?></span>
-
-                            <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->reservation->get('rid')], ['query' => ['edit-mode' => $this->editMode]]) ?>" class="default-button squarebox-internal-link">
-                                <span class="symbolic symbolic-cross"><?= $this->t('Delete') ?></span>
+                        <?php if ($this->sessionUser->can('admin.event')): ?>
+                            <a href="<?= $this->url('backend/event/edit', [], ['query' => ['ds' => $this->query['ds'], 'ts' => $this->query['ts'], 'te' => $this->query['te'], 's' => $this->query['s']]]) ?>" class="default-button default-button-outline">
+                                <span class="symbolic symbolic-date"><?= $this->t('New event') ?></span>
                             </a>
                         <?php endif; ?>
                     <?php endif; ?>
-
-                <?php else: ?>
-                    <?php if ($this->sessionUser->can('admin.event')): ?>
-                        <span class="gray" style="margin: 0 8px;"><?= $this->t('or') ?></span>
-
-                        <a href="<?= $this->url('backend/event/edit', [], ['query' => ['ds' => $this->query['ds'], 'ts' => $this->query['ts'], 'te' => $this->query['te'], 's' => $this->query['s']]]) ?>" class="gray">
-                            <span class="symbolic symbolic-date"><?= $this->t('New event') ?></span>
-                        </a>
-                    <?php endif; ?>
-                <?php endif; ?>
+                </div>
             </td>
         </tr>
     </table>

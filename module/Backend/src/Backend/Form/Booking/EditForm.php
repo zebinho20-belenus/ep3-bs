@@ -179,7 +179,6 @@ class EditForm extends Form
                 'value' => 'Save',
                 'id' => 'bf-submit',
                 'class' => 'default-button',
-                'style' => 'width: 200px;',
             ),
         ));
 
