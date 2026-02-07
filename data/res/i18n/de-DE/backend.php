@@ -60,6 +60,7 @@ return array(
     'Square has been deleted' => 'Platz wurde gelöscht',
     'User status has been set to deleted' => 'Benutzerstatus wurde auf gelöscht gesetzt',
     'Edit' => 'Bearbeiten',
+    'Reactivate' => 'Reaktivieren',
     'Save' => 'Speichern',
     'Save and back' => 'Speichern und zurück',
     'Delete' => 'Löschen',

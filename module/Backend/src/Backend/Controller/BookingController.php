@@ -547,6 +547,59 @@ class BookingController extends AbstractActionController
 
         if ($this->params()->fromQuery('confirmed') == 'true') {
 
+            /* Reactivate cancelled booking directly from booking list */
+            if ($this->params()->fromQuery('reactivate') == 'true') {
+                $this->authorize('admin.booking');
+
+                if ($booking->get('status') == 'cancelled') {
+
+                    // Check if time slot is still free
+                    $dateTimeStart = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_start'));
+                    $dateTimeEnd = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_end'));
+                    $overlapping = $reservationManager->getInRange($dateTimeStart, $dateTimeEnd);
+
+                    if ($overlapping) {
+                        $conflictBookings = $bookingManager->getByReservations($overlapping);
+                        $hasConflict = false;
+                        foreach ($overlapping as $overlapRes) {
+                            $overlapBooking = $overlapRes->getExtra('booking');
+                            if ($overlapBooking
+                                && $overlapBooking->get('bid') != $booking->get('bid')
+                                && $overlapBooking->get('sid') == $booking->get('sid')
+                                && $overlapBooking->get('status') != 'cancelled') {
+                                $hasConflict = true;
+                                break;
+                            }
+                        }
+                        if ($hasConflict) {
+                            $this->flashMessenger()->addErrorMessage('This time slot is already occupied by another booking');
+                            return $this->redirect()->toRoute('backend/booking');
+                        }
+                    }
+
+                    $booking->set('status', 'single');
+                    $booking->setMeta('cancellor', null);
+                    $booking->setMeta('cancelled', null);
+                    $booking->setMeta('admin_cancelled', null);
+                    $booking->setMeta('backend_cancelled', null);
+                    $booking->setMeta('reactivated_by', $sessionUser->get('alias'));
+                    $booking->setMeta('reactivated', date('Y-m-d H:i:s'));
+                    $bookingManager->save($booking);
+
+                    // Send reactivation email
+                    try {
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+                        $bookingUser = $userManager->get($booking->get('uid'));
+                        $this->sendReactivationEmail($booking, $bookingUser, $sessionUser);
+                    } catch (\Exception $e) {
+                        error_log(sprintf("Fehler beim Senden der Reaktivierungsemail für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
+                    }
+
+                    $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
+                    return $this->redirect()->toRoute('backend/booking');
+                }
+            }
+
             if ($editMode == 'reservation') {
                 $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
 

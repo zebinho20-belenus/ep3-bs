@@ -195,11 +195,15 @@ class BookingFormat extends AbstractHelper
 
         if ($booking->get('status') == 'cancelled') {
 
+            $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
+
             $html .= sprintf('<td class="actions-col no-print">'
+                . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
                 . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
                 . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
                 . '</td>',
                 $editUrl, $view->t('Edit'),
+                $reactivateUrl, $view->t('Reactivate'),
                 $deleteUrl, $view->t('Delete'));
 
         } else {
