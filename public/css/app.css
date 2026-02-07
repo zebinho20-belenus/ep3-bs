@@ -326,6 +326,7 @@ th.sortable.sort-desc::after { content: '\2193'; color: var(--bs-primary); }
 .table .notes-col { max-width: 100px; white-space: normal; overflow: hidden; text-overflow: ellipsis; }
 .table .email-col { max-width: 140px; }
 .table .actions-col { white-space: nowrap; }
+.table .actions-col .symbolic { min-width: 18px; min-height: 16px; padding-top: 2px; padding-bottom: 2px; }
 
 /* Legacy table compatibility */
 .bordered-table tr td { padding: 0.5rem; border: 1px solid #dee2e6; }

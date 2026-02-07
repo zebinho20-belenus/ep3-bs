@@ -52,7 +52,7 @@ class BookingFormat extends AbstractHelper
         $html .= sprintf('<td class="status-col right-text first-letter-only">%s</td>',
             $view->t($booking->getStatus()));
 
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="responsive-pass-5">%s</td>',
             $booking->need('bid'));
 
         if ($booking->getExtra('user')) {
@@ -136,7 +136,7 @@ class BookingFormat extends AbstractHelper
            }
         }
 
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="responsive-pass-5">%s</td>',
             $view->priceFormat($price));
 
         /* Billing status col */
@@ -225,17 +225,17 @@ class BookingFormat extends AbstractHelper
                 $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
 
                 $html .= sprintf('<td class="actions-col no-print">'
-                    . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
-                    . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
-                    . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
+                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-reload"></a> '
+                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-cross"></a>'
                     . '</td>',
                     $editUrl, $view->t('Edit'),
                     $reactivateUrl, $view->t('Reactivate'),
                     $deleteUrl, $view->t('Delete'));
             } else {
                 $html .= sprintf('<td class="actions-col no-print">'
-                    . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
-                    . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
+                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-cross"></a>'
                     . '</td>',
                     $editUrl, $view->t('Edit'),
                     $deleteUrl, $view->t('Delete'));
@@ -244,8 +244,8 @@ class BookingFormat extends AbstractHelper
         } else {
 
             $html .= sprintf('<td class="actions-col no-print">'
-                . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
-                . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
+                . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-cross"></a>'
                 . '</td>',
                 $editUrl, $view->t('Edit'),
                 $deleteUrl, $view->t('Cancel booking'));
