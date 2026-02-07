@@ -200,6 +200,8 @@ return array(
     'Billing total' => 'Rechnungssumme',
     'Billing status options' => 'Rechnungsstatus-Bezeichnungen',
     'Number of players' => 'Anzahl Spieler',
+    'Guest player' => 'Gastspieler',
+    'Second player is a guest (non-member pricing)' => 'Zweiter Spieler ist ein Gast (Nicht-Mitglieder-Preis)',
     'Booked to' => 'Gebucht auf',
     'Edit user once saved' => 'Benutzer anschließend bearbeiten',
     'Edit booking bills once saved' => 'Rechnung anschließend bearbeiten',

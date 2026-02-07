@@ -110,6 +110,11 @@ Defined in each module's `config/module.config.php`. Key routes:
 - Layout helpers: `HeaderLocaleChoice`, `SessionUser` (provides logged-in user to layout for admin nav)
 - Display helpers: `Message`, `Messages`, `Tabs`, `Links`, `Setup`
 
+**Form helper output** (important for layout decisions):
+- `FormRowDefault` → `<div class="mb-3"><label class="form-label">...</label><div><input class="form-control">...</div></div>` — use directly in BS5 grid, do NOT wrap in `<table>`
+- `FormRowCompact` → same but with `form-control-sm`/`form-select-sm` and `mb-2` — for compact forms in sandboxes
+- `FormRowSubmit` → `<div class="mb-3"><input class="btn btn-primary"></div>`
+
 **Layout** (`module/Base/view/layout/layout.phtml`): BS5 navbar + `container-xl` + footer. Content wrapped in `.content-panel` div with panel class from `$this->placeholder('panel')` (e.g. `centered-panel`, `phantom-panel`).
 
 **Squarebox (calendar popup)**: jQuery-based modal loaded via AJAX. Two modes:
@@ -174,11 +179,34 @@ Email includes: booking details, player names, itemized bill, payment informatio
 
 **Reactivate collision check**: `BookingFormat` has `ReservationManager` + `BookingManager` injected via `BookingFormatFactory`. Before showing the reactivate icon, it calls `getInRange()` to check for overlapping active bookings on the same court.
 
-**Delete confirmation page** (`delete.phtml`): Shows cancel and delete options. Delete button only visible to admin users (`admin.all` permission). Cancel sets status to `cancelled` and keeps the booking in DB. Delete removes the booking entirely. Both paths refund budget if the booking was paid.
+**Delete confirmation page** (`delete.phtml`): Uses `.edit-actions` flex container for button group. Delete button only visible to admin users (`admin.all` permission). Cancel sets status to `cancelled`. Both paths refund budget if paid.
 
-**Booking format helper**: `Backend\View\Helper\Booking\BookingFormat` — renders each booking row including billing status badges, budget info, and conditional reactivation link.
+**Booking format helper**: `Backend\View\Helper\Booking\BookingFormat` — renders each booking row including status badges (E/A/S), billing status badges, budget info, and conditional reactivation link.
 
 **Table sort/filter JS** (`public/js/controller/backend/table-sort.js` + `table-sort.min.js`): Adds sortable headers, per-column filter inputs. Filter `<td>` cells inherit `responsive-pass-*` classes from their `<th>` headers. **Both files must be kept in sync** (no build tool).
+
+### Backend Form Layout Pattern
+
+All backend edit forms use **Bootstrap 5 grid** (`row`/`col-md-6`) instead of `<table>` wrappers:
+- `booking/edit.phtml` — 2x2 grid (`col-md-6`), 4 sandboxes
+- `event/edit.phtml` — `row`/`col-md-6` for date/time pairs
+- `config-square/edit.phtml` — 2-column (`col-lg-6`): General + Time sections
+- `booking/edit-range.phtml` — `row`/`col-sm-4` in sandbox
+- `user/edit.phtml` — `row`/`col-lg-6` for account + personal data
+
+**Button groups** use `.edit-actions` CSS class (flex container):
+- Desktop: horizontal, centered, `gap: 0.75rem`, `min-width: 140px`
+- Mobile (≤1024px): stacked vertically, full-width
+
+**Button variants** (CSS classes on `.default-button`):
+- `.default-button-danger` — red (#DC2626) for delete/cancel actions
+- `.default-button-outline` — transparent bg, border, for secondary actions
+
+**NOT converted** (valid table use): `booking/bills.phtml`, `booking/players.phtml`
+
+### Time Dropdowns
+
+ALL backend time-of-day fields use Select dropdowns with full hours (07:00–22:00). Minute-based fields (`cf-time-block`, etc.) remain as Text inputs. Forms: `Booking/EditForm`, `Booking/Range/EditTimeRangeForm`, `Event/EditForm`, `ConfigSquare/EditForm`.
 
 ### Backend User List
 

@@ -229,6 +229,12 @@ class BookingController extends AbstractActionController
                     $savedBooking = $updateResult['booking'];
                     $oldData = $updateResult['oldData'];
 
+                    /* Save guest player meta */
+                    $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+                    $savedBooking->setMeta('gp', $d['bf-guest-player'] ? '1' : '0');
+                    $savedBooking->setMeta('guestPlayer', $d['bf-guest-player'] ? '1' : '0');
+                    $bookingManager->save($savedBooking);
+
                     $bid = $savedBooking->get('bid');
                     $square = $squareManager->get($savedBooking->get('sid'));
 
@@ -281,11 +287,13 @@ class BookingController extends AbstractActionController
                     $userManager = $serviceManager->get('User\Manager\UserManager');
                     $user = $userManager->get($savedBooking->get('uid'));
                     
-                    // Store the admin user information in the booking metadata
+                    // Store the admin user information and guest player meta in the booking metadata
                     $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
                     $savedBooking->setMeta('creator', $sessionUser->get('alias'));
                     $savedBooking->setMeta('created', date('Y-m-d H:i:s'));
                     $savedBooking->setMeta('admin_created', 'true');
+                    $savedBooking->setMeta('gp', $d['bf-guest-player'] ? '1' : '0');
+                    $savedBooking->setMeta('guestPlayer', $d['bf-guest-player'] ? '1' : '0');
                     $bookingManager->save($savedBooking);
                     
                     // Send booking creation email
@@ -313,6 +321,7 @@ class BookingController extends AbstractActionController
                     'bf-sid' => $booking->get('sid'),
                     'bf-status-billing' => $booking->get('status_billing'),
                     'bf-quantity' => $booking->get('quantity'),
+                    'bf-guest-player' => $booking->getMeta('gp', '0') == '1' ? '1' : '0',
                     'bf-notes' => $booking->getMeta('notes', ''),
                 ));
 

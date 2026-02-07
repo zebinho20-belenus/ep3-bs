@@ -6,25 +6,20 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/user/inde
 
 <div style="padding: 10px 0px 16px 0px;">
     <form id="usf" name="usf" method="get" action="<?= $this->url('backend/user') ?>">
-        <table class="default-table">
-            <tr>
-                <td>
-                    <div class="default-form-label-top gray">
-                        <label for="usf-search"><?= $this->t('Name, email or number') ?>:</label>
-                    </div>
+        <div class="d-flex flex-wrap align-items-end gap-2">
+            <div class="flex-grow-1" style="min-width: 200px; max-width: 400px;">
+                <label for="usf-search" class="form-label small text-muted"><?= $this->t('Name, email or number') ?>:</label>
+                <input type="text" name="usf-search" id="usf-search" value="<?= $this->search ?>" data-autocomplete-url="<?= $this->url('backend/user/interpret') ?>" class="form-control">
+            </div>
 
-                    <input type="text" name="usf-search" id="usf-search" value="<?= $this->search ?>" data-autocomplete-url="<?= $this->url('backend/user/interpret') ?>" style="width: 290px;">
-                </td>
+            <div>
+                <input type="submit" value="<?= $this->t('Search') ?>" class="default-button">
+            </div>
 
-                <td style="vertical-align: bottom;">
-                    <input type="submit" value="<?= $this->t('Search') ?>" class="default-button">
-                </td>
-
-                <td style="vertical-align: bottom; padding-bottom: 7px;">
-                    <a href="#" id="usf-filters-link" class="unlined gray"><?= $this->t('Advanced search') ?></a>
-                </td>
-            </tr>
-        </table>
+            <div class="align-self-center">
+                <a href="#" id="usf-filters-link" class="unlined gray"><?= $this->t('Advanced search') ?></a>
+            </div>
+        </div>
     </form>
 
     <div id="usf-filters-box" class="sandbox" style="display: none; margin: 26px auto 0px auto;">
