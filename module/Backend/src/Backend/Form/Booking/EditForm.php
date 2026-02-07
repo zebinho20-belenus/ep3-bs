@@ -164,7 +164,7 @@ class EditForm extends Form
             'type' => 'Textarea',
             'attributes' => array(
                 'id' => 'bf-notes',
-                'style' => 'width: autopx; height: 140px;',
+                'style' => 'height: 140px;',
             ),
             'options' => array(
                 'label' => 'Notes',
@@ -179,7 +179,6 @@ class EditForm extends Form
                 'value' => 'Save',
                 'id' => 'bf-submit',
                 'class' => 'default-button',
-                'style' => 'width: 200px;',
             ),
         ));
 

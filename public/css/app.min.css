@@ -405,6 +405,32 @@ a.default-button:active {
     position: static;
 }
 
+/* Button variants */
+.default-button-danger,
+a.default-button-danger:link,
+a.default-button-danger:visited {
+    background-color: #DC2626;
+    border-color: #DC2626;
+}
+.default-button-danger:hover,
+a.default-button-danger:hover {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.default-button-outline,
+a.default-button-outline:link,
+a.default-button-outline:visited {
+    background-color: transparent;
+    color: var(--color-link);
+    border-color: var(--color-border);
+}
+.default-button-outline:hover,
+a.default-button-outline:hover {
+    background-color: #f8f9fa;
+    color: var(--color-link-hover);
+}
+
 .mini-button,
 a.mini-button:link,
 a.mini-button:visited {
@@ -798,6 +824,60 @@ a.squarebox-primary-close-link:hover {
     background: #046bd2 !important;
 }
 
+/* ---------- Edit form actions (button group) ---------- */
+
+.edit-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.edit-actions .default-button {
+    min-width: 140px;
+}
+
+/* ---------- Backend edit form — 2x2 grid on desktop ---------- */
+
+@media screen and (min-width: 1025px) {
+    .content-panel table.middle-table,
+    .content-panel table.middle-table > tbody {
+        display: block;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .content-panel table.middle-table > tbody > tr:first-child {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .content-panel table.middle-table > tbody > tr:first-child > td {
+        padding-right: 0;
+        padding-bottom: 0;
+    }
+    .content-panel table.middle-table > tbody > tr:last-child {
+        display: block;
+    }
+    .content-panel table.middle-table > tbody > tr:last-child > td[colspan] {
+        display: block;
+        width: 100%;
+    }
+}
+
+/* Form fields fill sandbox width in edit forms */
+.content-panel .sandbox input[type="text"],
+.content-panel .sandbox select,
+.content-panel .sandbox textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
 /* ---------- Responsive breakpoints ---------- */
 
 @media screen and (max-width: 1536px) {
@@ -831,9 +911,33 @@ a.squarebox-primary-close-link:hover {
         padding-right: 0;
         padding-bottom: 0.75rem;
     }
-    /* Keep submit row centered */
-    .content-panel table.middle-table > tbody > tr:last-child > td[colspan] {
-        text-align: center;
+
+    /* Left-align form content on mobile, centered looks awkward stacked */
+    .content-panel .padded.centered-text {
+        text-align: left;
+    }
+    .content-panel .sandbox {
+        text-align: left;
+    }
+
+    /* Stack date/time inner 2-col table on mobile */
+    .content-panel .sandbox table.default-table > tbody > tr > td,
+    .content-panel .sandbox table.default-table > tr > td {
+        display: block;
+        width: 100%;
+        padding-right: 0;
+    }
+
+    /* Edit actions: stack buttons vertically, full width */
+    .edit-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .edit-actions .default-button,
+    .edit-actions button,
+    .edit-actions a.default-button {
+        width: 100%;
+        min-width: 0;
     }
 }
 
