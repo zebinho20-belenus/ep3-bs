@@ -596,7 +596,13 @@ class BookingController extends AbstractActionController
                     }
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
-                    return $this->redirect()->toRoute('backend/booking');
+                    return $this->redirect()->toRoute('backend/booking/edit', [], ['query' => [
+                        'ds' => $reservation->get('date'),
+                        'ts' => substr($reservation->get('time_start'), 0, 5),
+                        'te' => substr($reservation->get('time_end'), 0, 5),
+                        's'  => $booking->get('sid'),
+                        'r'  => $reservation->get('rid'),
+                    ]]);
                 }
             }
 
