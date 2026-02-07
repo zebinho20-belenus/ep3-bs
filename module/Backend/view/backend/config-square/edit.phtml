@@ -72,6 +72,15 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
             </div>
         </div>
 
+        <?php if ($this->square): ?>
+            <div class="form-check mb-3">
+                <input type="checkbox" name="cf-apply-all" value="1" id="cf-apply-all" class="form-check-input">
+                <label for="cf-apply-all" class="form-check-label">
+                    <?= $this->t('Apply settings to all squares') ?>
+                </label>
+            </div>
+        <?php endif; ?>
+
         <div class="edit-actions">
             <?= $this->formElement($form->get('cf-submit')) ?>
 

@@ -49,6 +49,13 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.light.
 
         <?= $this->formRowDefault($form, 'cf-rules-document-name') ?>
 
+        <div class="form-check mb-3">
+            <input type="checkbox" name="cf-apply-all" value="1" id="cf-apply-all" class="form-check-input">
+            <label for="cf-apply-all" class="form-check-label">
+                <?= $this->t('Apply info and rules to all squares') ?>
+            </label>
+        </div>
+
         <div class="edit-actions">
             <?= $this->formElement($form->get('cf-submit')) ?>
         </div>

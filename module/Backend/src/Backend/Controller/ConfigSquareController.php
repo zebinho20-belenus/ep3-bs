@@ -78,7 +78,40 @@ class ConfigSquareController extends AbstractActionController
 
                 $squareManager->save($square);
 
-                $this->flashMessenger()->addSuccessMessage('Square has been saved');
+                if ($this->params()->fromPost('cf-apply-all')) {
+                    $allSquares = $squareManager->getAll();
+                    foreach ($allSquares as $otherSquare) {
+                        if ($otherSquare->need('sid') == $square->need('sid')) {
+                            continue;
+                        }
+                        $otherSquare->set('status', $square->get('status'));
+                        $otherSquare->setMeta('readonly.message', $square->getMeta('readonly.message'));
+                        $otherSquare->set('capacity', $square->get('capacity'));
+                        $otherSquare->setMeta('capacity-ask-names', $square->getMeta('capacity-ask-names'));
+                        $otherSquare->set('capacity_heterogenic', $square->get('capacity_heterogenic'));
+                        $otherSquare->setMeta('private_names', $square->getMeta('private_names'));
+                        $otherSquare->setMeta('public_names', $square->getMeta('public_names'));
+                        $otherSquare->set('allow_notes', $square->get('allow_notes'));
+                        $otherSquare->set('time_start', $square->get('time_start'));
+                        $otherSquare->set('time_end', $square->get('time_end'));
+                        $otherSquare->setMeta('club_reserved_time_start', $square->getMeta('club_reserved_time_start'));
+                        $otherSquare->setMeta('club_reserved_time_end', $square->getMeta('club_reserved_time_end'));
+                        $otherSquare->set('time_block', $square->get('time_block'));
+                        $otherSquare->set('time_block_bookable', $square->get('time_block_bookable'));
+                        $otherSquare->setMeta('pseudo-time-block-bookable', $square->getMeta('pseudo-time-block-bookable'));
+                        $otherSquare->set('time_block_bookable_max', $square->get('time_block_bookable_max'));
+                        $otherSquare->set('min_range_book', $square->get('min_range_book'));
+                        $otherSquare->set('range_book', $square->get('range_book'));
+                        $otherSquare->set('max_active_bookings', $square->get('max_active_bookings'));
+                        $otherSquare->set('range_cancel', $square->get('range_cancel'));
+                        $otherSquare->setMeta('label.free', $square->getMeta('label.free'), $locale);
+                        $otherSquare->setMeta('square_control', $square->getMeta('square_control'));
+                        $squareManager->save($otherSquare);
+                    }
+                    $this->flashMessenger()->addSuccessMessage('All squares have been updated');
+                } else {
+                    $this->flashMessenger()->addSuccessMessage('Square has been saved');
+                }
 
                 return $this->redirect()->toRoute('backend/config/square');
             }
@@ -202,7 +235,23 @@ class ConfigSquareController extends AbstractActionController
 
                 $squareManager->save($square);
 
-                $this->flashMessenger()->addSuccessMessage('Square has been saved');
+                if ($this->params()->fromPost('cf-apply-all')) {
+                    $allSquares = $squareManager->getAll();
+                    foreach ($allSquares as $otherSquare) {
+                        if ($otherSquare->need('sid') == $square->need('sid')) {
+                            continue;
+                        }
+                        $otherSquare->setMeta('info.pre', $square->getMeta('info.pre'), $locale);
+                        $otherSquare->setMeta('info.post', $square->getMeta('info.post'), $locale);
+                        $otherSquare->setMeta('rules.text', $square->getMeta('rules.text'), $locale);
+                        $otherSquare->setMeta('rules.document.file', $square->getMeta('rules.document.file'), $locale);
+                        $otherSquare->setMeta('rules.document.name', $square->getMeta('rules.document.name'), $locale);
+                        $squareManager->save($otherSquare);
+                    }
+                    $this->flashMessenger()->addSuccessMessage('All squares have been updated');
+                } else {
+                    $this->flashMessenger()->addSuccessMessage('Square has been saved');
+                }
 
                 return $this->redirect()->toRoute('backend/config/square');
             }
