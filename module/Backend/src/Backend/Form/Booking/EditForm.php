@@ -78,16 +78,32 @@ class EditForm extends Form
             ),
         ));
 
+        $quantityOptions = array();
+        for ($i = 1; $i <= 4; $i++) {
+            $quantityOptions[$i] = $i;
+        }
+
         $this->add(array(
             'name' => 'bf-quantity',
-            'type' => 'Text',
+            'type' => 'Select',
             'attributes' => array(
                 'id' => 'bf-quantity',
-                'style' => 'width: 110px;',
-                'value' => '1',
             ),
             'options' => array(
                 'label' => 'Number of players',
+                'value_options' => $quantityOptions,
+            ),
+        ));
+
+        $this->add(array(
+            'name' => 'bf-guest-player',
+            'type' => 'Checkbox',
+            'attributes' => array(
+                'id' => 'bf-guest-player',
+            ),
+            'options' => array(
+                'label' => 'Guest player',
+                'notes' => 'Second player is a guest (non-member pricing)',
             ),
         ));
 
@@ -202,24 +218,18 @@ class EditForm extends Form
                 ),
             ),
             'bf-quantity' => array(
-                'filters' => array(
-                    array('name' => 'StringTrim'),
-                ),
                 'validators' => array(
                     array(
                         'name' => 'NotEmpty',
                         'options' => array(
-                            'message' => 'Please type something here',
+                            'message' => 'Please select the number of players',
                         ),
                         'break_chain_on_failure' => true,
                     ),
-                    array(
-                        'name' => 'Digits',
-                        'options' => array(
-                            'message' => 'Please type a number here',
-                        ),
-                    ),
                 ),
+            ),
+            'bf-guest-player' => array(
+                'required' => false,
             ),
             'bf-date-start' => array(
                 'filters' => array(
