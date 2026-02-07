@@ -53,7 +53,7 @@ class UserFormat extends AbstractHelper
             $email = '-';
         }
 
-        $html .= sprintf('<td class="email-col">%s</td>',
+        $html .= sprintf('<td class="email-col responsive-pass-3">%s</td>',
             $email);
 
         /* Notes col */
@@ -70,7 +70,7 @@ class UserFormat extends AbstractHelper
             $notes = '-';
         }
 
-        $html .= sprintf('<td class="notes-col">%s</td>',
+        $html .= sprintf('<td class="notes-col responsive-pass-2">%s</td>',
             $notes);
 
         /* Actions col */

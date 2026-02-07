@@ -312,6 +312,10 @@ th.sortable.sort-desc::after { content: '\2193'; color: var(--bs-primary); }
 .col-filter { font-size: 0.8125rem !important; padding: 0.2rem 0.4rem !important; }
 .col-filter:focus { border-color: var(--bs-primary); box-shadow: 0 0 0 0.15rem rgba(4, 107, 210, 0.2); }
 
+    /* Compact column styles */
+.table .notes-col { max-width: 120px; white-space: normal; overflow: hidden; text-overflow: ellipsis; }
+.table .actions-col { white-space: nowrap; }
+
 /* Legacy table compatibility */
 .bordered-table tr td { padding: 0.5rem; border: 1px solid #dee2e6; }
 .bordered-table tr th { padding: 0 0.5rem 0.5rem 0.5rem; }
@@ -776,6 +780,7 @@ a.squarebox-primary-close-link:hover {
 
 @media screen and (max-width: 1280px) {
     .responsive-pass-2 { display: none; }
+    .table { font-size: 0.8125rem; }
     #calendar-toolbar { text-align: center; }
     #calendar-toolbar-datepicker { display: inline-block; margin-left: 8px; margin-right: 8px; float: none; }
     #calendar-toolbar-userpanel { display: inline-block; margin-left: 8px; margin-right: 8px; float: none; }
@@ -790,6 +795,8 @@ a.squarebox-primary-close-link:hover {
 
 @media screen and (max-width: 768px) {
     .responsive-pass-4 { display: none; }
+    .table { font-size: 0.75rem; }
+    .table .actions-col { font-size: 0.6875rem; }
 }
 
 @media screen and (max-width: 512px) {

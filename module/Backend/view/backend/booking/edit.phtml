@@ -10,7 +10,12 @@ $this->setup(array(
     'title' => 'Booking-Administration',
     'panel' => 'centered-panel giant-sized',
     'messages' => $messages,
-    'back' => true,
+    'back' => array('Booking-Administration' => $this->url('backend/booking')),
+    'links' => array(
+        'Calendar' => $this->url('frontend'),
+        'User-Administration' => $this->url('backend/user'),
+        'Configuration' => $this->url('backend/config'),
+    ),
 ));
 
 ?>
