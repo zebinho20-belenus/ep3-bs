@@ -17,16 +17,16 @@ class BookingsFormat extends AbstractHelper
 
         $html .= '<thead><tr>';
         $html .= '<th data-sort-type="text" data-filter-type="select">&nbsp;</th>';
-        $html .= '<th data-sort-type="number">' . $view->t('No.') . '</th>';
+        $html .= '<th data-sort-type="number" class="responsive-pass-5">' . $view->t('No.') . '</th>';
         $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-2">' . $view->t('Member') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-3">' . $view->t('Day') . '</th>';
         $html .= '<th data-sort-type="date-de">' . $view->t('Date') . '</th>';
         $html .= '<th data-sort-type="text">' . $view->t('Time') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-4">' . $view->option('subject.square.type') . '</th>';
-        $html .= '<th data-sort-type="text" class="notes-col responsive-pass-2">' . $view->t('Notes') . '</th>';
-        $html .= '<th data-sort-type="price">' . $view->t('Price') . '</th>';
-        $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-3">' . $view->t('Billing status') . '</th>';
+        $html .= '<th data-sort-type="text" class="notes-col responsive-pass-3">' . $view->t('Notes') . '</th>';
+        $html .= '<th data-sort-type="price" class="responsive-pass-5">' . $view->t('Price') . '</th>';
+        $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-2">' . $view->t('Billing status') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-3">' . $view->t('Budget') . '</th>';
         $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
         $html .= '</tr></thead>';
