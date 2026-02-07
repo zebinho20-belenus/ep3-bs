@@ -158,13 +158,35 @@ Email includes: booking details, player names, itemized bill, payment informatio
 
 ### Backend Booking Management
 
-**Booking list** (`/backend/booking`): Sortable table with columns for status, ID, user, member flag, date/time, court, notes, price, billing status, and budget. Each row has action links:
-- **Edit** — opens booking edit form
-- **Cancel/Delete** — links to confirmation page (`/backend/booking/delete/:rid`)
+**Booking list** (`/backend/booking`): Sortable table (panel: `giant-sized`, 1280px) with 13 columns. Uses `table-layout: fixed` with progressive column hiding via `responsive-pass-*` CSS classes. Action links are icon-only with `title` tooltips.
+
+**Column visibility by breakpoint**:
+- ≥1536px: all 13 columns
+- ≤1280px (pass-2): hide Member, Billing Status
+- ≤1024px (pass-3): hide Day, Notes, Budget
+- ≤768px (pass-4): hide Court
+- ≤512px (pass-5): hide Nr., Price → 5 columns remain: Status, Name, Date, Time, Actions
+
+**Row actions** (icon-only, no text labels):
+- **Active bookings**: Edit (symbolic-edit) + Cancel (symbolic-cross)
+- **Cancelled bookings, slot free**: Edit + Reactivate (symbolic-reload) + Delete (symbolic-cross)
+- **Cancelled bookings, slot occupied**: Edit + Delete (no Reactivate)
+
+**Reactivate collision check**: `BookingFormat` has `ReservationManager` + `BookingManager` injected via `BookingFormatFactory`. Before showing the reactivate icon, it calls `getInRange()` to check for overlapping active bookings on the same court.
 
 **Delete confirmation page** (`delete.phtml`): Shows cancel and delete options. Delete button only visible to admin users (`admin.all` permission). Cancel sets status to `cancelled` and keeps the booking in DB. Delete removes the booking entirely. Both paths refund budget if the booking was paid.
 
-**Booking format helper**: `Backend\View\Helper\Booking\BookingFormat` — renders each booking row including billing status badges and budget info.
+**Booking format helper**: `Backend\View\Helper\Booking\BookingFormat` — renders each booking row including billing status badges, budget info, and conditional reactivation link.
+
+**Table sort/filter JS** (`public/js/controller/backend/table-sort.js` + `table-sort.min.js`): Adds sortable headers, per-column filter inputs. Filter `<td>` cells inherit `responsive-pass-*` classes from their `<th>` headers. **Both files must be kept in sync** (no build tool).
+
+### Backend User List
+
+**User list** (`/backend/user`): Panel `giant-sized` (1280px). 7 columns with responsive hiding:
+- ≤1280px (pass-2): hide Notes
+- ≤1024px (pass-3): hide Email
+
+Action links are icon-only: Edit (symbolic-edit) + Bookings (symbolic-booking).
 
 ### Dependency Injection
 
@@ -195,6 +217,11 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 | Layout template | `module/Base/view/layout/layout.phtml` |
 | Custom CSS | `public/css/app.css` (+ `app.min.css` copy) |
 | Calendar squarebox JS | `public/js/controller/calendar/index.js` (+ `index.min.js`) |
+| Table sort/filter JS | `public/js/controller/backend/table-sort.js` (+ `table-sort.min.js`) |
+| Booking format factory | `module/Backend/src/Backend/View/Helper/Booking/BookingFormatFactory.php` |
+| Bookings table headers | `module/Backend/src/Backend/View/Helper/Booking/BookingsFormat.php` |
+| User table headers | `module/Backend/src/Backend/View/Helper/User/UsersFormat.php` |
+| User table rows | `module/Backend/src/Backend/View/Helper/User/UserFormat.php` |
 | Translations (German) | `data/res/i18n/de-DE/booking.php`, `square.php`, `backend.php` |
 | Backend pricing config view | `module/Backend/view/backend/config-square/pricing.phtml` |
 
