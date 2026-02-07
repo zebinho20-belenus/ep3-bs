@@ -52,6 +52,7 @@ return array(
     'Booking has been reactivated' => 'Buchung wurde reaktiviert',
     'Reactivate booking' => 'Buchung reaktivieren',
     'This booking has been cancelled' => 'Diese Buchung wurde storniert',
+    'This time slot is already occupied by another booking' => 'Dieser Zeitslot ist bereits durch eine andere Buchung belegt',
     'Reservation has been deleted' => 'Reservierung wurde gelöscht',
     'Event has been saved' => 'Veranstaltung wurde gespeichert',
     'Event has been deleted' => 'Veranstaltung wurde gelöscht',

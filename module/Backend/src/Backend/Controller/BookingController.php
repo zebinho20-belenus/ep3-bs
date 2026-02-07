@@ -156,6 +156,37 @@ class BookingController extends AbstractActionController
                     $reactivateBooking = $bookingManager->get($reactivateReservation->get('bid'));
 
                     if ($reactivateBooking->get('status') == 'cancelled') {
+
+                        // Check if time slot is still free
+                        $dateTimeStart = new \DateTime($reactivateReservation->get('date') . ' ' . $reactivateReservation->get('time_start'));
+                        $dateTimeEnd = new \DateTime($reactivateReservation->get('date') . ' ' . $reactivateReservation->get('time_end'));
+                        $overlapping = $reservationManager->getInRange($dateTimeStart, $dateTimeEnd);
+
+                        if ($overlapping) {
+                            $conflictBookings = $bookingManager->getByReservations($overlapping);
+                            $hasConflict = false;
+                            foreach ($overlapping as $overlapRes) {
+                                $overlapBooking = $overlapRes->getExtra('booking');
+                                if ($overlapBooking
+                                    && $overlapBooking->get('bid') != $reactivateBooking->get('bid')
+                                    && $overlapBooking->get('sid') == $reactivateBooking->get('sid')
+                                    && $overlapBooking->get('status') != 'cancelled') {
+                                    $hasConflict = true;
+                                    break;
+                                }
+                            }
+                            if ($hasConflict) {
+                                $this->flashMessenger()->addErrorMessage('This time slot is already occupied by another booking');
+                                return $this->redirect()->toRoute('backend/booking/edit', [], ['query' => [
+                                    'ds' => $reactivateReservation->get('date'),
+                                    'ts' => substr($reactivateReservation->get('time_start'), 0, 5),
+                                    'te' => substr($reactivateReservation->get('time_end'), 0, 5),
+                                    's'  => $reactivateBooking->get('sid'),
+                                    'r'  => $reactivateReservation->get('rid'),
+                                ]]);
+                            }
+                        }
+
                         $reactivateBooking->set('status', 'single');
                         $reactivateBooking->setMeta('cancellor', null);
                         $reactivateBooking->setMeta('cancelled', null);
