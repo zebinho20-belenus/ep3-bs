@@ -49,8 +49,16 @@ class BookingFormat extends AbstractHelper
 
         $html .= sprintf('<tr %s>', $attr);
 
-        $html .= sprintf('<td class="status-col right-text first-letter-only">%s</td>',
-            $view->t($booking->getStatus()));
+        $statusMap = array(
+            'single' => array('label' => 'E', 'class' => 'status-icon status-single', 'title' => $view->t('Single')),
+            'subscription' => array('label' => 'A', 'class' => 'status-icon status-subscription', 'title' => $view->t('Subscription')),
+            'cancelled' => array('label' => 'S', 'class' => 'status-icon status-cancelled', 'title' => $view->t('Cancelled')),
+        );
+        $statusKey = $booking->need('status');
+        $statusInfo = isset($statusMap[$statusKey]) ? $statusMap[$statusKey] : array('label' => '?', 'class' => 'status-icon', 'title' => $statusKey);
+
+        $html .= sprintf('<td class="status-col centered-text"><span class="%s" title="%s">%s</span></td>',
+            $statusInfo['class'], $statusInfo['title'], $statusInfo['label']);
 
         $html .= sprintf('<td class="responsive-pass-5">%s</td>',
             $booking->need('bid'));
