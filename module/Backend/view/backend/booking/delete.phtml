@@ -11,49 +11,21 @@ $this->setup(array(
 <div class="padded centered-text">
     <p><span class="symbolic symbolic-warning"><?= $this->t('Are you sure you want to delete this booking?') ?></span></p>
 
-    <p class="no-wrap">
-        <?php
-        // Check if user is a "Verwalter" (administrator)
-        $isVerwalter = false;
-
-        // Try to get the user role(s)
-        try {
-            // Method 1: Check if the user has admin role via the 'can' method
-            if ($this->sessionUser->can('admin.all')) {
-                $isVerwalter = true;
-            }
-
-            // Method 2: Try to get roles directly if they exist
-            if (method_exists($this->sessionUser, 'get') && $this->sessionUser->get('roles')) {
-                $roles = $this->sessionUser->get('roles');
-                if (is_array($roles) && (in_array('verwalter', $roles) || in_array('admin', $roles))) {
-                    $isVerwalter = true;
-                }
-            }
-        } catch (\Exception $e) {
-            // Silently fail if we can't determine roles
-        }
-
-        if ($isVerwalter):
-            ?>
-            <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true']]) ?>" class="default-button">
+    <div class="edit-actions">
+        <?php if ($this->sessionUser->can('admin.all')): ?>
+            <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true']]) ?>" class="default-button default-button-danger">
                 <span class="symbolic symbolic-cross"><?= $this->t('Yes, delete this booking') ?></span>
             </a>
-
-            &nbsp;
         <?php endif; ?>
 
-
-        <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true', 'cancel' => 'true']]) ?>" class="default-button">
+        <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true', 'cancel' => 'true']]) ?>" class="default-button default-button-danger">
             <span class="symbolic symbolic-cross"><?= $this->t('Yes, cancel this booking') ?></span>
         </a>
 
-        &nbsp;
+        <a href="<?= $this->url('frontend') ?>" class="default-button default-button-outline squarebox-close-link"><?= $this->t('No, go back') ?></a>
+    </div>
 
-        <a href="<?= $this->url('frontend') ?>" class="default-button squarebox-close-link"><?= $this->t('No, go back') ?></a>
-    </p>
-
-    <p class="small-text gray">
+    <p class="small-text gray mt-3">
         <?= $this->t('If this booking is cancelled, it will disappear from the calendar, but remain in the database.') ?>
     </p>
 </div>

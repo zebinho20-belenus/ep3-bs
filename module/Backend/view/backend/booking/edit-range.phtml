@@ -8,10 +8,10 @@ $this->setup(array(
 
 ?>
 
-<div class="padded">
+<div class="py-3">
     <p><?= $this->t('Change the time range of all unmodified reservations of this booking:') ?></p>
 
-    <div class="sandbox" style="margin-bottom: 32px;">
+    <div class="sandbox mb-4">
         <?php
 
         $form = $this->editTimeRangeForm;
@@ -23,27 +23,19 @@ $this->setup(array(
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table" style="margin: 0;">
-            <tr>
-                <td>
-                    <table class="default-table">
-                        <?= $this->formRowCompact($form, 'bf-time-start') ?>
-                    </table>
-                </td>
-
-                <td>
-                    <table class="default-table">
-                        <?= $this->formRowCompact($form, 'bf-time-end') ?>
-                    </table>
-                </td>
-
-                <td style="padding-top: 15px;">
-                    <table class="default-table">
-                        <?= $this->formRowSubmit($form, 'bf-submit') ?>
-                    </table>
-                </td>
-            </tr>
-        </table>
+        <div class="row align-items-end">
+            <div class="col-sm-4">
+                <?= $this->formRowCompact($form, 'bf-time-start') ?>
+            </div>
+            <div class="col-sm-4">
+                <?= $this->formRowCompact($form, 'bf-time-end') ?>
+            </div>
+            <div class="col-sm-4">
+                <div class="mb-2">
+                    <?= $this->formElement($form->get('bf-submit')) ?>
+                </div>
+            </div>
+        </div>
 
         <?= $this->form()->closeTag() ?>
     </div>
@@ -62,33 +54,21 @@ $this->setup(array(
 
         <?= $this->form()->openTag($form) ?>
 
-        <table class="default-table" style="margin: 0;">
-            <tr>
-                <td>
-                    <table class="default-table">
-                        <?= $this->formRowCompact($form, 'bf-date-start') ?>
-                    </table>
-                </td>
+        <div class="row align-items-end">
+            <div class="col-sm-4">
+                <?= $this->formRowCompact($form, 'bf-date-start') ?>
+            </div>
+            <div class="col-sm-4">
+                <?= $this->formRowCompact($form, 'bf-date-end') ?>
+            </div>
+            <div class="col-sm-4">
+                <?= $this->formRowCompact($form, 'bf-repeat') ?>
+            </div>
+        </div>
 
-                <td>
-                    <table class="default-table">
-                        <?= $this->formRowCompact($form, 'bf-date-end') ?>
-                    </table>
-                </td>
-
-                <td>
-                    <table class="default-table">
-                        <?= $this->formRowCompact($form, 'bf-repeat') ?>
-                    </table>
-                </td>
-
-                <td style="padding-top: 15px;">
-                    <table class="default-table">
-                        <?= $this->formRowSubmit($form, 'bf-submit') ?>
-                    </table>
-                </td>
-            </tr>
-        </table>
+        <div class="mt-3">
+            <?= $this->formElement($form->get('bf-submit')) ?>
+        </div>
 
         <?= $this->form()->closeTag() ?>
     </div>
