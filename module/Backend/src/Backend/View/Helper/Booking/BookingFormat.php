@@ -3,6 +3,8 @@
 namespace Backend\View\Helper\Booking;
 
 use Booking\Entity\Reservation;
+use Booking\Manager\BookingManager;
+use Booking\Manager\ReservationManager;
 use Booking\Service\BookingStatusService;
 use Square\Manager\SquareManager;
 use Booking\Manager\Booking\BillManager;
@@ -16,13 +18,17 @@ class BookingFormat extends AbstractHelper
     protected $bookingBillManager;
     protected $userManager;
     protected $bookingStatusService;
+    protected $reservationManager;
+    protected $bookingManager;
 
-    public function __construct(SquareManager $squareManager, BillManager $bookingBillManager, UserManager $userManager, BookingStatusService $bookingStatusService)
+    public function __construct(SquareManager $squareManager, BillManager $bookingBillManager, UserManager $userManager, BookingStatusService $bookingStatusService, ReservationManager $reservationManager, BookingManager $bookingManager)
     {
         $this->squareManager = $squareManager;
         $this->bookingBillManager = $bookingBillManager;
         $this->userManager = $userManager;
         $this->bookingStatusService = $bookingStatusService;
+        $this->reservationManager = $reservationManager;
+        $this->bookingManager = $bookingManager;
     }
 
     public function __invoke(Reservation $reservation, $dateStart = null, $dateEnd = null, $search = null)
@@ -66,11 +72,11 @@ class BookingFormat extends AbstractHelper
         }
 
         if ($member) {
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="responsive-pass-2">%s</td>',
             $view->t('Yes'));
         }
         else {
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="responsive-pass-2">%s</td>',
             $view->t('No'));
         }
 
@@ -81,7 +87,7 @@ class BookingFormat extends AbstractHelper
         $fullDate = $view->dateFormat($date, \IntlDateFormatter::FULL);
         $fullDateParts = explode(', ', $fullDate);
 
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="responsive-pass-3">%s</td>',
             $fullDateParts[0]);
 
         $html .= sprintf('<td>%s</td>',
@@ -98,7 +104,7 @@ class BookingFormat extends AbstractHelper
             $squareName = '-';
         }
 
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="responsive-pass-4">%s</td>',
             $squareName);
 
         /* Notes col */
@@ -115,7 +121,7 @@ class BookingFormat extends AbstractHelper
             $notes = '-';
         }
 
-        $html .= sprintf('<td class="notes-col">%s</td>',
+        $html .= sprintf('<td class="notes-col responsive-pass-2">%s</td>',
             $notes);
 
         /* Price col */
@@ -154,9 +160,9 @@ class BookingFormat extends AbstractHelper
                 $statusTitle = $view->t($this->bookingStatusService->getStatusTitle($statusBilling));
             }
 
-            $html .= sprintf('<td><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
+            $html .= sprintf('<td class="responsive-pass-3"><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
         } else {
-            $html .= '<td>-</td>';
+            $html .= '<td class="responsive-pass-3">-</td>';
         }
 
         /* Budget col */
@@ -168,18 +174,18 @@ class BookingFormat extends AbstractHelper
 
         if ($budgetPayment === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
             $deducted = floatval($budgetBefore) - floatval($budgetAfter);
-            $html .= sprintf('<td><span class="billing-badge billing-paid">%s</span></td>',
+            $html .= sprintf('<td class="responsive-pass-3"><span class="billing-badge billing-paid">%s</span></td>',
                 number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
         } elseif ($hasBudget === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
             $deducted = floatval($budgetBefore) - floatval($budgetAfter);
             if ($deducted > 0) {
-                $html .= sprintf('<td><span class="billing-badge billing-pending">%s</span></td>',
+                $html .= sprintf('<td class="responsive-pass-3"><span class="billing-badge billing-pending">%s</span></td>',
                     number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
             } else {
-                $html .= '<td>-</td>';
+                $html .= '<td class="responsive-pass-3">-</td>';
             }
         } else {
-            $html .= '<td>-</td>';
+            $html .= '<td class="responsive-pass-3">-</td>';
         }
 
         /* Actions col */
@@ -195,16 +201,45 @@ class BookingFormat extends AbstractHelper
 
         if ($booking->get('status') == 'cancelled') {
 
-            $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
+            // Check if time slot is free for reactivation
+            $canReactivate = true;
+            $dateTimeStart = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_start'));
+            $dateTimeEnd = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_end'));
+            $overlapping = $this->reservationManager->getInRange($dateTimeStart, $dateTimeEnd);
 
-            $html .= sprintf('<td class="actions-col no-print">'
-                . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
-                . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
-                . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
-                . '</td>',
-                $editUrl, $view->t('Edit'),
-                $reactivateUrl, $view->t('Reactivate'),
-                $deleteUrl, $view->t('Delete'));
+            if ($overlapping) {
+                $this->bookingManager->getByReservations($overlapping);
+                foreach ($overlapping as $overlapRes) {
+                    $overlapBooking = $overlapRes->getExtra('booking');
+                    if ($overlapBooking
+                        && $overlapBooking->get('bid') != $booking->get('bid')
+                        && $overlapBooking->get('sid') == $booking->get('sid')
+                        && $overlapBooking->get('status') != 'cancelled') {
+                        $canReactivate = false;
+                        break;
+                    }
+                }
+            }
+
+            if ($canReactivate) {
+                $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
+
+                $html .= sprintf('<td class="actions-col no-print">'
+                    . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
+                    . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
+                    . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                    . '</td>',
+                    $editUrl, $view->t('Edit'),
+                    $reactivateUrl, $view->t('Reactivate'),
+                    $deleteUrl, $view->t('Delete'));
+            } else {
+                $html .= sprintf('<td class="actions-col no-print">'
+                    . '<a href="%s" class="unlined gray symbolic symbolic-edit"><span class="symbolic-label">%s</span></a> '
+                    . '<a href="%s" class="unlined gray symbolic symbolic-cross"><span class="symbolic-label">%s</span></a>'
+                    . '</td>',
+                    $editUrl, $view->t('Edit'),
+                    $deleteUrl, $view->t('Delete'));
+            }
 
         } else {
 

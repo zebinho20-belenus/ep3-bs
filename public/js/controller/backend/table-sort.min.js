@@ -59,6 +59,14 @@
                 var filterType = $th.data('filter-type');
                 var $td = $('<td></td>');
 
+                // Copy responsive-pass-* classes from th to filter td
+                var thClasses = ($th.attr('class') || '').split(/\s+/);
+                for (var ci = 0; ci < thClasses.length; ci++) {
+                    if (thClasses[ci].indexOf('responsive-pass-') === 0) {
+                        $td.addClass(thClasses[ci]);
+                    }
+                }
+
                 if (sortType && sortType !== 'none') {
                     if (filterType === 'select') {
                         // Collect unique values from column cells

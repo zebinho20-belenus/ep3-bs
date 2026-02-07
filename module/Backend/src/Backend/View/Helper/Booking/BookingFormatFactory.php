@@ -14,7 +14,9 @@ class BookingFormatFactory implements FactoryInterface
             $sm->getServiceLocator()->get('Square\Manager\SquareManager'),
             $sm->getServiceLocator()->get('Booking\Manager\Booking\BillManager'),
             $sm->getServiceLocator()->get('User\Manager\UserManager'),
-            $sm->getServiceLocator()->get('Booking\Service\BookingStatusService')
+            $sm->getServiceLocator()->get('Booking\Service\BookingStatusService'),
+            $sm->getServiceLocator()->get('Booking\Manager\ReservationManager'),
+            $sm->getServiceLocator()->get('Booking\Manager\BookingManager')
         );
     }
 
