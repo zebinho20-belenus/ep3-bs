@@ -26,7 +26,7 @@ class DateFormat extends AbstractHelper
             $timeEndFormat = $view->timeFormat($dateTimeEnd);
 
             $html .= sprintf('<p>%s - %s</p>', $dateStartFormat, $timeStartFormat);
-            $html .= sprintf('<p style="margin-bottom: 0px; position: relative; top: -8px;">%s</p>', $view->t('until'));
+            $html .= sprintf('<p class="mb-0 small">%s</p>', $view->t('until'));
             $html .= sprintf('<p>%s - %s</p>', $dateEndFormat, $timeEndFormat);
         }
 

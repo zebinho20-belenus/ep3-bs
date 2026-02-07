@@ -35,7 +35,7 @@ class QuantityChoice extends AbstractHelper
             $quantityChoiceSelect = "hidden";
         }
 
-        $html .= '<label for="sb-quantity" style="margin-right: 8px; visibility:' . $quantityChoiceSelect . '" >';
+        $html .= '<label for="sb-quantity" class="me-2" style="visibility:' . $quantityChoiceSelect . '">';
         $html .= sprintf($view->t('How many %s?'), $this->optionManager->need('subject.square.unit.plural'));
         $html .= '</label>';
 
@@ -56,12 +56,10 @@ class QuantityChoice extends AbstractHelper
             $guestPlayerCheckbox = '';
             $paymentNotice = '';
         } elseif ($this->user && $this->user->getMeta('member')) {
-            $guestPlayerCheckbox = '<div id="guest-player-checkbox" style="margin-top: 8px; display: none;">
-                                        <label for="guest-player">
-                                            <input type="checkbox" id="guest-player" name="guest-player" value="1" onchange="togglePaymentNotice(this)">
-                                            ' . $view->t('Guest player') . '
-                                        </label>
-                                    </div>';
+            $guestPlayerCheckbox = '<div id="guest-player-checkbox" class="mt-2 form-check d-inline-block" style="display: none;">'
+                . '<input type="checkbox" id="guest-player" name="guest-player" value="1" class="form-check-input" onchange="togglePaymentNotice(this)">'
+                . '<label for="guest-player" class="form-check-label">' . $view->t('Guest player') . '</label>'
+                . '</div>';
 
             $paymentNotice = '<div id="payment-notice" class="guest-payment-notice" style="display: none;">
                                   <b>ℹ ' . $view->t('Guest booking info') . '</b><br>
@@ -77,7 +75,7 @@ class QuantityChoice extends AbstractHelper
         $capacityInfo = $view->squareCapacityInfo($square, $quantityOccupied, 'span');
 
         if ($capacityInfo) {
-            $html .= '<span style="margin-left: 8px;">' . $capacityInfo . '</span>';
+            $html .= '<span class="ms-2">' . $capacityInfo . '</span>';
         }
 
         $askNames = $square->getMeta('capacity-ask-names');
@@ -87,7 +85,7 @@ class QuantityChoice extends AbstractHelper
 
             $html .= '<div class="sb-player-names">';
 
-            $html .= '<div class="separator separator-line"></div>';
+            $html .= '<hr class="my-2">';
 
             if (isset($askNamesSegments[0]) && $askNamesSegments[0] == 'optional') {
                 $html .= sprintf('<p class="sb-player-names-mode gray" data-mode="optional">%s</p>',
@@ -98,19 +96,19 @@ class QuantityChoice extends AbstractHelper
             }
 
             for ($i = 2; $i <= $quantityAvailable; $i++) {
-                $html .= sprintf('<div class="sb-player-name sb-player-name-%s" style="margin-bottom: 4px;">', $i);
+                $html .= sprintf('<div class="sb-player-name sb-player-name-%s mb-1">', $i);
 
-                $html .= sprintf('<input type="text" name="sb-player-name-%1$s" id="sb-name-%1$s" value="" placeholder="%1$s. %2$s" style="min-width: 160px;">',
+                $html .= sprintf('<input type="text" name="sb-player-name-%1$s" id="sb-name-%1$s" value="" placeholder="%1$s. %2$s" class="form-control form-control-sm d-inline-block" style="min-width: 160px;">',
                     $i, $this->view->translate('Player\'s name'));
 
                 if (isset($askNamesSegments[2]) && $askNamesSegments[2] == 'email') {
-                    $html .= sprintf(' <input type="text" name="sb-player-email-%1$s" id="sb-player-email-%1$s" value="" placeholder="...%2$s" style="min-width: 160px;">',
+                    $html .= sprintf(' <input type="text" name="sb-player-email-%1$s" id="sb-player-email-%1$s" value="" placeholder="...%2$s" class="form-control form-control-sm d-inline-block" style="min-width: 160px;">',
                         $i, $this->view->translate('and email address'));
                 }
 
                 if ((isset($askNamesSegments[2]) && $askNamesSegments[2] == 'phone') ||
                     (isset($askNamesSegments[3]) && $askNamesSegments[3] == 'phone')) {
-                    $html .= sprintf(' <input type="text" name="sb-player-phone-%1$s" id="sb-player-phone-%1$s" value="" placeholder="...%2$s" style="min-width: 160px;">',
+                    $html .= sprintf(' <input type="text" name="sb-player-phone-%1$s" id="sb-player-phone-%1$s" value="" placeholder="...%2$s" class="form-control form-control-sm d-inline-block" style="min-width: 160px;">',
                         $i, $this->view->translate('and phone number'));
                 }
 

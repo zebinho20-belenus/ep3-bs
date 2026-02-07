@@ -235,6 +235,80 @@ class BookingController extends AbstractActionController
                     $savedBooking->setMeta('guestPlayer', $d['bf-guest-player'] ? '1' : '0');
                     $bookingManager->save($savedBooking);
 
+                    /* Save player names from form */
+                    $playerNames = [];
+                    for ($i = 2; $i <= 4; $i++) {
+                        $name = trim($this->params()->fromPost('bf-player-name-' . $i, ''));
+                        if ($name) {
+                            $playerNames[] = ['value' => $name];
+                        }
+                    }
+                    if (!empty($playerNames)) {
+                        $savedBooking->setMeta('player-names', serialize($playerNames));
+                    } else {
+                        $savedBooking->setMeta('player-names', null);
+                    }
+                    $bookingManager->save($savedBooking);
+
+                    /* Recalculate bill if guest player status changed */
+                    $oldGp = $oldData['gp'];
+                    $newGp = $d['bf-guest-player'] ? '1' : '0';
+
+                    if ($oldGp !== $newGp) {
+                        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+                        $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
+                        $reservationManager2 = $serviceManager->get('Booking\Manager\ReservationManager');
+                        $userManager2 = $serviceManager->get('User\Manager\UserManager');
+
+                        $billUser = $userManager2->get($savedBooking->get('uid'));
+                        $billSquare = $squareManager->get($savedBooking->get('sid'));
+                        $squareType = $this->option('subject.square.type');
+                        $squareName = $this->t($billSquare->need('name'));
+                        $dateRangeHelper = $serviceManager->get('ViewHelperManager')->get('DateRange');
+
+                        $member = $billUser && $billUser->getMeta('member') ? 1 : 0;
+                        $guestPlayer = $newGp === '1';
+
+                        // Delete existing bills
+                        $existingBills = $bookingBillManager->getBy(['bid' => $savedBooking->need('bid')], 'bbid ASC');
+                        if ($existingBills) {
+                            foreach ($existingBills as $existingBill) {
+                                $bookingBillManager->delete($existingBill->need('bbid'));
+                            }
+                        }
+
+                        // Recreate bills with correct pricing
+                        foreach ($reservationManager2->getBy(['bid' => $savedBooking->need('bid')]) as $res) {
+                            $dtStart = new \DateTime($res->get('date') . ' ' . $res->get('time_start'));
+                            $dtEnd = new \DateTime($res->get('date') . ' ' . $res->get('time_end'));
+
+                            if ($guestPlayer && $member) {
+                                $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $billSquare, $savedBooking->get('quantity'), 0);
+                                if ($pricing) {
+                                    $pricing['price'] = intval($pricing['price'] / 2);
+                                }
+                            } elseif ($guestPlayer) {
+                                $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $billSquare, $savedBooking->get('quantity'), 0);
+                            } else {
+                                $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $billSquare, $savedBooking->get('quantity'), $member);
+                            }
+
+                            if ($pricing) {
+                                $description = sprintf('%s %s, %s', $squareType, $squareName, $dateRangeHelper($dtStart, $dtEnd));
+
+                                $bookingBillManager->save(new Booking\Bill(array(
+                                    'bid' => $savedBooking->need('bid'),
+                                    'description' => $description,
+                                    'quantity' => $savedBooking->get('quantity'),
+                                    'time' => $pricing['seconds'],
+                                    'price' => $pricing['price'],
+                                    'rate' => $pricing['rate'],
+                                    'gross' => $pricing['gross'],
+                                )));
+                            }
+                        }
+                    }
+
                     $bid = $savedBooking->get('bid');
                     $square = $squareManager->get($savedBooking->get('sid'));
 
@@ -257,6 +331,7 @@ class BookingController extends AbstractActionController
                         'date' => $currentReservation ? $currentReservation->get('date') : $oldData['date'],
                         'time_start' => $currentReservation ? $currentReservation->get('time_start') : $oldData['time_start'],
                         'time_end' => $currentReservation ? $currentReservation->get('time_end') : $oldData['time_end'],
+                        'gp' => $savedBooking->getMeta('gp', '0'),
                     );
 
                     $changes = array();
@@ -428,6 +503,17 @@ class BookingController extends AbstractActionController
             $editForm->get('bf-quantity')->setOption('notes', $playerNameNotes);
         }
 
+        /* Extract player names for view */
+        $playerNamesForView = [];
+        if ($booking && $booking->getMeta('player-names')) {
+            $unserialized = @unserialize($booking->getMeta('player-names'));
+            if (is_array($unserialized)) {
+                foreach ($unserialized as $i => $entry) {
+                    $playerNamesForView[$i + 2] = $entry['value'];
+                }
+            }
+        }
+
         if (! $sessionUser->can(['calendar.create-subscription-bookings'])) {
             return $this->ajaxViewModel(array_merge($params, array(
             'editMode' => 'no_subscr',
@@ -435,6 +521,7 @@ class BookingController extends AbstractActionController
             'booking' => $booking,
             'reservation' => $reservation,
             'sessionUser' => $sessionUser,
+            'playerNames' => $playerNamesForView,
             )));
         }
 
@@ -443,6 +530,7 @@ class BookingController extends AbstractActionController
             'booking' => $booking,
             'reservation' => $reservation,
             'sessionUser' => $sessionUser,
+            'playerNames' => $playerNamesForView,
         )));
     }
 
@@ -2122,6 +2210,11 @@ class BookingController extends AbstractActionController
                         break;
                     case 'notes':
                         $label = $this->t('Notes');
+                        break;
+                    case 'gp':
+                        $label = $this->t('Guest player');
+                        $oldFormatted = $change['old'] === '1' ? $this->t('Yes') : $this->t('No');
+                        $newFormatted = $change['new'] === '1' ? $this->t('Yes') : $this->t('No');
                         break;
                     case 'uid':
                         // Skip user change in customer email

@@ -51,15 +51,13 @@ class ProductChoice extends AbstractHelper
 
             /* Render product */
 
-            $html .= '<tr>';
-
             $spid = $product->need('spid');
 
             $quantityOptions = explode(',', $product->need('options'));
 
-            $html .= '<td>';
-            $html .= '<select id="sb-product-' . $spid . '" class="sb-product" data-spid="' . $spid . '">';
+            $html .= '<div class="d-flex align-items-center gap-2 mb-2">';
 
+            $html .= '<select id="sb-product-' . $spid . '" class="sb-product form-select form-select-sm" style="width: auto;" data-spid="' . $spid . '">';
             $html .= '<option value="0" selected="selected">' . $view->t('None') . '</option>';
 
             foreach ($quantityOptions as $quantityOption) {
@@ -67,27 +65,25 @@ class ProductChoice extends AbstractHelper
             }
 
             $html .= '</select>';
-            $html .= '</td>';
 
-            $html .= '<td style="max-width: 384px; padding-left: 16px; border-left: solid 1px #CCC; border-right: solid 1px #CCC;">';
-            $html .= '<div class="large-text"><label for="sb-product-' . $spid . '">' . $product->need('name') . '</label></div>';
+            $html .= '<div class="flex-grow-1 text-start">';
+            $html .= '<strong><label for="sb-product-' . $spid . '">' . $product->need('name') . '</label></strong>';
 
             if ($product->get('description')) {
-                $html .= '<div class="separator-tiny"></div>';
-                $html .= '<div>' . $product->get('description') . '</div>';
+                $html .= '<div class="small text-muted">' . $product->get('description') . '</div>';
             }
 
-            $html .= '</td>';
+            $html .= '</div>';
 
-            $html .= '<td style="padding-left: 16px;">';
+            $html .= '<div class="text-nowrap">';
             $html .= $view->priceFormat($product->need('price'), $product->need('rate'), $product->need('gross'), null, null, 'per item');
-            $html .= '</td>';
+            $html .= '</div>';
 
-            $html .= '</tr>';
+            $html .= '</div>';
         }
 
         if ($html) {
-            $html = sprintf('<table class="default-table">%s</table>', $html);
+            $html = sprintf('<div>%s</div>', $html);
         }
 
         return $html;

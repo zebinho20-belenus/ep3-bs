@@ -27,6 +27,11 @@
 
         updateForm();
 
+        /* Quantity → Guest + Player Names toggle */
+
+        $("#bf-quantity").on("change", updateQuantityDependents);
+        updateQuantityDependents();
+
         /* Exclusive edit fields */
 
         var $editUser = $('#bf input[name="bf-edit-user"]');
@@ -94,6 +99,27 @@
                 disableFormElement("#bf-notes");
             }
         }
+    }
+
+    function updateQuantityDependents()
+    {
+        var quantity = parseInt($("#bf-quantity").val()) || 1;
+        var guestContainer = $("#bf-guest-player-container");
+        var namesContainer = $("#bf-player-names-container");
+
+        if (quantity > 1) {
+            guestContainer.show();
+            namesContainer.show();
+        } else {
+            guestContainer.hide();
+            namesContainer.hide();
+            $("#bf-guest-player").prop("checked", false);
+        }
+
+        $(".bf-player-name-row").each(function() {
+            var playerNum = parseInt($(this).data("player"));
+            $(this).toggle(playerNum <= quantity);
+        });
     }
 
     function disableFormElement(element)

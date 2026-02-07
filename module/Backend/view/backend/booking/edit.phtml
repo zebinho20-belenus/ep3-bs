@@ -115,7 +115,26 @@ $this->setup(array(
                 <?= $this->formRowCompact($form, 'bf-sid') ?>
                 <?= $this->formRowCompact($form, 'bf-status-billing') ?>
                 <?= $this->formRowCompact($form, 'bf-quantity') ?>
-                <?= $this->formRowCheckbox($form, 'bf-guest-player') ?>
+
+                <!-- Player names (JS shows when quantity > 1) -->
+                <div id="bf-player-names-container" style="display: none;">
+                    <hr class="my-2">
+                    <div class="small text-muted mb-1"><?= $this->t('Player names') ?></div>
+                    <?php for ($i = 2; $i <= 4; $i++): ?>
+                        <div class="bf-player-name-row mb-1" data-player="<?= $i ?>" style="display: none;">
+                            <input type="text" name="bf-player-name-<?= $i ?>"
+                                   id="bf-player-name-<?= $i ?>"
+                                   placeholder="<?= $i ?>. <?= $this->t('Player\'s name') ?>"
+                                   value="<?= $this->escapeHtml($this->playerNames[$i] ?? '') ?>"
+                                   class="form-control form-control-sm">
+                        </div>
+                    <?php endfor; ?>
+                </div>
+
+                <!-- Guest checkbox (JS shows when quantity > 1) -->
+                <div id="bf-guest-player-container" style="display: none;">
+                    <?= $this->formRowCheckbox($form, 'bf-guest-player') ?>
+                </div>
             </div>
         </div>
 

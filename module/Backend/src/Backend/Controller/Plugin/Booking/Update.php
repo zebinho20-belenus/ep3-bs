@@ -60,6 +60,7 @@ class Update extends AbstractPlugin
                 'date' => $reservation->get('date'),
                 'time_start' => $reservation->get('time_start'),
                 'time_end' => $reservation->get('time_end'),
+                'gp' => $booking->getMeta('gp', '0'),
             );
 
             /* Update booking */
