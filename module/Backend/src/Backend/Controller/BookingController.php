@@ -295,7 +295,53 @@ class BookingController extends AbstractActionController
                     $savedBooking->setMeta('gp', $d['bf-guest-player'] ? '1' : '0');
                     $savedBooking->setMeta('guestPlayer', $d['bf-guest-player'] ? '1' : '0');
                     $bookingManager->save($savedBooking);
-                    
+
+                    /* Create bill with pricing (incl. guest player pricing) */
+                    $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                    $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
+                    $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+
+                    $square = $squareManager->get($savedBooking->get('sid'));
+                    $squareType = $this->option('subject.square.type');
+                    $squareName = $this->t($square->need('name'));
+                    $dateRangeHelper = $serviceManager->get('ViewHelperManager')->get('DateRange');
+
+                    $member = $user && $user->getMeta('member') ? 1 : 0;
+                    $guestPlayer = $d['bf-guest-player'] ? true : false;
+
+                    foreach ($reservationManager->getBy(['bid' => $savedBooking->need('bid')]) as $res) {
+                        $dtStart = new \DateTime($res->get('date') . ' ' . $res->get('time_start'));
+                        $dtEnd = new \DateTime($res->get('date') . ' ' . $res->get('time_end'));
+
+                        if ($guestPlayer && $member) {
+                            // Member with guest: 50% of non-member price
+                            $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), 0);
+                            if ($pricing) {
+                                $pricing['price'] = intval($pricing['price'] / 2);
+                            }
+                        } elseif ($guestPlayer) {
+                            // Non-member with guest: full non-member price
+                            $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), 0);
+                        } else {
+                            // Normal booking: member or non-member price from DB
+                            $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), $member);
+                        }
+
+                        if ($pricing) {
+                            $description = sprintf('%s %s, %s', $squareType, $squareName, $dateRangeHelper($dtStart, $dtEnd));
+
+                            $bookingBillManager->save(new Booking\Bill(array(
+                                'bid' => $savedBooking->need('bid'),
+                                'description' => $description,
+                                'quantity' => $savedBooking->get('quantity'),
+                                'time' => $pricing['seconds'],
+                                'price' => $pricing['price'],
+                                'rate' => $pricing['rate'],
+                                'gross' => $pricing['gross'],
+                            )));
+                        }
+                    }
+
                     // Send booking creation email
                     $this->sendAdminBookingCreationEmail($savedBooking, $user);
                     
