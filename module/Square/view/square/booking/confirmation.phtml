@@ -63,7 +63,7 @@ function showHide() {
                 </p>
 
                 <div class="form-check">
-                    <input type="checkbox" name="bf-accept-rules-document" id="bf-accept-rules-document" checked="true" class="form-check-input">
+                    <input type="checkbox" name="bf-accept-rules-document" id="bf-accept-rules-document" class="form-check-input">
                     <label for="bf-accept-rules-document" class="form-check-label"><?= sprintf($this->t('Yes, I have %1$sread and accepted%2$s the "%3$s"'), '<b>', '</b>', $square->getMeta('rules.document.name', $this->t('Rules-document'))) ?></label>
                 </div>
             </div>
@@ -76,7 +76,7 @@ function showHide() {
                 <p class="mb-2"><strong><?= $this->t('Please note') ?>:</strong></p>
                 <div class="mb-2"><?= $square->getMeta('rules.text') ?></div>
                 <div class="form-check">
-                    <input type="checkbox" name="bf-accept-rules-text" id="bf-accept-rules-text" checked="true" class="form-check-input">
+                    <input type="checkbox" name="bf-accept-rules-text" id="bf-accept-rules-text" class="form-check-input">
                     <label for="bf-accept-rules-text" class="form-check-label"><?= sprintf($this->t('Yes, I have %sread and accepted%s these rules and notes'), '<b>', '</b>') ?></label>
                 </div>
             </div>
