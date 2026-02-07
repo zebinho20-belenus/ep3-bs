@@ -842,34 +842,6 @@ a.squarebox-primary-close-link:hover {
     min-width: 140px;
 }
 
-/* ---------- Backend edit form — 2x2 grid on desktop ---------- */
-
-@media screen and (min-width: 1025px) {
-    .content-panel table.middle-table,
-    .content-panel table.middle-table > tbody {
-        display: block;
-        width: 100%;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    .content-panel table.middle-table > tbody > tr:first-child {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-    .content-panel table.middle-table > tbody > tr:first-child > td {
-        padding-right: 0;
-        padding-bottom: 0;
-    }
-    .content-panel table.middle-table > tbody > tr:last-child {
-        display: block;
-    }
-    .content-panel table.middle-table > tbody > tr:last-child > td[colspan] {
-        display: block;
-        width: 100%;
-    }
-}
-
 /* Form fields fill sandbox width in edit forms */
 .content-panel .sandbox input[type="text"],
 .content-panel .sandbox select,
@@ -898,35 +870,6 @@ a.squarebox-primary-close-link:hover {
     .half-table { margin-bottom: 2rem; width: 100% !important; border: none !important; }
     .half-table:last-child { margin-bottom: 2rem; width: 100% !important; border: none !important; }
     .padded { padding: 0.5rem; }
-
-    /* Stack backend edit form (4-col middle-table) vertically */
-    .content-panel table.middle-table,
-    .content-panel table.middle-table > tbody,
-    .content-panel table.middle-table > tbody > tr,
-    .content-panel table.middle-table > tbody > tr > td {
-        display: block;
-        width: 100%;
-    }
-    .content-panel table.middle-table > tbody > tr > td {
-        padding-right: 0;
-        padding-bottom: 0.75rem;
-    }
-
-    /* Left-align form content on mobile, centered looks awkward stacked */
-    .content-panel .padded.centered-text {
-        text-align: left;
-    }
-    .content-panel .sandbox {
-        text-align: left;
-    }
-
-    /* Stack date/time inner 2-col table on mobile */
-    .content-panel .sandbox table.default-table > tbody > tr > td,
-    .content-panel .sandbox table.default-table > tr > td {
-        display: block;
-        width: 100%;
-        padding-right: 0;
-    }
 
     /* Edit actions: stack buttons vertically, full width */
     .edit-actions {

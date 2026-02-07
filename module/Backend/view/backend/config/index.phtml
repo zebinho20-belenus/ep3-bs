@@ -22,105 +22,42 @@ $this->setup(array(
 
     <div class="separator separator-line"></div>
 
-    <div class="padded">
-        <table class="default-table middle-table">
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/text') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->t('Names and text') ?></span>
-                    </a>
-                </td>
+    <div class="py-3">
+        <div class="list-group">
+            <a href="<?= $this->url('backend/config/text') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Names and text') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= $this->t('What is the name of your service? What is your name?') ?></span>
+            </a>
 
-                <td>
-                    <p class="gray">
-                        <?= $this->t('What is the name of your service? What is your name?') ?>
-                    </p>
-                </td>
-            </tr>
+            <a href="<?= $this->url('backend/config/info') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Info page') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= sprintf($this->t('Which text should appear on the info page (%s)?'), $this->option('subject.type')) ?></span>
+            </a>
 
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/info') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->t('Info page') ?></span>
-                    </a>
-                </td>
+            <a href="<?= $this->url('backend/config/help') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Help page') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= $this->t('Which text should appear on the help page?') ?></span>
+            </a>
 
-                <td>
-                    <p class="gray">
-                        <?= sprintf($this->t('Which text should appear on the info page (%s)?'), $this->option('subject.type')) ?>
-                    </p>
-                </td>
-            </tr>
+            <a href="<?= $this->url('backend/config/square') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->option('subject.square.type.plural') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= sprintf($this->t('Which %s do you have? What are their names?'), $this->option('subject.square.type.plural')) ?></span>
+            </a>
 
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/help') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->t('Help page') ?></span>
-                    </a>
-                </td>
+            <a href="<?= $this->url('backend/config/square/pricing') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Pricing') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= sprintf($this->t('How much do bookings cost for your %s?'), $this->option('subject.square.type.plural')) ?></span>
+            </a>
 
-                <td>
-                    <p class="gray">
-                        <?= $this->t('Which text should appear on the help page?') ?>
-                    </p>
-                </td>
-            </tr>
+            <a href="<?= $this->url('backend/config/square/product') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Products') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= $this->t('Which additional products or services do you offer with your bookings?') ?></span>
+            </a>
 
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/square') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->option('subject.square.type.plural') ?></span>
-                    </a>
-                </td>
-
-                <td>
-                    <p class="gray">
-                        <?= sprintf($this->t('Which %s do you have? What are their names?'), $this->option('subject.square.type.plural')) ?>
-                    </p>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/square/pricing') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->t('Pricing') ?></span>
-                    </a>
-                </td>
-
-                <td>
-                    <p class="gray">
-                        <?= sprintf($this->t('How much do bookings cost for your %s?'), $this->option('subject.square.type.plural')) ?>
-                    </p>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/square/product') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->t('Products') ?></span>
-                    </a>
-                </td>
-
-                <td>
-                    <p class="gray">
-                        <?= $this->t('Which additional products or services do you offer with your bookings?') ?>
-                    </p>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <a href="<?= $this->url('backend/config/behaviour') ?>" class="default-button" style="width: 160px; text-align: left;">
-                        <span class="symbolic symbolic-config"><?= $this->t('Behaviour') ?></span>
-                    </a>
-                </td>
-
-                <td>
-                    <p class="gray">
-                        <?= $this->t('How does registration work? How many days are displayed in the calendar?') ?>
-                    </p>
-                </td>
-            </tr>
-        </table>
+            <a href="<?= $this->url('backend/config/behaviour') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Behaviour') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= $this->t('How does registration work? How many days are displayed in the calendar?') ?></span>
+            </a>
+        </div>
     </div>
 </div>
