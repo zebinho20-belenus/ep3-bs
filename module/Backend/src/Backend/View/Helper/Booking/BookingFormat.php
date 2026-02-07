@@ -121,7 +121,7 @@ class BookingFormat extends AbstractHelper
             $notes = '-';
         }
 
-        $html .= sprintf('<td class="notes-col responsive-pass-2">%s</td>',
+        $html .= sprintf('<td class="notes-col responsive-pass-3">%s</td>',
             $notes);
 
         /* Price col */
@@ -160,9 +160,9 @@ class BookingFormat extends AbstractHelper
                 $statusTitle = $view->t($this->bookingStatusService->getStatusTitle($statusBilling));
             }
 
-            $html .= sprintf('<td class="responsive-pass-3"><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
+            $html .= sprintf('<td class="responsive-pass-2"><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
         } else {
-            $html .= '<td class="responsive-pass-3">-</td>';
+            $html .= '<td class="responsive-pass-2">-</td>';
         }
 
         /* Budget col */
