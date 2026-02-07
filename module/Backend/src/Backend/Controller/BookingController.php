@@ -145,6 +145,30 @@ class BookingController extends AbstractActionController
             if ($editForm->isValid()) {
                 $d = $editForm->getData();
 
+                /* Reactivate cancelled booking */
+
+                if ($this->params()->fromPost('bf-reactivate') && $d['bf-rid'] && $sessionUser->can('admin.booking')) {
+                    $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                    $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+
+                    $reactivateReservation = $reservationManager->get($d['bf-rid']);
+                    $reactivateBooking = $bookingManager->get($reactivateReservation->get('bid'));
+
+                    if ($reactivateBooking->get('status') == 'cancelled') {
+                        $reactivateBooking->set('status', 'single');
+                        $reactivateBooking->setMeta('cancellor', null);
+                        $reactivateBooking->setMeta('cancelled', null);
+                        $reactivateBooking->setMeta('admin_cancelled', null);
+                        $reactivateBooking->setMeta('backend_cancelled', null);
+                        $reactivateBooking->setMeta('reactivated_by', $sessionUser->get('alias'));
+                        $reactivateBooking->setMeta('reactivated', date('Y-m-d H:i:s'));
+                        $bookingManager->save($reactivateBooking);
+
+                        $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
+                        return $this->redirect()->toRoute('frontend', [], ['query' => []]);
+                    }
+                }
+
                 /* Process form (note, that reservation and booking are not available here) */
 
                 if ($d['bf-rid']) {

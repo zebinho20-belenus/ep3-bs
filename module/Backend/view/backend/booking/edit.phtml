@@ -181,6 +181,14 @@ $this->setup(array(
                     <?= $this->formElement($form->get('bf-submit')) ?>
                 <?php endif; ?>
 
+                <?php if ($this->booking && $this->booking->get('status') == 'cancelled' && $this->sessionUser->can('admin.booking')): ?>
+                    <span class="gray" style="margin: 0 8px;"><?= $this->t('or') ?></span>
+
+                    <button type="submit" name="bf-reactivate" value="1" class="default-button">
+                        <span class="symbolic symbolic-edit"><?= $this->t('Reactivate booking') ?></span>
+                    </button>
+                <?php endif; ?>
+
                 <?php if ($this->reservation): ?>
                     <?php if ($this->sessionUser->can(['admin.booking', 'calendar.cancel-single-bookings', 'calendar.delete-single-bookings', 'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings'])): ?>
                         <span class="gray" style="margin: 0 8px;"><?= $this->t('or') ?></span>
