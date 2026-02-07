@@ -2,8 +2,8 @@
 
 $this->setup(array(
     'title' => 'Booking-Administration',
-    'panel' => 'centered-panel large-sized',
-    'back' => true,
+    'panel' => 'centered-panel giant-sized',
+    'back' => array('Calendar' => $this->url('frontend')),
     'links' => array(
         'User-Administration' => $this->url('backend/user'),
         'Event-Administration' => $this->url('backend/event'),
