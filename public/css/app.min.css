@@ -798,6 +798,42 @@ a.squarebox-primary-close-link:hover {
     background: #046bd2 !important;
 }
 
+/* ---------- Backend edit form — 2x2 grid on desktop ---------- */
+
+@media screen and (min-width: 1025px) {
+    .content-panel table.middle-table,
+    .content-panel table.middle-table > tbody {
+        display: block;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .content-panel table.middle-table > tbody > tr:first-child {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .content-panel table.middle-table > tbody > tr:first-child > td {
+        padding-right: 0;
+        padding-bottom: 0;
+    }
+    .content-panel table.middle-table > tbody > tr:last-child {
+        display: block;
+    }
+    .content-panel table.middle-table > tbody > tr:last-child > td[colspan] {
+        display: block;
+        width: 100%;
+    }
+}
+
+/* Form fields fill sandbox width in edit forms */
+.content-panel .sandbox input[type="text"],
+.content-panel .sandbox select,
+.content-panel .sandbox textarea {
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
 /* ---------- Responsive breakpoints ---------- */
 
 @media screen and (max-width: 1536px) {
