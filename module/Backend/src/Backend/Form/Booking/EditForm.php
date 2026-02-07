@@ -103,15 +103,21 @@ class EditForm extends Form
             ),
         ));
 
+        $timeOptions = array();
+        for ($h = 7; $h <= 22; $h++) {
+            $timeOptions[sprintf('%02d:00', $h)] = sprintf('%02d:00', $h);
+        }
+
         $this->add(array(
             'name' => 'bf-time-start',
-            'type' => 'Text',
+            'type' => 'Select',
             'attributes' => array(
                 'id' => 'bf-time-start',
-                'style' => 'width: 80px;',
+                'style' => 'width: 90px;',
             ),
             'options' => array(
                 'label' => 'Time (Start)',
+                'value_options' => $timeOptions,
             ),
         ));
 
@@ -129,13 +135,14 @@ class EditForm extends Form
 
         $this->add(array(
             'name' => 'bf-time-end',
-            'type' => 'Text',
+            'type' => 'Select',
             'attributes' => array(
                 'id' => 'bf-time-end',
-                'style' => 'width: 80px;',
+                'style' => 'width: 90px;',
             ),
             'options' => array(
                 'label' => 'Time (End)',
+                'value_options' => $timeOptions,
             ),
         ));
 
@@ -252,16 +259,9 @@ class EditForm extends Form
                     array(
                         'name' => 'NotEmpty',
                         'options' => array(
-                            'message' => 'Please type something here',
+                            'message' => 'Please select a time',
                         ),
                         'break_chain_on_failure' => true,
-                    ),
-                    array(
-                        'name' => 'Regex',
-                        'options' => array(
-                            'pattern' => '/^[0-9]?[0-9]:[0-9][0-9]$/',
-                            'message' => 'Please provide the time in format HH:MM',
-                        ),
                     ),
                 ),
             ),
@@ -303,16 +303,9 @@ class EditForm extends Form
                     array(
                         'name' => 'NotEmpty',
                         'options' => array(
-                            'message' => 'Please type something here',
+                            'message' => 'Please select a time',
                         ),
                         'break_chain_on_failure' => true,
-                    ),
-                    array(
-                        'name' => 'Regex',
-                        'options' => array(
-                            'pattern' => '/^[0-9]?[0-9]:[0-9][0-9]$/',
-                            'message' => 'Please provide the time in format HH:MM',
-                        ),
                     ),
                 ),
             ),
