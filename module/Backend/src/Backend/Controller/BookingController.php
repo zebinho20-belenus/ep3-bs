@@ -150,6 +150,7 @@ class BookingController extends AbstractActionController
                 if ($this->params()->fromPost('bf-reactivate') && $d['bf-rid'] && $sessionUser->can('admin.booking')) {
                     $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
                     $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+                    $userManager = $serviceManager->get('User\Manager\UserManager');
 
                     $reactivateReservation = $reservationManager->get($d['bf-rid']);
                     $reactivateBooking = $bookingManager->get($reactivateReservation->get('bid'));
@@ -163,6 +164,14 @@ class BookingController extends AbstractActionController
                         $reactivateBooking->setMeta('reactivated_by', $sessionUser->get('alias'));
                         $reactivateBooking->setMeta('reactivated', date('Y-m-d H:i:s'));
                         $bookingManager->save($reactivateBooking);
+
+                        // Send reactivation email to user and admin
+                        try {
+                            $bookingUser = $userManager->get($reactivateBooking->get('uid'));
+                            $this->sendReactivationEmail($reactivateBooking, $bookingUser, $sessionUser);
+                        } catch (\Exception $e) {
+                            error_log(sprintf("Fehler beim Senden der Reaktivierungsemail für Buchung %s: %s", $reactivateBooking->get('bid'), $e->getMessage()));
+                        }
 
                         $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
                         return $this->redirect()->toRoute('frontend', [], ['query' => []]);
@@ -1359,8 +1368,155 @@ class BookingController extends AbstractActionController
     }
     
     /**
+     * Send reactivation email to user and admin when a cancelled booking is reactivated
+     */
+    public function sendReactivationEmail(Booking $booking, User $user, $sessionUser)
+    {
+        if (empty($user->need('email'))) {
+            return false;
+        }
+
+        try {
+            $squareName = 'nicht spezifiziert';
+            $formattedDate = '[Datum nicht verfügbar]';
+            $formattedTime = '[Startzeit nicht verfügbar]';
+            $formattedEndTime = '[Endzeit nicht verfügbar]';
+
+            try {
+                $squareManager = $this->serviceLocator->get('Square\Manager\SquareManager');
+                if ($booking->get('sid')) {
+                    $square = $squareManager->get($booking->need('sid'));
+                    $squareName = $square->need('name');
+                }
+            } catch (\Exception $e) {
+                error_log(sprintf("Square für Buchung %s nicht gefunden: %s", $booking->get('bid'), $e->getMessage()));
+            }
+
+            try {
+                $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
+                $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+
+                if (!empty($reservations)) {
+                    $reservation = current($reservations);
+
+                    if ($reservation->get('date')) {
+                        $date = new \DateTime($reservation->need('date'));
+                        $formattedDate = $date->format('d.m.Y');
+                    }
+                    if ($reservation->get('time_start')) {
+                        $formattedTime = $reservation->get('time_start');
+                    }
+                    if ($reservation->get('time_end')) {
+                        $formattedEndTime = $reservation->get('time_end');
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
+            }
+
+            // Personalisierte Anrede
+            $anrede = 'Hallo';
+            if ($user->getMeta('gender') == 'male') {
+                $anrede = 'Sehr geehrter Herr';
+            } elseif ($user->getMeta('gender') == 'female') {
+                $anrede = 'Sehr geehrte Frau';
+            }
+
+            if ($user->getMeta('lastname')) {
+                $anrede .= ' ' . $user->getMeta('lastname');
+            } else {
+                $anrede .= ' ' . $user->need('alias');
+            }
+
+            $subject = sprintf($this->t('%s\'s Platz-Buchung wurde reaktiviert'), $user->need('alias'));
+
+            $buchungsDetails = sprintf(
+                $this->t("Reaktivierte Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s"),
+                $squareName,
+                $formattedDate,
+                $formattedTime,
+                $formattedEndTime,
+                $booking->need('bid')
+            );
+
+            // Kontaktinformationen
+            $contactInfo = '';
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('Diese Nachricht wurde automatisch gesendet. Sollten Sie noch Fragen bzw. Anregungen haben, informieren Sie bitte unser Supportteam');
+
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf($this->t(' unter %s'), $contactEmail);
+                }
+
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= $this->t(' oder');
+                    }
+                    $contactInfo .= sprintf($this->t(' auf unserer Website %s'), $clientWebsite);
+                }
+                $contactInfo .= '.';
+            }
+
+            $emailText = sprintf(
+                "%s,\n\nIhre zuvor stornierte Platz-Buchung wurde reaktiviert.\n\n%s",
+                $anrede,
+                $buchungsDetails
+            );
+
+            if ($this->serviceLocator->has('Backend\Service\MailService')) {
+                $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
+
+                // E-Mail an den Kunden
+                $backendMailService->sendCustomEmail(
+                    $subject,
+                    $emailText,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    [],
+                    $contactInfo,
+                    false
+                );
+
+                // Admin-Kopie mit zusätzlichen Informationen
+                $adminName = $sessionUser->need('alias');
+                $adminEmail = $sessionUser->need('email');
+
+                $adminInfo = sprintf(
+                    "\n\n\n==================================================\n%s:\n--------------------------------------------------\nDiese Buchung wurde REAKTIVIERT von: %s (%s)\nZeitpunkt der Reaktivierung: %s\n==================================================\n\n",
+                    $this->t('Internal admin information'),
+                    $adminName,
+                    $adminEmail,
+                    date('d.m.Y H:i:s')
+                );
+
+                $clientContactEmail = $this->option('client.contact.email', '');
+                if (!empty($clientContactEmail)) {
+                    $backendMailService->sendCustomEmail(
+                        '[ADMIN-KOPIE] ' . $subject,
+                        $emailText . $adminInfo,
+                        $clientContactEmail,
+                        'Administrator',
+                        [],
+                        $contactInfo,
+                        true
+                    );
+                }
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            error_log(sprintf("Fehler beim Senden der Reaktivierungsemail: %s", $e->getMessage()));
+            return false;
+        }
+    }
+
+    /**
      * Send a booking creation email notification when an admin creates a booking
-     * 
+     *
      * @param Booking $booking
      * @param User $user
      * @return boolean
