@@ -1793,6 +1793,33 @@ class BookingController extends AbstractActionController
                 $booking->need('bid')
             );
             
+            /* Bill / price info for email */
+            $rechnungsInfo = '';
+            $total = 0;
+            try {
+                $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
+                $bills = $bookingBillManager->getBy(array('bid' => $booking->need('bid')), 'bbid ASC');
+                if ($bills) {
+                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
+                    foreach ($bills as $bill) {
+                        $total += $bill->get('price');
+                        $rechnungsInfo .= "\n" . $bill->get('description');
+                        $rechnungsInfo .= " -> " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
+                    }
+                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($total / 100, 2, ',', '.') . " €";
+                }
+            } catch (\Exception $e) {
+                error_log("Fehler beim Laden der Rechnungspositionen: " . $e->getMessage());
+            }
+
+            /* Payment instructions for guest player bookings with pending billing */
+            $zahlungshinweis = '';
+            if ($total > 0 && $booking->get('status_billing') !== 'paid' && $booking->get('status_billing') !== 'member') {
+                $zahlungshinweis .= "\n\n" . $this->t('Payment instructions:');
+                $zahlungshinweis .= "\n" . $this->t('Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.');
+                $zahlungshinweis .= "\n" . $this->t('The booking is only valid after payment is completed.');
+            }
+
             $stornierungsBedingungen = $this->t('Bitte beachten Sie unsere Stornierungsbedingungen. Stornierungen sind bis zu 2 Stunden vor Beginn kostenfrei möglich.');
             $paypalInfo = '';
             if ($booking->get('status_billing') === 'paid') {
@@ -1808,9 +1835,11 @@ class BookingController extends AbstractActionController
                 if ($this->serviceLocator->has('Backend\Service\MailService')) {
                     // Vollständigen Text für die E-Mail erstellen
                     $emailText = sprintf(
-                        "%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s",
+                        "%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s%s%s\n\n%s%s",
                         $anrede,
                         $buchungsDetails,
+                        $rechnungsInfo,
+                        $zahlungshinweis,
                         $stornierungsBedingungen,
                         !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
                     );
@@ -1953,8 +1982,8 @@ class BookingController extends AbstractActionController
                 } else {
                     // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
                     error_log("Backend\\Service\\MailService nicht verfügbar, verwende Fallback-Methode");
-                    $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails, 
-                        $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede);
+                    $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails,
+                        $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede, $rechnungsInfo, $zahlungshinweis);
                 }
             } catch (\Exception $e) {
                 error_log(sprintf("Fehler bei Verwendung von Backend\\Service\\MailService: %s", $e->getMessage()));
@@ -2196,7 +2225,7 @@ class BookingController extends AbstractActionController
      * Fallback-Methode zum Senden der Buchungsbestätigungsemail, wenn Backend\Service\MailService nicht verfügbar ist
      */
     protected function sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails,
-        $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede)
+        $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede, $rechnungsInfo = '', $zahlungshinweis = '')
     {
         try {
             // Versuche den Mail-Service zu erhalten, mit robuster Fehlerbehandlung
@@ -2225,9 +2254,11 @@ class BookingController extends AbstractActionController
             
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
-                "%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s\n\n%s\n\n%s",
+                "%s,\n\nwir haben den Platz für Sie gebucht.\n\n%s%s%s\n\n%s%s",
                 $anrede,
                 $buchungsDetails,
+                $rechnungsInfo,
+                $zahlungshinweis,
                 $stornierungsBedingungen,
                 !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
