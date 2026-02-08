@@ -362,6 +362,31 @@ Available via Stripe as payment method.
 7. **Webhook (Stripe):**
    Async confirmation for SEPA, updates booking status
 
+### Manual Payment Instructions
+
+For guest bookings where users choose "Pay Later", the system displays payment instructions for manual PayPal Friends & Family transfers.
+
+**Configuration:**
+```php
+// config/autoload/project.php
+'paypalEmail' => 'payment@your-domain.com',
+```
+
+**How it works:**
+1. Translation strings use `%s` placeholder for email address
+2. Email injected at runtime via `sprintf()`
+3. Displayed in:
+   - Booking confirmation email
+   - Flash message on confirmation page
+   - Backend booking emails
+
+**Implementation locations:**
+- `NotificationListener::onCreateSingle()` — Email notifications
+- `Square\BookingController` — Confirmation page flash message
+- `Backend\BookingController` — Backend booking email
+
+**Fallback:** If `paypalEmail` not configured, defaults to `'payment@your-domain.com'`
+
 ### Unpaid Booking Cleanup
 
 MySQL Scheduled Event removes unpaid bookings automatically:
@@ -723,7 +748,7 @@ docker compose restart court
 |------|---------|-----------|
 | `.env` | Docker environment variables | `.gitignore` (create from `.env.example`) |
 | `config/autoload/local.php` | DB, mail, payment API keys | `.gitignore` (create from `.dist`) |
-| `config/autoload/project.php` | URLs, session, payment toggles | `.gitignore` (create from `.dist`) |
+| `config/autoload/project.php` | URLs, session, payment toggles, PayPal email | `.gitignore` (create from `.dist`) |
 | `config/init.php` | Dev mode, timezone, error reporting | `.gitignore` (create from `.dist`) |
 
 ### local.php Configuration
@@ -772,6 +797,7 @@ return [
     'service' => [
         'payment' => [
             'paypal' => true,  // Enable PayPal
+            'paypalEmail' => 'payment@your-domain.com', // PayPal email for manual payments
             'stripe' => false, // Disable Stripe (optional)
             'klarna' => false, // Disable Klarna (optional)
         ],

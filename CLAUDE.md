@@ -32,7 +32,7 @@ There is no test runner configured yet (PHPUnit skeleton exists in `module/User/
 
 Docker environment variables are in `.env` (from `.env.example`). Additionally, PHP config `.dist` files must be copied and configured:
 - `config/autoload/local.php.dist` → `config/autoload/local.php` (DB credentials, mail, payment API keys)
-- `config/autoload/project.php.dist` → `config/autoload/project.php` (instance URLs, session config, payment method toggles, feature flags)
+- `config/autoload/project.php.dist` → `config/autoload/project.php` (instance URLs, session config, payment method toggles, PayPal email for manual payments, feature flags)
 - `config/init.php.dist` → `config/init.php` (dev mode flag, timezone, error reporting)
 
 The `.dist` files contain Docker-friendly defaults (DB hostname `mariadb`, MailHog SMTP on port 1025).
@@ -129,6 +129,28 @@ Uses Payum framework with token-based security. Stripe supports PaymentIntents (
 Payment options (PayPal/Stripe/Klarna) are only shown on the confirmation page when `$payable == true`, which requires `$total > 0`. The total is calculated via `SquarePricingManager::getFinalPricingInRange()` using `bs_squares_pricing` — if no pricing rule matches the booking date range, `$total` stays 0 and no payment buttons appear. Key pricing logic is in `module/Square/src/Square/Controller/BookingController.php`.
 
 Unpaid bookings are auto-removed via a MySQL scheduled event (every 15 min, bookings older than 3 hours with `directpay=true` and `status_billing=pending`).
+
+### Manual Payment Instructions (PayPal Friends & Family)
+
+For guest bookings where the user chooses "Pay Later", the system displays payment instructions with a PayPal email address for manual Friends & Family payments.
+
+**Configuration** (`config/autoload/project.php`):
+```php
+'paypalEmail' => 'payment@your-domain.com',
+```
+
+**Implementation:**
+- Translation strings use `%s` placeholder for email address
+- Email injected via `sprintf()` at runtime
+- Used in 3 locations:
+  - `NotificationListener::onCreateSingle()` — booking confirmation email
+  - `Square\BookingController` — flash message on confirmation page
+  - `Backend\BookingController` — backend booking email
+- Fallback: `'payment@your-domain.com'` if config not set
+
+**Translation keys** (`data/res/i18n/de-DE/booking.php`):
+- `'Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'`
+- `'Please pay the booking amount via PayPal Friends & Family to %s or use the money letterbox at the office.'`
 
 ### Budget (Guthaben) System
 

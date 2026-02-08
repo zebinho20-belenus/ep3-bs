@@ -172,7 +172,8 @@ class NotificationListener extends AbstractListenerAggregate
 
         if ($booking->get('status_billing') == 'pending' && $booking->getMeta('gp') == '1' && $booking->getMeta('directpay') != 'true' && $booking->getMeta('budgetpayment') != 'true') {
             $message .= "\n\n" . $this->t('Payment instructions:');
-            $message .= "\n" . $this->t('Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.');
+            $paypalEmail = $this->configManager->get('paypalEmail') ?: 'payment@your-domain.com';
+            $message .= "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail);
             $message .= "\n" . $this->t('The booking is only valid after payment is completed.');
         }
 

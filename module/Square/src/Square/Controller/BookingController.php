@@ -577,8 +577,9 @@ class BookingController extends AbstractActionController
                 }
 
                 if ($guestPlayerCheckbox == 1 && !$budgetpayment) {
+                    $paypalEmail = $this->config('paypalEmail') ?: 'payment@your-domain.com';
                     $this->flashMessenger()->addInfoMessage(
-                        $this->t('Please pay the booking amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.')
+                        sprintf($this->t('Please pay the booking amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail)
                     );
                 }
 

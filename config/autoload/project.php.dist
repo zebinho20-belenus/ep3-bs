@@ -46,8 +46,10 @@ return array(
     'deleteDoorCodeRequest' => 'http://admin:password@Miniserver/jdev/sps/io/Module_Uuid/code/delete/%%doorCodeUuid%%',
     // show a flash message where you can manually book / pay temporarily if you disable all payment methods
     // 'tmpBookingAt' => '?',
-    // enable/disable specific payment providers 
+    // enable/disable specific payment providers
     'paypal' => true,
+    // PayPal email for manual payments (Friends & Family)
+    'paypalEmail' => 'payment@your-domain.com',
     'stripe' => true,
     // enable/disable stripe payment methods (possible values: card, sepa_debit, ideal, giropay, sofort)
     'stripePaymentMethods' => array(

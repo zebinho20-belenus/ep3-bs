@@ -2041,7 +2041,8 @@ class BookingController extends AbstractActionController
             $zahlungshinweis = '';
             if ($total > 0 && $booking->get('status_billing') !== 'paid' && $booking->get('status_billing') !== 'member') {
                 $zahlungshinweis .= "\n\n" . $this->t('Payment instructions:');
-                $zahlungshinweis .= "\n" . $this->t('Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.');
+                $paypalEmail = $this->config('paypalEmail') ?: 'payment@your-domain.com';
+                $zahlungshinweis .= "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail);
                 $zahlungshinweis .= "\n" . $this->t('The booking is only valid after payment is completed.');
             }
 
