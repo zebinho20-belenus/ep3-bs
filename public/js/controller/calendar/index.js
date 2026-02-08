@@ -284,6 +284,9 @@
 
     function updateCalendarEvents()
     {
+        // Remove all existing overlays before recreating
+        $("[id$='-overlay-']").remove();
+
         $(".calendar-date-col").each(function(dateIndex) {
             var calendarDateCol = $(this);
 

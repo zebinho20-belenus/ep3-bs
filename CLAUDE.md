@@ -286,6 +286,35 @@ docker compose -f docker-compose.dev-server.yml up -d
 
 **macOS Docker Desktop**: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't reach the Docker socket.
 
+## Known Issues & Fixes
+
+### Calendar Booking Overlays Duplication (Fixed Feb 2026)
+
+**Problem:** Calendar bookings appeared duplicated or shifted to wrong time slots after any layout change (window resize, flash messages appearing/disappearing, creating/canceling bookings).
+
+**Root Cause:** The `updateCalendarEvents()` function in `public/js/controller/calendar/index.js` creates overlay elements (with IDs ending in `-overlay-`) for multi-slot bookings to visually span multiple table cells. This function is called on:
+- Initial page load
+- Every `window.resize` event
+- Custom `updateLayout` events
+
+The function checked `if (!eventGroupOverlay.length)` before creating overlays, but this check failed to prevent duplicates because stale DOM references were being reused. Each resize event created NEW overlays without removing the old ones → visual duplication.
+
+**Solution:** Added cleanup at the start of `updateCalendarEvents()`:
+```javascript
+function updateCalendarEvents() {
+    // Remove all existing overlays before recreating
+    $("[id$='-overlay-']").remove();
+
+    // ... rest of function
+}
+```
+
+**Files changed:**
+- `public/js/controller/calendar/index.js` (line 287-288)
+- `public/js/controller/calendar/index.min.js` (same fix)
+
+**Note:** This issue was initially misdiagnosed as being caused by flash message wrapper removal. Extensive debugging (including removing all flash wrapper JS) proved the calendar JS was the actual culprit.
+
 ## Writable Directories
 
 `data/cache/`, `data/log/`, `data/session/`, `public/docs-client/upload/`, `public/imgs-client/upload/`
