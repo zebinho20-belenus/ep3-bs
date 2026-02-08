@@ -1,174 +1,390 @@
-# ep3-bs Payment Edition
+# EP3-BS Laravel Migration
 
-Online-Buchungssystem fuer Tennisplaetze (und andere Sportplaetze) mit integrierter Direktzahlung.
+<div align="center">
 
-Fork von [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (v1.7.0), erweitert um:
+![Status](https://img.shields.io/badge/Status-Planning-blue)
+![Progress](https://img.shields.io/badge/Progress-0%25-red)
+![Laravel](https://img.shields.io/badge/Laravel-11-red)
+![Vue](https://img.shields.io/badge/Vue-3-green)
+![PHP](https://img.shields.io/badge/PHP-8.3-purple)
 
-- **Direktzahlung** via PayPal, Stripe (Kreditkarte, SEPA, iDEAL, Giropay, Apple Pay, Google Pay) und Klarna
-- **Budget/Guthaben-System** (Prepaid, Geschenkgutscheine)
-- **Mitglieder-/Gastpreise** mit differenzierter Preisgestaltung und 50%-Gastrabatt
-- **Tuercode-Integration** fuer Loxone MiniServer (automatische Codes pro Buchung)
-- **PWA-Unterstuetzung** (App-aehnlich auf Smartphones nutzbar)
-- **Bootstrap 5 UI** mit responsivem Design fuer Desktop und Mobile
-- **Docker-Setup** mit Traefik, MariaDB und MailHog
+**Vollständige Migration von Zend Framework 2 zu Laravel 11**
 
-## Voraussetzungen
+[📋 Migration Plan](MIGRATION-PLAN.md) • [✅ Feature Checklist](FEATURE-CHECKLIST.md) • [📖 Documentation](CLAUDE.md)
 
-- Docker & Docker Compose
-- Git
+</div>
 
-## Schnellstart
+---
+
+## 📖 Über dieses Projekt
+
+Dieses Repository enthält die **vollständige Migration** des ep3-bs Buchungssystems von **Zend Framework 2** zu **Laravel 11 + Inertia.js + Vue 3 + PrimeVue 4**.
+
+### Aktuelles System (ZF2)
+- 🏗️ Zend Framework 2, PHP 8.1
+- 🎨 Bootstrap 5 + jQuery
+- 💳 Payum (PayPal, Stripe, Klarna)
+- 📱 PWA mit manuellem Service Worker
+- 🔧 13 Module, 307 PHP-Dateien
+
+### Neues System (Laravel)
+- 🚀 Laravel 11, PHP 8.3
+- ⚡ Vue 3 + TypeScript + Inertia.js
+- 🎨 PrimeVue 4 + Tailwind CSS
+- 💳 srmklive/paypal (Primary) + Stripe (Optional)
+- 📱 Vite PWA Plugin
+- 🏗️ 10 Phasen, 456-629h Aufwand
+
+---
+
+## 🎯 Migration Status
+
+### Phase 0: Planung ✅ ABGESCHLOSSEN
+- [x] Vollständige Code-Analyse (307 PHP-Dateien)
+- [x] Migration Plan v4.1 erstellt
+- [x] Feature-Checklist (100% Parität)
+- [x] Git Branch Setup
+
+### Phase 1: Foundation 🔄 BEREIT ZUM START
+- [ ] Laravel 11 Init + Breeze
+- [ ] Eloquent Models (15 Tabellen)
+- [ ] HasMeta Trait
+- [ ] Seeders (Test Data)
+- [ ] Layout Components (PrimeVue)
+- [ ] i18n Setup (de-DE)
+- [ ] Docker (PHP 8.3-fpm + Nginx)
+
+**Geschätzte Zeit:** 60-80 Stunden
+
+### Nächste Phasen
+- Phase 2: PayPal Primary (40-60h)
+- Phase 3: Booking Flow + Subscription (110-160h)
+- Phase 4: Calendar Mobile-First (60-80h)
+- Phase 5: Backend Admin Extended (88-122h)
+- Phase 6: Loxone Door Control (20-30h)
+- Phase 6a: Content Management (18-27h)
+- Phase 7: Stripe Optional (40-60h)
+- Phase 8: PWA & Polish (20-30h)
+- Phase 9: Deployment (20-30h)
+
+---
+
+## 🚀 Quick Start
+
+### Voraussetzungen
+- PHP 8.3+
+- Composer
+- Node.js 20+
+- Docker Desktop (für lokale Entwicklung)
+
+### Installation
 
 ```bash
 # 1. Repository klonen
 git clone git@github.com:zebinho20-belenus/ep3-bs.git
 cd ep3-bs
 
-# 2. Konfiguration erstellen
-cp .env.example .env                                        # Docker-Umgebungsvariablen anpassen
-cp config/autoload/local.php.dist config/autoload/local.php # DB, Mail, Payment-Keys
-cp config/autoload/project.php.dist config/autoload/project.php # URLs, Session, Features
+# 2. Zum Migration Branch wechseln
+git checkout dev_sh_laravel_migration
 
-# 3. Starten
-docker compose build
-docker compose up -d
+# 3. Laravel 11 in neuem Verzeichnis
+mkdir ep3-bs-laravel && cd ep3-bs-laravel
+composer create-project laravel/laravel . "11.*"
 
-# 4. PHP-Abhaengigkeiten (im Container)
-docker compose exec court composer update
+# 4. Dependencies installieren
+composer require inertiajs/inertia-laravel tightenco/ziggy srmklive/paypal
+npm install @inertiajs/vue3 vue @vitejs/plugin-vue
+npm install primevue primeicons @primevue/themes
+npm install tailwindcss @tailwindcss/forms
+
+# 5. Breeze Auth Scaffolding
+composer require laravel/breeze --dev
+php artisan breeze:install vue --typescript
+
+# 6. Environment Setup
+cp .env.example .env
+php artisan key:generate
+
+# 7. Datenbank konfigurieren
+# Bearbeite .env mit deinen DB-Credentials
+# Nutze die bestehende bs_* Datenbank (keine Schema-Änderungen!)
+
+# 8. NPM Build
+npm install
+npm run dev
+
+# 9. Laravel starten
+php artisan serve
 ```
 
-Die App ist dann erreichbar unter:
-- **App**: https://court.localhost (selbstsigniertes Zertifikat)
-- **Traefik-Dashboard**: http://localhost:8080
-- **MailHog** (E-Mail-Test): http://localhost:8025
+App läuft auf: `http://localhost:8000`
 
-## Architektur
+---
 
-**PHP 8.1 / Zend Framework 2 MVC** mit Entity-Manager-Service-Pattern:
+## 📚 Dokumentation
+
+| Dokument | Beschreibung |
+|----------|--------------|
+| [**MIGRATION-PLAN.md**](MIGRATION-PLAN.md) | 📋 Vollständiger Migrationsplan (10 Phasen, Code-Beispiele) |
+| [**FEATURE-CHECKLIST.md**](FEATURE-CHECKLIST.md) | ✅ IST/SOLL Feature-Abgleich (100% Parität) |
+| [**CLAUDE.md**](CLAUDE.md) | 📖 ZF2-System Dokumentation + Migration-Infos |
+
+---
+
+## 🎨 Technologie-Stack
+
+### Backend
+- **Framework:** Laravel 11
+- **PHP:** 8.3
+- **ORM:** Eloquent
+- **Auth:** Laravel Breeze (Session-based)
+- **API:** Keine (Inertia.js SSR-like SPA)
+
+### Frontend
+- **Framework:** Vue 3 + TypeScript
+- **UI Library:** PrimeVue 4 (Aura Theme)
+- **CSS:** Tailwind CSS 3
+- **Build:** Vite
+- **SPA Bridge:** Inertia.js
+
+### Payment
+- **Primary:** PayPal (`srmklive/paypal`)
+- **Optional:** Stripe (`stripe/stripe-php`)
+- **Optional:** Klarna (Direct API)
+
+### DevOps
+- **Docker:** PHP 8.3-fpm + Nginx
+- **Reverse Proxy:** Traefik
+- **DB:** MariaDB 10.11
+- **Mail (Dev):** MailHog
+
+---
+
+## 🏗️ Projekt-Struktur (geplant)
 
 ```
-Entity (Datenobjekt)
-  -> Manager (CRUD, DB via TableGateway)
-    -> Service (Geschaeftslogik)
-      -> Controller (HTTP)
-        -> View (.phtml Templates)
+ep3-bs-laravel/
+├── app/
+│   ├── Models/              # Eloquent Models (User, Booking, Square, etc.)
+│   ├── Services/            # Business Logic (PricingService, BookingService, etc.)
+│   ├── Http/Controllers/    # Laravel Controllers
+│   ├── Mail/                # Mailable Classes
+│   └── Console/Commands/    # Artisan Commands
+├── resources/
+│   ├── js/
+│   │   ├── Pages/           # Inertia Pages (Vue 3)
+│   │   ├── Components/      # Vue Components
+│   │   └── Composables/     # Vue Composables
+│   ├── css/                 # Tailwind CSS
+│   └── views/               # Blade Templates (nur für Emails)
+├── routes/
+│   ├── web.php              # Inertia Routes
+│   └── api.php              # Webhooks only
+├── database/
+│   ├── migrations/          # Laravel Migrations (map to existing bs_* tables)
+│   └── seeders/             # Seeders
+└── tests/
+    ├── Unit/                # Unit Tests (Services)
+    └── Feature/             # Feature Tests (Controllers, Flow)
 ```
 
-### Module
+---
 
-| Modul | Aufgabe |
-|-------|---------|
-| **Base** | Kern-Utilities, AbstractEntity/Manager, View-Helpers, Mail-Service |
-| **Backend** | Admin-Dashboard: Benutzer-, Buchungs-, Systemverwaltung |
-| **Booking** | Buchungserstellung, Billing, E-Mail-Benachrichtigungen |
-| **Square** | Platz-Definitionen, oeffentliche Buchungs-UI |
-| **Calendar** | Kalender-Widget |
-| **Event** | Veranstaltungen und Platzsperren |
-| **Frontend** | Oeffentliche Startseite mit Kalender |
-| **User** | Authentifizierung, Kontoverwaltung |
-| **Payment** | Payum-Integration (PayPal, Stripe, Klarna), Webhooks |
-| **SquareControl** | Tuercode-Generierung fuer Loxone MiniServer |
+## ✨ Features (100% Parität)
 
-### Frontend-Technologie
+### Buchungssystem
+- ✅ Single Bookings
+- ✅ **Subscription Bookings** (wöchentlich/14-tägig)
+- ✅ Multi-Slot Reservations
+- ✅ Collision Detection
+- ✅ Booking Range (Multi-Buchungen)
 
-- **Bootstrap 5.3.3** (lokal geladen)
-- **jQuery + jQuery UI** (Kalender, Datepicker, Squarebox-Popup)
-- **Custom CSS** in `public/css/app.css` mit Design-Tokens
-- **PWA** via Service Worker (`public/js/sw.js` + `manifest.json`)
+### Preisgestaltung
+- ✅ 4-way Matrix (Member/Non-Member/Guest)
+- ✅ Time-based Pricing Rules
+- ✅ Date/Day Range Pricing
 
-## Docker-Setup
+### Payment
+- ✅ **PayPal Primary** (80% der Nutzer)
+- ✅ Stripe Optional (Card, SEPA, iDEAL, giropay)
+- ✅ Klarna Optional
+- ✅ Budget-System (Prepaid, Refunds)
 
-Ein einzelnes `Dockerfile` (PHP 8.1-apache) fuer DEV und PROD, gesteuert ueber `.env`:
+### Loxone Integration
+- ✅ Door Code Generation (4-stellig)
+- ✅ HTTP API Calls
+- ✅ Lifecycle Management
+
+### Backend Admin
+- ✅ Responsive Booking List (13→5 Spalten auf Mobile)
+- ✅ **Backend Bills Editor** (Inline Editing)
+- ✅ User Management (Budget Admin)
+- ✅ Event CRUD
+- ✅ Pricing UI
+- ✅ **TinyMCE Rich Text Editor**
+- ✅ **File Upload** (Square Images)
+
+### Kalender
+- ✅ **Mobile-First** (Day/3-Day/Week Views)
+- ✅ Touch Gestures (Swipe Navigation)
+- ✅ CSS Grid (keine DOM Overlays)
+- ✅ Event Overlays
+
+### Email-Benachrichtigungen
+- ✅ iCal-Anhang
+- ✅ Itemized Bill
+- ✅ Budget-Info
+- ✅ Türcode
+
+### Infrastruktur
+- ✅ PWA (Vite PWA Plugin)
+- ✅ Multi-Language (de-DE, en-US, fr-FR, hu-HU)
+
+---
+
+## 📊 Aufwands-Übersicht
+
+| Phase | Stunden | Status |
+|-------|---------|--------|
+| 1. Foundation | 60-80 | ⏳ Bereit |
+| 2. PayPal | 40-60 | ⏸️ Warten |
+| 3. Booking Flow + Subscription | 110-160 | ⏸️ Warten |
+| 4. Calendar | 60-80 | ⏸️ Warten |
+| 5. Backend Admin Extended | 88-122 | ⏸️ Warten |
+| 6. Door Control | 20-30 | ⏸️ Warten |
+| 6a. Content Management | 18-27 | ⏸️ Warten |
+| 7. Stripe (optional) | 40-60 | ⏸️ Optional |
+| 8. PWA & Polish | 20-30 | ⏸️ Warten |
+| 9. Deployment | 20-30 | ⏸️ Warten |
+
+**Gesamt (ohne Stripe):** 456-629h (~11-16 Wochen Vollzeit)  
+**Gesamt (mit Stripe):** 496-689h (~12-17 Wochen Vollzeit)
+
+---
+
+## 🔧 Git-Workflow
+
+### Branches
+
+```
+master                          # Production (ZF2)
+├── dev_sh_docker_devops        # Current ZF2 system (DO NOT PUSH!)
+└── dev_sh_laravel_migration    # Laravel Migration (MAIN BRANCH)
+    ├── feature/phase-1-foundation
+    ├── feature/phase-2-paypal
+    ├── feature/phase-3-booking-flow-subscription
+    └── ...
+```
+
+### Feature-Branch Workflow
 
 ```bash
-# Lokal (mit Traefik, Xdebug, MailHog):
-docker compose up -d
+# 1. Neuen Feature-Branch erstellen
+git checkout dev_sh_laravel_migration
+git pull
+git checkout -b feature/phase-1-models
 
-# Produktion (ohne lokalen Traefik, nutzt externen):
-docker compose -f docker-compose.yml up -d
+# 2. Arbeiten...
+git add .
+git commit -m "[Phase 1] Add Eloquent Models for bs_* tables"
 
-# DEV-Server (neben Produktion):
-docker compose -f docker-compose.dev-server.yml up -d
+# 3. Push + PR erstellen
+git push -u origin feature/phase-1-models
+
+# 4. Nach Review: Merge zu dev_sh_laravel_migration
+git checkout dev_sh_laravel_migration
+git merge feature/phase-1-models
+git push
 ```
 
-| Service | Port | Zweck |
-|---------|------|-------|
-| traefik | 80, 443, 8080 | Reverse-Proxy mit HTTPS |
-| court | (via Traefik) | PHP 8.1 Apache |
-| mariadb | 3306 | Datenbank |
-| mailhog | 8025 | E-Mail-Testing |
+**⚠️ WICHTIG:** NIEMALS in `dev_sh_docker_devops` pushen während der Migration!
 
-**DEV vs PROD**: `INSTALL_XDEBUG=true/false` in `.env`
+---
 
-**Hinweis**: `vendor/` ist im Git committed (Produktion-Workflow). Composer wird **nicht** im Docker-Build ausgefuehrt.
+## 🧪 Testing
 
-## Zahlungssystem
+### Strategie
 
-### PayPal
-PayPal-Konto erstellen (zuerst Sandbox, dann Live). NVP/SOAP-Credentials (Username, Password, Signature) in `config/autoload/local.php` eintragen.
+| Test-Art | Tool | Coverage |
+|----------|------|----------|
+| Unit Tests | PHPUnit/Pest | Services (Pricing, Budget, Booking) |
+| Feature Tests | PHPUnit/Pest | Controllers, Flow (Booking, Payment) |
+| E2E Tests | Cypress | Full User Flow (Calendar → Payment) |
+| Manual | Browser | Mobile (iOS Safari, Chrome Android) |
 
-### Stripe
-Stripe-Konto erstellen, API-Keys (publishable + secret) in `config/autoload/local.php`. Gewuenschte Zahlungsmethoden im Stripe-Dashboard aktivieren.
+### Ausführung
 
-**Webhook** fuer asynchrone Zahlungen (SEPA etc.):
-- URL: `https://<domain>/payment/booking/webhook`
-- Events: `payment_intent.canceled`, `payment_intent.payment_failed`, `payment_intent.succeeded`
+```bash
+# Unit + Feature Tests
+php artisan test
 
-**Apple Pay**: Domain im Stripe-Dashboard verifizieren.
+# Mit Coverage
+php artisan test --coverage
 
-### Klarna
-Ueber Stripe als Zahlungsmethode verfuegbar.
-
-### Unbezahlte Buchungen entfernen
-Automatisches Loeschen via MySQL Scheduled Event (alle 15 Min, Buchungen aelter als 3 Stunden mit `directpay=true` und `status_billing=pending`):
-
-```sql
-SET GLOBAL event_scheduler = ON;
-CREATE EVENT remove_unpaid_bookings
-  ON SCHEDULE EVERY 15 MINUTE ON COMPLETION PRESERVE
-  DO DELETE FROM bs_bookings
-     WHERE status = 'single'
-       AND status_billing = 'pending'
-       AND created < (NOW() - INTERVAL 3 HOUR)
-       AND bid IN (SELECT bid FROM bs_bookings_meta
-                   WHERE `key` = 'directpay' AND `value` = 'true');
+# E2E Tests (Cypress)
+npm run cypress:open
 ```
 
-## Budget-System (Guthaben)
+---
 
-Benutzer koennen ein Prepaid-Guthaben haben (z.B. fuer Geschenkgutscheine). Verwaltung im Backend unter Benutzer-Bearbeitung.
+## 📝 Contributing
 
-- Budget deckt vollen Betrag ab: direkte Buchung ohne Payment-Gateway
-- Budget deckt Teilbetrag ab: Restbetrag ueber PayPal/Stripe/Klarna
-- Budget wird bei Stornierung/Loeschung zurueckerstattet
+### Commit Convention
 
-## Mitglieder-/Gast-Preise
+```
+[Phase X] Type: Short description
 
-Preisregeln in `bs_squares_pricing` mit `member`-Spalte:
-- **Mitglieder**: Mitgliederpreis (z.B. kostenlos)
-- **Nicht-Mitglieder**: voller Preis
-- **Mitglied mit Gast**: 50% des Nicht-Mitglieder-Preises
-- **Nicht-Mitglied mit Gast**: voller Preis (kein Rabatt)
+- Detail 1
+- Detail 2
 
-## Konfiguration
+Closes #123
+```
 
-| Datei | Zweck |
-|-------|-------|
-| `.env` | Docker-Umgebungsvariablen (Ports, DB-Credentials, Xdebug) |
-| `config/autoload/local.php` | DB, Mail, Payment-API-Keys |
-| `config/autoload/project.php` | URLs, Session, Payment-Toggles, Features |
-| `config/init.php` | Dev-Modus, Timezone, Error-Reporting |
+**Types:**
+- `[Phase 1]` Foundation
+- `[Phase 2]` PayPal
+- `[Phase 3]` Booking Flow
+- etc.
 
-Alle `.dist`-Dateien enthalten Docker-kompatible Defaults.
+### Code Style
 
-**Wichtig**: Nach DB-Import pruefen, dass `bs_squares_pricing.date_end` das aktuelle Datum abdeckt, sonst werden keine Zahlungsoptionen angezeigt.
+```bash
+# PHP (Laravel Pint)
+./vendor/bin/pint
 
-## Stripe-Templates
+# TypeScript/Vue (ESLint)
+npm run lint
 
-Die Stripe-Checkout-Seiten koennen ueber Twig-Templates angepasst werden:
-- `vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_js.html.twig`
-- `vendor/payum/stripe/Payum/Stripe/Resources/views/Action/stripe_confirm.html.twig`
+# TypeScript Type Check
+npm run type-check
+```
 
-## Lizenz
+---
 
-Basierend auf [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs). Siehe [LICENSE](LICENSE).
+## 📞 Support & Kontakt
+
+**Fragen zur Migration?**
+- 📋 Siehe [MIGRATION-PLAN.md](MIGRATION-PLAN.md) für Details
+- ✅ Siehe [FEATURE-CHECKLIST.md](FEATURE-CHECKLIST.md) für Feature-Status
+- 📖 Siehe [CLAUDE.md](CLAUDE.md) für ZF2-Dokumentation
+
+**GitHub Repository:**
+- Production: `git@github.com:zebinho20-belenus/ep3-bs.git`
+
+---
+
+## 📜 License
+
+Proprietary - Copyright © 2026
+
+---
+
+<div align="center">
+
+**Status:** Planning Phase ✅ | **Next:** Phase 1 Foundation 🚀
+
+Made with ❤️ for Tennis Clubs
+
+[↑ Back to Top](#ep3-bs-laravel-migration)
+
+</div>
