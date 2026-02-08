@@ -11,6 +11,11 @@
         </a>
     <?php endif; ?>
 
+    <a href="<?= $this->url('frontend') ?>" class="btn btn-outline-primary btn-sm">
+        <span class="fa fa-calendar"></span>
+        <span class="symbolic-label"><?= $this->t('Calendar') ?></span>
+    </a>
+
     <a href="<?= $this->url('user/bookings') ?>" class="btn btn-outline-primary btn-sm" data-tooltip="<?= $this->userLastBookings($this->user) ?>">
         <span class="fa fa-list"></span>
         <span class="symbolic-label"><?= $this->t('My bookings') ?></span>
