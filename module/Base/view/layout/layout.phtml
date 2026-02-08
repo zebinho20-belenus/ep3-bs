@@ -47,25 +47,25 @@
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->basePath('/') ?>">
+                        <a class="nav-link" href="<?= $this->basePath('/') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('Calendar') ?>">
                             <span class="fa fa-calendar"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('Calendar') ?></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->option('client.website') ?>" target="_blank">
+                        <a class="nav-link" href="<?= $this->option('client.website') ?>" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('Our website') ?>">
                             <span class="fa fa-external-link"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('Our website') ?></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->url('service/info') ?>">
+                        <a class="nav-link" href="<?= $this->url('service/info') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->option('subject.type') ?>">
                             <span class="fa fa-info-circle"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->option('subject.type') ?></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->url('service/help') ?>">
+                        <a class="nav-link" href="<?= $this->url('service/help') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('Help') ?>">
                             <span class="fa fa-question-circle"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('Help') ?></span>
                         </a>
@@ -81,13 +81,13 @@
                     <?php $sessionUser = $this->sessionUser(); ?>
                     <?php if ($sessionUser): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->url('user/bookings') ?>">
+                        <a class="nav-link" href="<?= $this->url('user/bookings') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('My bookings') ?>">
                             <span class="fa fa-list"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('My bookings') ?></span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->url('user/settings') ?>">
+                        <a class="nav-link" href="<?= $this->url('user/settings') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('My account') ?>">
                             <span class="fa fa-user"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('My account') ?></span>
                         </a>
@@ -95,7 +95,7 @@
                     <?php endif; ?>
                     <?php if ($sessionUser && $sessionUser->can('admin.see-menu')): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->url('backend') ?>">
+                        <a class="nav-link" href="<?= $this->url('backend') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('Administration') ?>">
                             <span class="fa fa-cog"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('Administration') ?></span>
                         </a>
@@ -160,6 +160,43 @@
             console.warn('Error whilst registering service worker', err);
         });
     }
+    </script>
+
+    <script type="text/javascript">
+    /* Navbar tooltips - only show when text labels are hidden (lg screens: 992-1199px) */
+    (function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('.navbar [data-bs-toggle="tooltip"]'));
+        var tooltipList = [];
+
+        function initTooltips() {
+            // Dispose existing tooltips
+            tooltipList.forEach(function(tooltip) {
+                tooltip.dispose();
+            });
+            tooltipList = [];
+
+            // Only enable tooltips on lg screens (where text is hidden)
+            var isLgScreen = window.matchMedia('(min-width: 992px) and (max-width: 1199px)').matches;
+
+            if (isLgScreen) {
+                tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl, {
+                        trigger: 'hover focus'
+                    });
+                });
+            }
+        }
+
+        // Initialize on page load
+        initTooltips();
+
+        // Re-initialize on window resize
+        var resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(initTooltips, 150);
+        });
+    })();
     </script>
 
     </body>
