@@ -6,7 +6,65 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Fork of ep3-bs (tkrebs/ep3-bs v1.7.0) — an online booking system for courts (e.g. tennis courts) built on **Zend Framework 2**. Extended with direct payment via **Payum** (PayPal, Stripe with SCA, Klarna), PWA support, member/non-member pricing, budget/gift card system, and door code integration (Loxone MiniServer).
 
-## Build & Run Commands
+## 🚀 Migration zu Laravel 11 (v4.1)
+
+**Status:** Migration geplant im Branch `dev_sh_laravel_migration`
+
+Vollständige Migration von **Zend Framework 2** zu **Laravel 11 + Inertia.js + Vue 3 + PrimeVue 4**.
+
+### Wichtigste Dokumente:
+
+| Dokument | Zweck | Status |
+|----------|-------|--------|
+| **MIGRATION-PLAN.md** | Vollständiger Migrationsplan (10 Phasen, 456-629h) | ✅ Final v4.1 |
+| **FEATURE-CHECKLIST.md** | IST/SOLL Feature-Abgleich (100% Parität) | ✅ Komplett |
+| **CLAUDE.md** | Dokumentation aktuelles ZF2-System | ✅ Dieses Dokument |
+
+### Technologie-Stack (SOLL):
+
+| Layer | ZF2 (IST) | Laravel (SOLL) |
+|-------|-----------|----------------|
+| Backend | Zend Framework 2, PHP 8.1 | **Laravel 11, PHP 8.3** |
+| Frontend | Bootstrap 5 + jQuery | **Vue 3 + PrimeVue 4** |
+| Build | Manuell minifiziert | **Vite** |
+| Payment | Payum (PayPal/Stripe/Klarna) | **srmklive/paypal** + stripe/stripe-php |
+| PWA | Manueller Service Worker | **Vite PWA Plugin** |
+
+### Kernfeatures (100% übernommen):
+
+✅ Single + Subscription Bookings
+✅ Pricing Engine (4-way Matrix: Member/Non-Member/Guest)
+✅ Budget-System (Prepaid, Refunds)
+✅ PayPal Primary + Stripe Optional
+✅ Loxone Door Control
+✅ Email-Benachrichtigungen (iCal)
+✅ Responsive Calendar (Mobile-First)
+✅ Backend Admin (Booking Range, Bills Editor)
+✅ TinyMCE Rich Text Editor
+✅ File Upload (Images)
+
+### Aufwand:
+
+- **Ohne Stripe:** 456–629h (~11–16 Wochen Vollzeit)
+- **Mit Stripe:** 496–689h (~12–17 Wochen Vollzeit)
+
+### Git-Workflow:
+
+```bash
+# AKTUELLES System (ZF2):
+git checkout dev_sh_docker_devops
+
+# MIGRATION (Laravel):
+git checkout dev_sh_laravel_migration
+```
+
+**⚠️ WICHTIG:** Während der Migration NIEMALS in `dev_sh_docker_devops` pushen!
+
+Siehe **MIGRATION-PLAN.md** für Details zu allen 10 Phasen.
+
+---
+
+## Build & Run Commands (ZF2 - Aktuelles System)
 
 ```bash
 # 1. Setup environment config
@@ -289,3 +347,115 @@ docker compose -f docker-compose.dev-server.yml up -d
 ## Writable Directories
 
 `data/cache/`, `data/log/`, `data/session/`, `public/docs-client/upload/`, `public/imgs-client/upload/`
+
+---
+
+## 🚀 Migration zu Laravel 11 - Nächste Schritte
+
+### Vorbereitung (bereits erledigt ✅):
+
+- ✅ Vollständige Code-Analyse (307 PHP-Dateien, 13 Module, 15 Tabellen)
+- ✅ Migration Plan v4.1 erstellt (10 Phasen, 456-629h)
+- ✅ Feature-Checklist (100% Parität)
+- ✅ Git Branch `dev_sh_laravel_migration` erstellt
+
+### Phase 1: Foundation (Start) - 60–80h
+
+```bash
+# 1. Branch wechseln
+git checkout dev_sh_laravel_migration
+
+# 2. Laravel 11 Init (in neuem Verzeichnis)
+mkdir ep3-bs-laravel && cd ep3-bs-laravel
+composer create-project laravel/laravel . "11.*"
+
+# 3. Packages installieren
+composer require inertiajs/inertia-laravel tightenco/ziggy srmklive/paypal
+npm install @inertiajs/vue3 vue @vitejs/plugin-vue
+npm install primevue primeicons @primevue/themes
+npm install tailwindcss @tailwindcss/forms
+
+# 4. Breeze (Auth Scaffolding)
+composer require laravel/breeze --dev
+php artisan breeze:install vue --typescript
+
+# 5. Erstes Commit
+git add .
+git commit -m "[Phase 1] Foundation: Laravel 11 + Breeze + Inertia + PrimeVue"
+git push
+```
+
+### Wichtigste Tasks Phase 1:
+
+1. **Eloquent Models** (15 Tabellen):
+   - User, Booking, Square, Reservation, Event
+   - Meta-Tabellen (UserMeta, BookingMeta, etc.)
+   - `HasMeta` Trait für Meta-Pattern
+
+2. **Seeders**:
+   - Faker Data für Development
+   - Test-User mit Budget
+
+3. **Layouts**:
+   - AppLayout.vue (PrimeVue Menubar)
+   - BackendLayout.vue (PrimeVue PanelMenu + Drawer)
+
+4. **i18n**:
+   - laravel-vue-i18n Setup
+   - Migration de-DE Translations
+
+5. **Docker**:
+   - PHP 8.3-fpm + Nginx
+   - docker-compose.yml anpassen
+
+### Dokumentation:
+
+| Dokument | Inhalt |
+|----------|--------|
+| **MIGRATION-PLAN.md** | Vollständiger Plan (10 Phasen mit Code-Beispielen) |
+| **FEATURE-CHECKLIST.md** | IST/SOLL Abgleich, Prioritäten |
+| **CLAUDE.md** | ZF2-System Dokumentation (dieses Dokument) |
+
+### Zeitplan (geschätzt):
+
+| Phase | Wochen | Meilenstein |
+|-------|--------|-------------|
+| 1. Foundation | 1-2 | Laravel läuft, Models verbinden zu DB |
+| 2. PayPal | 1 | Payment funktioniert |
+| 3. Booking + Subscription | 2-3 | Buchungsflow komplett |
+| 4. Calendar | 1-2 | Responsive Kalender |
+| 5. Backend Admin | 2 | Admin kann alles verwalten |
+| 6-9. Rest | 4-5 | Door Control, Content, PWA, Deploy |
+
+**Gesamt:** 11-16 Wochen Vollzeit (456-629h)
+
+### Git-Workflow während Migration:
+
+```bash
+# Feature-Branch erstellen
+git checkout dev_sh_laravel_migration
+git checkout -b feature/phase-1-foundation
+
+# Arbeiten...
+git add .
+git commit -m "[Phase 1] Task: Description"
+
+# Merge zurück
+git checkout dev_sh_laravel_migration
+git merge feature/phase-1-foundation
+git push
+```
+
+**⚠️ WICHTIG:**
+- NIEMALS in `dev_sh_docker_devops` pushen während Migration
+- Nur in `dev_sh_laravel_migration` arbeiten
+- ZF2-System bleibt funktionsfähig bis Migration komplett
+
+### Bei Fragen:
+
+Siehe **MIGRATION-PLAN.md** für:
+- Detaillierte Code-Beispiele (PHP + Vue)
+- Service Layer Mappings (ZF2 → Laravel)
+- Alle 10 Phasen mit Tasks
+- Testing-Strategie
+- Deployment-Plan
