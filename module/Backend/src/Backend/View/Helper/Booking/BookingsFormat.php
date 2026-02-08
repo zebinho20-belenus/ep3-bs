@@ -16,6 +16,9 @@ class BookingsFormat extends AbstractHelper
         $html .= '<table class="table table-bordered table-hover align-middle">';
 
         $html .= '<thead><tr>';
+        $html .= '<th data-sort-type="none" class="no-print bulk-check-col">'
+            . '<input type="checkbox" id="bulk-select-all" class="form-check-input" title="' . $view->t('Select all') . '">'
+            . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select">&nbsp;</th>';
         $html .= '<th data-sort-type="number" class="responsive-pass-5">' . $view->t('No.') . '</th>';
         $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';

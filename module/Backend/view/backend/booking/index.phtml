@@ -30,7 +30,25 @@ $this->setup(array(
 
         <?php if ($this->reservations): ?>
 
-            <?= $this->backendBookingsFormat($this->reservations, $this->dateStart, $this->dateEnd, $this->search) ?>
+            <form method="post" action="<?= $this->url('backend/booking/bulk') ?>" id="bulk-form">
+
+                <?= $this->backendBookingsFormat($this->reservations, $this->dateStart, $this->dateEnd, $this->search) ?>
+
+                <div class="edit-actions no-print" id="bulk-actions" style="display: none;">
+                    <button type="submit" name="bulk-action" value="cancel"
+                        class="default-button default-button-danger" id="bulk-cancel-btn">
+                        <span class="symbolic symbolic-cross"><?= $this->t('Cancel selected bookings') ?></span>
+                    </button>
+
+                    <?php if ($this->sessionUser && $this->sessionUser->can('admin.all')): ?>
+                        <button type="submit" name="bulk-action" value="delete"
+                            class="default-button default-button-danger" id="bulk-delete-btn">
+                            <span class="symbolic symbolic-cross"><?= $this->t('Delete selected bookings') ?></span>
+                        </button>
+                    <?php endif; ?>
+                </div>
+
+            </form>
 
         <?php else: ?>
 

@@ -113,6 +113,15 @@ return array(
                                     ),
                                 ),
                             ),
+                            'bulk' => array(
+                                'type' => 'Literal',
+                                'options' => array(
+                                    'route' => '/bulk',
+                                    'defaults' => array(
+                                        'action' => 'bulk',
+                                    ),
+                                ),
+                            ),
                             'stats' => array(
                                 'type' => 'Literal',
                                 'options' => array(

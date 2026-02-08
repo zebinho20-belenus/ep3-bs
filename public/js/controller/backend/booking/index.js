@@ -24,6 +24,43 @@
             });
         }
 
+        /* Bulk select */
+
+        var $selectAll = $("#bulk-select-all");
+        var $bulkActions = $("#bulk-actions");
+
+        function updateBulkState() {
+            var checked = $(".bulk-check:checked").length;
+            if (checked > 0) {
+                $bulkActions.show();
+            } else {
+                $bulkActions.hide();
+            }
+            var total = $(".bulk-check:visible").length;
+            $selectAll.prop("checked", checked > 0 && checked === total);
+            $selectAll.prop("indeterminate", checked > 0 && checked < total);
+        }
+
+        $selectAll.on("change", function() {
+            $(".bulk-check:visible").prop("checked", this.checked);
+            updateBulkState();
+        });
+
+        $(document).on("change", ".bulk-check", updateBulkState);
+
+        /* Confirm dialog */
+
+        $("#bulk-form").on("submit", function(e) {
+            var action = $(document.activeElement).val();
+            var count = $(".bulk-check:checked").length;
+            var msg = action === "delete"
+                ? count + " Buchung(en) endgültig löschen?"
+                : count + " Buchung(en) stornieren?";
+            if (!confirm(msg)) {
+                e.preventDefault();
+            }
+        });
+
     });
 
 })();

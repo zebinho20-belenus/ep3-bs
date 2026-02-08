@@ -57,8 +57,12 @@ class Messages extends AbstractHelper
 
         if ($html) {
             $panelClass = str_replace('phantom-panel', '', $view->placeholder('panel'));
-            $html = sprintf('<div class="%s mx-auto mb-3">%s</div>',
+            $html = sprintf('<div id="messages-wrapper" class="%s mx-auto mb-3">%s</div>',
                 trim($panelClass), $html);
+
+            $html .= '<script>document.getElementById("messages-wrapper").addEventListener("closed.bs.alert",function(){'
+                . 'if(!this.querySelector(".alert")){this.remove();}'
+                . '});</script>';
         }
 
         return $html;

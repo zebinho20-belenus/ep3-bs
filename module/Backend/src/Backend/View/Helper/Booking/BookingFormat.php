@@ -49,6 +49,12 @@ class BookingFormat extends AbstractHelper
 
         $html .= sprintf('<tr %s>', $attr);
 
+        $html .= sprintf('<td class="centered-text no-print bulk-check-col">'
+            . '<input type="checkbox" name="bulk-rids[]" value="%s" class="form-check-input bulk-check" data-status="%s">'
+            . '</td>',
+            $reservation->get('rid'),
+            $booking->need('status'));
+
         $statusMap = array(
             'single' => array('label' => 'E', 'class' => 'status-icon status-single', 'title' => $view->t('Single')),
             'subscription' => array('label' => 'A', 'class' => 'status-icon status-subscription', 'title' => $view->t('Subscription')),

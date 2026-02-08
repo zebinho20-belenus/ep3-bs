@@ -18,7 +18,7 @@ class BookingController extends AbstractActionController
 
     public function indexAction()
     {
-        $this->authorize('admin.booking');
+        $sessionUser = $this->authorize('admin.booking');
 
         $serviceManager = @$this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
@@ -71,6 +71,7 @@ class BookingController extends AbstractActionController
             'dateStart' => $dateStart,
             'dateEnd' => $dateEnd,
             'search' => $search,
+            'sessionUser' => $sessionUser,
         );
     }
 
@@ -894,6 +895,142 @@ class BookingController extends AbstractActionController
             'rid' => $rid,
             'sessionUser' => $sessionUser,
         ), null, $template);
+    }
+
+    public function bulkAction()
+    {
+        $sessionUser = $this->authorize([
+            'calendar.cancel-single-bookings', 'calendar.delete-single-bookings',
+            'calendar.cancel-subscription-bookings', 'calendar.delete-subscription-bookings']);
+
+        $serviceManager = @$this->getServiceLocator();
+        $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+        $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+        $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
+        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+        $userManager = $serviceManager->get('User\Manager\UserManager');
+
+        $rids = $this->params()->fromPost('bulk-rids', []);
+        $action = $this->params()->fromPost('bulk-action');
+
+        if (!is_array($rids) || empty($rids) || !in_array($action, ['cancel', 'delete'])) {
+            return $this->redirect()->toRoute('backend/booking');
+        }
+
+        $cancelCount = 0;
+        $deleteCount = 0;
+
+        foreach ($rids as $rid) {
+            try {
+                $reservation = $reservationManager->get($rid);
+            } catch (\Exception $e) {
+                continue;
+            }
+            if (!$reservation) {
+                continue;
+            }
+
+            try {
+                $booking = $bookingManager->get($reservation->get('bid'));
+            } catch (\Exception $e) {
+                continue;
+            }
+            if (!$booking) {
+                continue;
+            }
+
+            if ($action === 'cancel' && $booking->get('status') !== 'cancelled') {
+                $this->authorize(['calendar.cancel-single-bookings', 'calendar.cancel-subscription-bookings']);
+
+                $booking->set('status', 'cancelled');
+                $booking->setMeta('cancellor', $sessionUser->get('alias'));
+                $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+                $booking->setMeta('admin_cancelled', 'true');
+                $booking->setMeta('backend_cancelled', 'true');
+                $bookingManager->save($booking);
+
+                // Door code deactivation
+                $square = $squareManager->get($booking->get('sid'));
+                if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
+                    $squareControlService->deactivateDoorCode($booking->get('bid'));
+                }
+
+                // Budget refund
+                if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
+                    $booking->setMeta('refunded', 'true');
+                    $bookingManager->save($booking);
+
+                    $user = $userManager->get($booking->get('uid'));
+
+                    $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+                    $total = 0;
+                    if ($bills) {
+                        foreach ($bills as $bill) {
+                            $total += $bill->need('price');
+                        }
+                    }
+
+                    $olduserbudget = $user->getMeta('budget');
+                    if ($olduserbudget == null || $olduserbudget == '') {
+                        $olduserbudget = 0;
+                    }
+
+                    $newbudget = ($olduserbudget * 100 + $total) / 100;
+                    $user->setMeta('budget', $newbudget);
+                    $userManager->save($user);
+                }
+
+                // Send cancellation email
+                try {
+                    $user = $userManager->get($booking->get('uid'));
+                    $this->sendAdminCancellationEmail($booking, $user);
+                } catch (\Exception $e) {
+                    // Continue despite errors
+                }
+
+                $cancelCount++;
+
+            } elseif ($action === 'delete' && $booking->get('status') === 'cancelled') {
+                $this->authorize('admin.all');
+
+                // Budget refund before deletion (if not already refunded)
+                if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
+                    $user = $userManager->get($booking->get('uid'));
+
+                    $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+                    $total = 0;
+                    if ($bills) {
+                        foreach ($bills as $bill) {
+                            $total += $bill->need('price');
+                        }
+                    }
+
+                    $olduserbudget = $user->getMeta('budget');
+                    if ($olduserbudget == null || $olduserbudget == '') {
+                        $olduserbudget = 0;
+                    }
+
+                    $newbudget = ($olduserbudget * 100 + $total) / 100;
+                    $user->setMeta('budget', $newbudget);
+                    $userManager->save($user);
+                }
+
+                $bookingManager->delete($booking);
+                $deleteCount++;
+            }
+        }
+
+        if ($cancelCount > 0) {
+            $this->flashMessenger()->addSuccessMessage(
+                sprintf($this->t('%d booking(s) have been cancelled'), $cancelCount));
+        }
+        if ($deleteCount > 0) {
+            $this->flashMessenger()->addSuccessMessage(
+                sprintf($this->t('%d booking(s) have been deleted'), $deleteCount));
+        }
+
+        return $this->redirect()->toRoute('backend/booking');
     }
 
     public function statsAction()
