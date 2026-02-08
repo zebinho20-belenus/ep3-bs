@@ -79,6 +79,20 @@
                     </li>
                     */ ?>
                     <?php $sessionUser = $this->sessionUser(); ?>
+                    <?php if ($sessionUser): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $this->url('user/bookings') ?>">
+                            <span class="fa fa-list"></span>
+                            <span class="d-lg-none d-xl-inline"><?= $this->t('My bookings') ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= $this->url('user/settings') ?>">
+                            <span class="fa fa-user"></span>
+                            <span class="d-lg-none d-xl-inline"><?= $this->t('My account') ?></span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <?php if ($sessionUser && $sessionUser->can('admin.see-menu')): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $this->url('backend') ?>">
