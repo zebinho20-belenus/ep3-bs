@@ -60,9 +60,15 @@ class Messages extends AbstractHelper
             $html = sprintf('<div id="messages-wrapper" class="%s mx-auto mb-3">%s</div>',
                 trim($panelClass), $html);
 
-            $html .= '<script>document.getElementById("messages-wrapper").addEventListener("closed.bs.alert",function(){'
-                . 'if(!this.querySelector(".alert")){this.remove();}'
-                . '});</script>';
+            $html .= '<script>'
+                . '(function(){'
+                . 'var w=document.getElementById("messages-wrapper");'
+                . 'if(!w)return;'
+                . 'w.addEventListener("closed.bs.alert",function(){'
+                . 'setTimeout(function(){if(w&&!w.querySelector(".alert")){w.remove();}},150);'
+                . '});'
+                . '})();'
+                . '</script>';
         }
 
         return $html;
