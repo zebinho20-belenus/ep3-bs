@@ -54,19 +54,19 @@ return array(
     'Should you have any questions and commentaries, please contact us through Email - %s' => 'Sollten Sie noch Fragen bzw. Anregungen haben, informieren sie bitte unser Supportteam unter %s',
     '%sPayment and admittance temporarily at %s!%s' => '%sBezahlung und Einlass vorübergehend bei %s!%s',
     '%sSorry online booking not possible at the moment!%s' => '%sEntschuldigung im Augenblick ist keine online Buchung möglich!%s',
-    'Please transfer the amount as a PayPal friends payment to platzbuchung@tcn-kail.de or use the Money letterbox at the office' => 'Bitte transferieren Sie den Betrag als PayPal Friends & Family Zahlung an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro',
-    'Please pay the price of the booking via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro',
+    'Please transfer the amount as a PayPal friends payment to payment@your-domain.com or use the Money letterbox at the office' => 'Bitte transferieren Sie den Betrag als PayPal Friends & Family Zahlung an payment@your-domain.com oder nutzen Sie den Geldbriefkasten beim Büro',
+    'Please pay the price of the booking via PayPal Friends & Family to payment@your-domain.com or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an payment@your-domain.com oder nutzen Sie den Geldbriefkasten beim Büro',
     'Guest booking: You can pay now via PayPal or choose to pay later.' => 'Gastbuchung: Sie können jetzt per PayPal bezahlen oder später zahlen.',
     'Pay later' => 'Später zahlen',
 
     'Guest booking info' => 'Gastbuchung Info',
     'As a member with a guest, you pay half the court fee. You can pay directly via PayPal or later at the office.'
         => 'Als Mitglied mit Gast zahlen Sie den halben Platzpreis. Sie können direkt per PayPal bezahlen oder später im Büro.',
-    'Please pay the booking amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.'
-        => 'Bitte bezahlen Sie den Buchungsbetrag per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro.',
+    'Please pay the booking amount via PayPal Friends & Family to payment@your-domain.com or use the money letterbox at the office.'
+        => 'Bitte bezahlen Sie den Buchungsbetrag per PayPal Friends & Family an payment@your-domain.com oder nutzen Sie den Geldbriefkasten beim Büro.',
     'Payment instructions:' => 'Zahlungshinweise:',
-    'Please transfer the amount via PayPal Friends & Family to platzbuchung@tcn-kail.de or use the money letterbox at the office.'
-        => 'Bitte überweisen Sie den Betrag per PayPal Friends & Family an platzbuchung@tcn-kail.de oder nutzen Sie den Geldbriefkasten beim Büro.',
+    'Please transfer the amount via PayPal Friends & Family to payment@your-domain.com or use the money letterbox at the office.'
+        => 'Bitte überweisen Sie den Betrag per PayPal Friends & Family an payment@your-domain.com oder nutzen Sie den Geldbriefkasten beim Büro.',
     'The booking is only valid after payment is completed.'
         => 'Die Buchung ist erst nach vollständiger Bezahlung gültig.',
     'Payment status:' => 'Zahlungsstatus:',
