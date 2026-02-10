@@ -108,14 +108,14 @@ Defined in each module's `config/module.config.php`. Key routes:
 **View helpers** (Base module, registered in `module/Base/config/module.config.php`):
 - Form helpers: `FormDefault`, `FormRowDefault`, `FormRowSubmit`, `FormRowCheckbox`, `FormRowCompact`, `FormElementErrors`, `FormElementNotes`
 - Layout helpers: `HeaderLocaleChoice`, `SessionUser` (provides logged-in user to layout for admin nav)
-- Display helpers: `Message`, `Messages`, `Tabs`, `Links`, `Setup`
+- Display helpers: `Message`, `Messages`, `Tabs`, `Links` (accepts `$position`: `'top'` or `'bottom'`), `Setup`
 
 **Form helper output** (important for layout decisions):
 - `FormRowDefault` → `<div class="mb-3"><label class="form-label">...</label><div><input class="form-control">...</div></div>` — use directly in BS5 grid, do NOT wrap in `<table>`
 - `FormRowCompact` → same but with `form-control-sm`/`form-select-sm` and `mb-2` — for compact forms in sandboxes
 - `FormRowSubmit` → `<div class="mb-3"><input class="btn btn-primary"></div>`
 
-**Layout** (`module/Base/view/layout/layout.phtml`): BS5 navbar + `container-xl` + footer. Content wrapped in `.content-panel` div with panel class from `$this->placeholder('panel')` (e.g. `centered-panel`, `phantom-panel`).
+**Layout** (`module/Base/view/layout/layout.phtml`): BS5 navbar + `container-xl` + footer. Content wrapped in `.content-panel` div with panel class from `$this->placeholder('panel')` (e.g. `centered-panel`, `phantom-panel`). Navigation links (`$this->links()`) rendered both above (`'top'`: `border-bottom`) and below (`'bottom'`: `border-top`) the content panel (#52). Pages without links placeholders render nothing.
 
 **Squarebox (calendar popup)**: jQuery-based modal loaded via AJAX. Two modes:
 - **Desktop** (`squarebox-desktop` class): `position: absolute`, `max-width: 720px`, 2-column CSS grid layout for the booking form (4 sections in 2x2 grid). Centered via jQuery UI `.position()`.
@@ -185,7 +185,12 @@ Email includes: booking details, player names, itemized bill, payment informatio
 
 ### Backend Booking Management
 
-**Booking list** (`/backend/booking`): Sortable table (panel: `giant-sized`, 1280px) with 13 columns. Uses `table-layout: fixed` with progressive column hiding via `responsive-pass-*` CSS classes. Action links are icon-only with `title` tooltips.
+**Booking list** (`/backend/booking`): Sortable table (panel: `giant-sized`, 1280px) with 13 columns. Uses `table-layout: fixed` with progressive column hiding via `responsive-pass-*` CSS classes. Action links are icon-only with `title` tooltips. Time column uses compact format `08:00-09:00` (no "bis"/"Uhr").
+
+**Column width classes** (CSS on both `<th>` and `<td>`):
+- `.status-col` 3rem, `.nr-col` 3rem, `.member-col` 3.5rem, `.court-col` 5rem, `.price-col` 4.5rem, `.budget-col` 5rem
+- `.notes-col` auto-width (no max-width constraint), `.bulk-check-col` 36px
+- Remaining columns (Name, Day, Date, Time, Billing, Actions) auto-size with leftover space
 
 **Column visibility by breakpoint**:
 - ≥1536px: all 13 columns

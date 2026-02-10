@@ -7,7 +7,7 @@ use Zend\View\Helper\AbstractHelper;
 class Links extends AbstractHelper
 {
 
-    public function __invoke()
+    public function __invoke($position = 'bottom')
     {
         $view = $this->getView();
         $html = '';
@@ -34,7 +34,11 @@ class Links extends AbstractHelper
         }
 
         if ($html) {
-            $html = '<nav class="links-nav mt-4 pt-3 border-top border-secondary-subtle text-center no-print">' . $html . '</nav>';
+            if ($position === 'top') {
+                $html = '<nav class="links-nav mb-3 pb-3 border-bottom border-secondary-subtle text-center no-print">' . $html . '</nav>';
+            } else {
+                $html = '<nav class="links-nav mt-4 pt-3 border-top border-secondary-subtle text-center no-print">' . $html . '</nav>';
+            }
         }
 
         return $html;
