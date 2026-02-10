@@ -335,11 +335,17 @@ th.sortable.sort-desc::after { content: '\2193'; color: var(--bs-primary); }
 /* Column filter row */
 .filter-row td { padding: 0.25rem 0.375rem; background-color: #f8f9fa; }
 .col-filter { font-size: 0.75rem !important; padding: 0.15rem 0.3rem !important; }
+select.col-filter { padding-right: 1.5rem !important; background-size: 10px; }
 .col-filter:focus { border-color: var(--bs-primary); box-shadow: 0 0 0 0.15rem rgba(4, 107, 210, 0.2); }
 
 /* Compact column styles */
-.table .status-col { width: 2.5rem; white-space: nowrap; }
-.table .notes-col { max-width: 100px; white-space: normal; overflow: hidden; text-overflow: ellipsis; }
+.table .status-col { width: 3rem; white-space: nowrap; }
+.table .nr-col { width: 3rem; }
+.table .member-col { width: 3.5rem; }
+.table .court-col { width: 5rem; }
+.table .price-col { width: 4.5rem; }
+.table .budget-col { width: 5rem; }
+.table .notes-col { white-space: normal; overflow: hidden; text-overflow: ellipsis; }
 .table .email-col { max-width: 140px; }
 .table .bulk-check-col { width: 36px; text-align: center; }
 .table .actions-col { white-space: nowrap; }

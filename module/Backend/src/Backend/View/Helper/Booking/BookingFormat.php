@@ -66,7 +66,7 @@ class BookingFormat extends AbstractHelper
         $html .= sprintf('<td class="status-col centered-text"><span class="%s" title="%s">%s</span></td>',
             $statusInfo['class'], $statusInfo['title'], $statusInfo['label']);
 
-        $html .= sprintf('<td class="responsive-pass-5">%s</td>',
+        $html .= sprintf('<td class="nr-col responsive-pass-5">%s</td>',
             $booking->need('bid'));
 
         if ($booking->getExtra('user')) {
@@ -86,11 +86,11 @@ class BookingFormat extends AbstractHelper
         }
 
         if ($member) {
-        $html .= sprintf('<td class="responsive-pass-2">%s</td>',
+        $html .= sprintf('<td class="member-col responsive-pass-2">%s</td>',
             $view->t('Yes'));
         }
         else {
-        $html .= sprintf('<td class="responsive-pass-2">%s</td>',
+        $html .= sprintf('<td class="member-col responsive-pass-2">%s</td>',
             $view->t('No'));
         }
 
@@ -108,7 +108,7 @@ class BookingFormat extends AbstractHelper
             $view->dateFormat($date, \IntlDateFormatter::MEDIUM));
 
         $html .= sprintf('<td>%s</td>',
-            $view->timeRange($reservation->get('time_start'), $reservation->get('time_end'), '%s to %s'));
+            substr($reservation->get('time_start'), 0, 5) . '-' . substr($reservation->get('time_end'), 0, 5));
 
         /* Square col */
 
@@ -118,7 +118,7 @@ class BookingFormat extends AbstractHelper
             $squareName = '-';
         }
 
-        $html .= sprintf('<td class="responsive-pass-4">%s</td>',
+        $html .= sprintf('<td class="court-col responsive-pass-4">%s</td>',
             $squareName);
 
         /* Notes col */
@@ -150,7 +150,7 @@ class BookingFormat extends AbstractHelper
            }
         }
 
-        $html .= sprintf('<td class="responsive-pass-5">%s</td>',
+        $html .= sprintf('<td class="price-col responsive-pass-5">%s</td>',
             $view->priceFormat($price));
 
         /* Billing status col */
@@ -188,18 +188,18 @@ class BookingFormat extends AbstractHelper
 
         if ($budgetPayment === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
             $deducted = floatval($budgetBefore) - floatval($budgetAfter);
-            $html .= sprintf('<td class="responsive-pass-3"><span class="billing-badge billing-paid">%s</span></td>',
+            $html .= sprintf('<td class="budget-col responsive-pass-3"><span class="billing-badge billing-paid">%s</span></td>',
                 number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
         } elseif ($hasBudget === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
             $deducted = floatval($budgetBefore) - floatval($budgetAfter);
             if ($deducted > 0) {
-                $html .= sprintf('<td class="responsive-pass-3"><span class="billing-badge billing-pending">%s</span></td>',
+                $html .= sprintf('<td class="budget-col responsive-pass-3"><span class="billing-badge billing-pending">%s</span></td>',
                     number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
             } else {
-                $html .= '<td class="responsive-pass-3">-</td>';
+                $html .= '<td class="budget-col responsive-pass-3">-</td>';
             }
         } else {
-            $html .= '<td class="responsive-pass-3">-</td>';
+            $html .= '<td class="budget-col responsive-pass-3">-</td>';
         }
 
         /* Actions col */

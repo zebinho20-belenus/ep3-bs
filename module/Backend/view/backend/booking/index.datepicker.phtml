@@ -29,10 +29,10 @@ if (! ($this->dateStart || $this->dateEnd)) {
                        class="form-control form-control-sm datepicker" style="width: 120px;">
             </div>
 
-            <div>
+            <div style="flex: 1; min-width: 180px;">
                 <label for="bs-filter" class="form-label small text-muted mb-1"><?= $this->t('Filter') ?></label>
                 <div class="d-flex align-items-center gap-1">
-                    <input type="text" name="search" id="bs-filter" value="<?= $this->search ?>" class="form-control form-control-sm" style="width: 180px;">
+                    <input type="text" name="search" id="bs-filter" value="<?= $this->search ?>" class="form-control form-control-sm">
                     <a href="#" id="bs-filters-help" class="unlined gray">
                         <i class="symbolic symbolic-info symbol-shifted"></i>
                     </a>
