@@ -337,6 +337,16 @@ function updateCalendarEvents() {
 
 **Note:** This issue was initially misdiagnosed as being caused by flash message wrapper removal. Extensive debugging (including removing all flash wrapper JS) proved the calendar JS was the actual culprit.
 
+### Backend Booking List Out-of-Range Abo Reservations (Fixed Feb 2026, #47)
+
+**Problem:** Backend booking list (`/backend/booking`) showed too many rows when searching by date range. Subscription (Abo) bookings with reservations outside the date range appeared in the table, causing wrong row counts and broken column filters.
+
+**Root Cause:** In `Backend\BookingController::indexAction()`, after finding bookings with reservations in the date range, `getByBookings($bookings)` re-fetches ALL reservations for matched bookings — including those outside the date range. For Abo bookings with weekly reservations spanning months, this brought back dozens of extra rows.
+
+**Solution:** Added `array_filter()` after `getByBookings()` to remove reservations whose date falls outside `[$dateStart, $dateEnd]`.
+
+**File changed:** `module/Backend/src/Backend/Controller/BookingController.php` (lines 61-69)
+
 ## Writable Directories
 
 `data/cache/`, `data/log/`, `data/session/`, `public/docs-client/upload/`, `public/imgs-client/upload/`
