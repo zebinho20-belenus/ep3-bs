@@ -19,7 +19,7 @@ class BookingsFormat extends AbstractHelper
         $html .= '<th data-sort-type="none" class="no-print bulk-check-col">'
             . '<input type="checkbox" id="bulk-select-all" class="form-check-input" title="' . $view->t('Select all') . '">'
             . '</th>';
-        $html .= '<th data-sort-type="text" data-filter-type="select">' . $view->t('Status') . '</th>';
+        $html .= '<th data-sort-type="text" data-filter-type="select" class="status-col">' . $view->t('Status') . '</th>';
         $html .= '<th data-sort-type="number" class="nr-col responsive-pass-5">' . $view->t('No.') . '</th>';
         $html .= '<th data-sort-type="text">' . $view->t('Name') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="member-col responsive-pass-2">' . $view->t('Member') . '</th>';
@@ -30,7 +30,6 @@ class BookingsFormat extends AbstractHelper
         $html .= '<th data-sort-type="text" class="notes-col responsive-pass-3">' . $view->t('Notes') . '</th>';
         $html .= '<th data-sort-type="price" class="price-col responsive-pass-5">' . $view->t('Price') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-2">' . $view->t('Billing status') . '</th>';
-        $html .= '<th data-sort-type="text" data-filter-type="select" class="budget-col responsive-pass-3">' . $view->t('Budget') . '</th>';
         $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
         $html .= '</tr></thead>';
 

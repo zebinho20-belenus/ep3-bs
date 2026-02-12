@@ -151,7 +151,7 @@ class BookingFormat extends AbstractHelper
         }
 
         $html .= sprintf('<td class="price-col responsive-pass-5">%s</td>',
-            $view->priceFormat($price));
+            $view->currencyFormat($price / 100));
 
         /* Billing status col */
 
@@ -177,29 +177,6 @@ class BookingFormat extends AbstractHelper
             $html .= sprintf('<td class="responsive-pass-2"><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
         } else {
             $html .= '<td class="responsive-pass-2">-</td>';
-        }
-
-        /* Budget col */
-
-        $budgetPayment = $booking->getMeta('budgetpayment');
-        $hasBudget = $booking->getMeta('hasBudget');
-        $budgetBefore = $booking->getMeta('budget');
-        $budgetAfter = $booking->getMeta('newbudget');
-
-        if ($budgetPayment === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
-            $deducted = floatval($budgetBefore) - floatval($budgetAfter);
-            $html .= sprintf('<td class="budget-col responsive-pass-3"><span class="billing-badge billing-paid">%s</span></td>',
-                number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
-        } elseif ($hasBudget === 'true' && $budgetBefore !== null && $budgetAfter !== null) {
-            $deducted = floatval($budgetBefore) - floatval($budgetAfter);
-            if ($deducted > 0) {
-                $html .= sprintf('<td class="budget-col responsive-pass-3"><span class="billing-badge billing-pending">%s</span></td>',
-                    number_format($deducted, 2, ',', '.') . '&nbsp;&euro;');
-            } else {
-                $html .= '<td class="budget-col responsive-pass-3">-</td>';
-            }
-        } else {
-            $html .= '<td class="budget-col responsive-pass-3">-</td>';
         }
 
         /* Actions col */

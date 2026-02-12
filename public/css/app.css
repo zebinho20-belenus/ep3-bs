@@ -344,7 +344,6 @@ select.col-filter { padding-right: 1.5rem !important; background-size: 10px; }
 .table .member-col { width: 3.5rem; }
 .table .court-col { width: 5rem; }
 .table .price-col { width: 4.5rem; }
-.table .budget-col { width: 5rem; }
 .table .notes-col { white-space: normal; overflow: hidden; text-overflow: ellipsis; }
 .table .email-col { max-width: 140px; }
 .table .bulk-check-col { width: 36px; text-align: center; }
