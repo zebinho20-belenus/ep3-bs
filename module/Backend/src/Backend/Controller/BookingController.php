@@ -41,6 +41,15 @@ class BookingController extends AbstractActionController
             $dateEnd->setTime(23, 59);
         }
 
+        // When search is provided without dates, default to ±2 weeks from today (#55)
+        if ($search && !$dateStart && !$dateEnd) {
+            $dateStart = new \DateTime();
+            $dateStart->modify('-2 weeks');
+            $dateEnd = new \DateTime();
+            $dateEnd->modify('+2 weeks');
+            $dateEnd->setTime(23, 59);
+        }
+
         if (($dateStart && $dateEnd) || $search) {
             $filters = $this->backendBookingDetermineFilters($search);
 
