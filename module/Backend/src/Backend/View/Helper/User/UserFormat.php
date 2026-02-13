@@ -24,7 +24,7 @@ class UserFormat extends AbstractHelper
 
         $html .= sprintf('<tr %s>', $attr);
 
-        $html .= sprintf('<td>%s</td>',
+        $html .= sprintf('<td class="nr-col responsive-pass-5">%s</td>',
             $user->need('uid'));
 
         $html .= sprintf('<td>%s</td>',
@@ -33,10 +33,10 @@ class UserFormat extends AbstractHelper
         $member = $user->getMeta('member');
 
         if ($member) {
-            $html .= sprintf('<td>%s</td>',
+            $html .= sprintf('<td class="member-col responsive-pass-3">%s</td>',
                 $view->t('Yes'));
         } else {
-            $html .= sprintf('<td>%s</td>',
+            $html .= sprintf('<td class="member-col responsive-pass-3">%s</td>',
                 $view->t('No'));
         }
 
@@ -69,6 +69,13 @@ class UserFormat extends AbstractHelper
         } else {
             $notes = '-';
         }
+
+        /* Budget col */
+
+        $budget = $user->getMeta('budget');
+
+        $html .= sprintf('<td class="budget-col responsive-pass-2">%s</td>',
+            ($budget > 0) ? $view->currencyFormat($budget) : '-');
 
         $html .= sprintf('<td class="notes-col responsive-pass-2">%s</td>',
             $notes);
