@@ -275,6 +275,28 @@ class BookingController extends AbstractActionController
                     $newGp = $d['bf-guest-player'] ? '1' : '0';
 
                     if ($oldGp !== $newGp) {
+                        /* Update player names: add/remove "Gastspieler" suffix */
+                        $storedNames = $savedBooking->getMeta('player-names');
+                        if ($storedNames) {
+                            $namesList = @unserialize($storedNames);
+                            if (is_array($namesList)) {
+                                foreach ($namesList as &$entry) {
+                                    if (isset($entry['value'])) {
+                                        $name = trim($entry['value']);
+                                        $hasSuffix = (bool) preg_match('/\s+Gastspieler$/', $name);
+                                        if ($newGp === '1' && !$hasSuffix && $name !== '') {
+                                            $entry['value'] = $name . ' Gastspieler';
+                                        } elseif ($newGp === '0' && $hasSuffix) {
+                                            $entry['value'] = preg_replace('/\s+Gastspieler$/', '', $name);
+                                        }
+                                    }
+                                }
+                                unset($entry);
+                                $savedBooking->setMeta('player-names', serialize($namesList));
+                                $bookingManager->save($savedBooking);
+                            }
+                        }
+
                         $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
                         $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
                         $reservationManager2 = $serviceManager->get('Booking\Manager\ReservationManager');
@@ -289,10 +311,12 @@ class BookingController extends AbstractActionController
                         $member = $billUser && $billUser->getMeta('member') ? 1 : 0;
                         $guestPlayer = $newGp === '1';
 
-                        // Delete existing bills
+                        // Calculate old total before deleting bills (for potential refund)
+                        $oldTotal = 0;
                         $existingBills = $bookingBillManager->getBy(['bid' => $savedBooking->need('bid')], 'bbid ASC');
                         if ($existingBills) {
                             foreach ($existingBills as $existingBill) {
+                                $oldTotal += $existingBill->get('price');
                                 $bookingBillManager->delete($existingBill->need('bbid'));
                             }
                         }
@@ -326,6 +350,51 @@ class BookingController extends AbstractActionController
                                     'gross' => $pricing['gross'],
                                 )));
                             }
+                        }
+
+                        /* Update billing status and budget after GP change */
+                        $newBills = $bookingBillManager->getBy(['bid' => $savedBooking->need('bid')], 'bbid ASC');
+                        $newTotal = 0;
+                        if ($newBills) {
+                            foreach ($newBills as $bill) {
+                                $newTotal += $bill->get('price');
+                            }
+                        }
+
+                        if ($newTotal > 0 && $savedBooking->get('status_billing') === 'member') {
+                            // Price increased from 0 (member) → check budget
+                            $userBudget = (float) $billUser->getMeta('budget', 0);
+                            $totalEur = $newTotal / 100;
+
+                            if ($userBudget >= $totalEur) {
+                                // Budget sufficient → deduct and mark paid
+                                $newBudget = $userBudget - $totalEur;
+                                $billUser->setMeta('budget', number_format($newBudget, 2, '.', ''));
+                                $userManager2->save($billUser);
+                                $savedBooking->set('status_billing', 'paid');
+                                $savedBooking->setMeta('budgetpayment', 'true');
+                                $savedBooking->setMeta('hasBudget', 'true');
+                                $savedBooking->setMeta('budget', number_format($userBudget, 2, '.', ''));
+                                $savedBooking->setMeta('newbudget', number_format($newBudget, 2, '.', ''));
+                            } else {
+                                // Budget insufficient → mark pending
+                                $savedBooking->set('status_billing', 'pending');
+                            }
+                            $bookingManager->save($savedBooking);
+                        } elseif ($newTotal == 0 && $savedBooking->get('status_billing') !== 'member') {
+                            // Price dropped to 0 (guest removed) → refund budget if paid via budget
+                            if ($savedBooking->get('status_billing') === 'paid' && $savedBooking->getMeta('budgetpayment') === 'true') {
+                                $refundAmount = $oldTotal / 100;
+                                $currentBudget = (float) $billUser->getMeta('budget', 0);
+                                $billUser->setMeta('budget', number_format($currentBudget + $refundAmount, 2, '.', ''));
+                                $userManager2->save($billUser);
+                                $savedBooking->setMeta('budgetrefund', 'true');
+                                $savedBooking->setMeta('refundedAmount', number_format($refundAmount, 2, '.', ''));
+                            }
+                            $savedBooking->set('status_billing', 'member');
+                            $savedBooking->setMeta('budgetpayment', null);
+                            $savedBooking->setMeta('hasBudget', null);
+                            $bookingManager->save($savedBooking);
                         }
                     }
 
@@ -2412,12 +2481,63 @@ class BookingController extends AbstractActionController
                 $contactInfo .= '.';
             }
 
+            // Bill and payment info
+            $rechnungsInfo = '';
+            $budgetInfo = '';
+            $zahlungshinweis = '';
+
+            try {
+                $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
+                $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
+                $billTotal = 0;
+                if ($bills) {
+                    $rechnungsInfo .= "\n\n" . $this->t('Bill') . ":\n";
+                    foreach ($bills as $bill) {
+                        $billTotal += $bill->get('price');
+                        $rechnungsInfo .= "\n- " . $bill->get('description');
+                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
+                    }
+                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
+                }
+
+                // Budget deduction info
+                if ($booking->getMeta('budgetpayment') === 'true') {
+                    $budgetInfo = "\n\n" . sprintf(
+                        $this->t('The amount of %s € has been deducted from your budget. Remaining budget: %s €'),
+                        number_format($billTotal / 100, 2, ',', '.'),
+                        $booking->getMeta('newbudget', '0.00')
+                    );
+                }
+
+                // Budget refund info
+                if ($booking->getMeta('budgetrefund') === 'true') {
+                    $refundedAmount = $booking->getMeta('refundedAmount', '0.00');
+                    $budgetInfo = "\n\n" . sprintf(
+                        $this->t('A refund of %s € has been credited to your budget.'),
+                        $refundedAmount
+                    );
+                }
+
+                // Payment instructions when pending
+                if ($billTotal > 0 && $booking->get('status_billing') === 'pending') {
+                    $paypalEmail = $this->config('paypalEmail') ?: 'payment@your-domain.com';
+                    $zahlungshinweis = "\n\n" . $this->t('Payment instructions:')
+                        . "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail)
+                        . "\n" . $this->t('The booking is only valid after payment is completed.');
+                }
+            } catch (\Exception $e) {
+                // Bill info not available
+            }
+
             $emailText = sprintf(
-                "%s,\n\n%s\n\n%s\n\n%s",
+                "%s,\n\n%s\n\n%s\n\n%s%s%s%s",
                 $anrede,
                 $this->t('Your booking has been modified by our team.'),
                 $changesText,
-                $buchungsDetails
+                $buchungsDetails,
+                $rechnungsInfo,
+                $budgetInfo,
+                $zahlungshinweis
             );
 
             // Send via Backend MailService

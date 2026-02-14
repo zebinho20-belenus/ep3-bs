@@ -77,4 +77,8 @@ return array(
     'Invoice' => 'Rechnung',
     'Budget: %s → new budget: %s' => 'Budget: %s → neues Budget: %s',
     'Notes:' => 'Anmerkungen:',
+    'The amount of %s € has been deducted from your budget. Remaining budget: %s €'
+        => 'Der Betrag von %s € wurde von Ihrem Guthaben abgezogen. Restguthaben: %s €',
+    'A refund of %s € has been credited to your budget.'
+        => 'Eine Rückerstattung von %s € wurde Ihrem Guthaben gutgeschrieben.',
 );
