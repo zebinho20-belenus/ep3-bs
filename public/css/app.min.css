@@ -310,14 +310,13 @@ main.container-xl {
 
 .table {
     font-size: 0.8125rem;
-    table-layout: fixed;
-    word-wrap: break-word;
+    table-layout: auto;
+    width: 100%;
 }
 
 .table th, .table td {
     padding: 0.35rem 0.4rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .table th {
@@ -333,23 +332,24 @@ th.sortable.sort-asc::after { content: '\2191'; color: var(--bs-primary); }
 th.sortable.sort-desc::after { content: '\2193'; color: var(--bs-primary); }
 
 /* Column filter row */
-.filter-row td { padding: 0.25rem 0.375rem; background-color: #f8f9fa; }
+.filter-row td { padding: 0.25rem 0.375rem; background-color: #f8f9fa; overflow: visible; }
 .col-filter { font-size: 0.75rem !important; padding: 0.15rem 0.3rem !important; }
 select.col-filter { padding-right: 1.5rem !important; background-size: 10px; }
 .col-filter:focus { border-color: var(--bs-primary); box-shadow: 0 0 0 0.15rem rgba(4, 107, 210, 0.2); }
 
-/* Compact column styles */
-.table .status-col { width: 3rem; white-space: nowrap; }
-.table .nr-col { width: 3rem; }
-.table .member-col { width: 3.5rem; }
-.table .court-col { width: 5rem; }
-.table .price-col { width: 4.5rem; }
-.table .budget-col { width: 5rem; }
-.table .notes-col { white-space: normal; overflow: hidden; text-overflow: ellipsis; }
-.table .email-col { max-width: 140px; }
+/* Compact column styles — auto-sized via content, nowrap inherited from .table td */
+.table .status-col { }
+.table .nr-col { }
+.table .member-col { }
+.table .court-col { }
+.table .price-col { text-align: right; }
+.table .budget-col { text-align: right; }
 .table .bulk-check-col { width: 36px; text-align: center; }
-.table .actions-col { white-space: nowrap; }
+.table .actions-col { }
 .table .actions-col .symbolic { min-width: 18px; min-height: 16px; padding-top: 2px; padding-bottom: 2px; }
+/* Flexible columns that can wrap/truncate to absorb remaining space */
+.table .notes-col { white-space: normal; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+.table .email-col { white-space: normal; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
 
 /* Status icons (single-letter badges in booking table) */
 .status-icon {

@@ -59,16 +59,21 @@
                 var filterType = $th.data('filter-type');
                 var $td = $('<td></td>');
 
-                // Copy responsive-pass-* classes from th to filter td
+                // Copy responsive-pass-* and *-col classes from th to filter td
                 var thClasses = ($th.attr('class') || '').split(/\s+/);
                 for (var ci = 0; ci < thClasses.length; ci++) {
-                    if (thClasses[ci].indexOf('responsive-pass-') === 0) {
+                    if (thClasses[ci].indexOf('responsive-pass-') === 0 || thClasses[ci].match(/-col$/)) {
                         $td.addClass(thClasses[ci]);
                     }
                 }
 
+                // Match visibility: if th was hidden by another script, hide filter td too
+                if ($th.is(':hidden')) {
+                    $td.hide();
+                }
+
                 if (sortType && sortType !== 'none') {
-                    if (filterType === 'select') {
+                    if (filterType === 'select' || filterType === 'budget') {
                         // Collect unique values from column cells
                         var values = [];
                         var seen = {};
@@ -86,6 +91,9 @@
 
                         var $select = $('<select class="col-filter form-select form-select-sm"></select>');
                         $select.append('<option value="">Alle</option>');
+                        if (filterType === 'budget') {
+                            $select.append('<option value="__has_budget__">Mit Budget</option>');
+                        }
                         for (var i = 0; i < values.length; i++) {
                             $select.append($('<option></option>').val(values[i]).text(values[i]));
                         }
@@ -116,7 +124,11 @@
             var val = $el.val().trim();
             var isSelect = $el.is('select');
             if (val) {
-                filters.push({ col: colIdx, text: val.toLowerCase(), exact: isSelect });
+                if (val === '__has_budget__') {
+                    filters.push({ col: colIdx, text: val, hasBudget: true });
+                } else {
+                    filters.push({ col: colIdx, text: val.toLowerCase(), exact: isSelect });
+                }
             }
         });
 
@@ -127,7 +139,12 @@
             for (var i = 0; i < filters.length; i++) {
                 var cell = $row[0].cells[filters[i].col];
                 var cellText = (cell ? cell.textContent : '').trim();
-                if (filters[i].exact) {
+                if (filters[i].hasBudget) {
+                    if (cellText === '-' || cellText === '') {
+                        show = false;
+                        break;
+                    }
+                } else if (filters[i].exact) {
                     if (cellText !== filters[i].text && cellText.toLowerCase() !== filters[i].text) {
                         show = false;
                         break;

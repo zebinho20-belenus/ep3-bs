@@ -21,7 +21,7 @@ class UsersFormat extends AbstractHelper
         $html .= '<th data-sort-type="text" data-filter-type="select" class="member-col responsive-pass-3">' . $view->t('Member') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select">' . $view->t('Status') . '</th>';
         $html .= '<th data-sort-type="text" class="email-col responsive-pass-3">' . $view->t('Email address') . '</th>';
-        $html .= '<th data-sort-type="price" class="budget-col responsive-pass-2">' . $view->t('Budget') . '</th>';
+        $html .= '<th data-sort-type="price" data-filter-type="budget" class="budget-col responsive-pass-2">' . $view->t('Budget') . '</th>';
         $html .= '<th data-sort-type="text" class="notes-col responsive-pass-2">' . $view->t('Notes') . '</th>';
         $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
         $html .= '</tr></thead>';
