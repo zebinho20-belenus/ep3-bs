@@ -84,16 +84,6 @@ class NotificationListener extends AbstractListenerAggregate
         $reservationEnd = new \DateTime($reservation->need('date'));
         $reservationEnd->setTime($reservationTimeEnd[0], $reservationTimeEnd[1]);
 
-        $vCalendar = new \Eluceo\iCal\Component\Calendar($this->optionManager->get('client.website'));
-        $vEvent = new \Eluceo\iCal\Component\Event();
-        $vEvent
-            ->setDtStart($reservationStart)
-            ->setDtEnd($reservationEnd)
-            ->setNoTime(false)
-            ->setSummary($this->optionManager->get('client.name.full') . ' - ' . $square->need('name'))
-        ;
-        $vCalendar->addComponent($vEvent);
-
         $subject = sprintf($this->t('Your %s-booking %s for %s'),
             $this->optionManager->get('subject.square.type'),
             $square->need('name'),
@@ -231,8 +221,21 @@ class NotificationListener extends AbstractListenerAggregate
             }
         }
 
+        // ICS calendar attachment with booking details
+        $vCalendar = new \Eluceo\iCal\Component\Calendar($this->optionManager->get('client.website'));
+        $vEvent = new \Eluceo\iCal\Component\Event();
+        $vEvent
+            ->setDtStart($reservationStart)
+            ->setDtEnd($reservationEnd)
+            ->setNoTime(false)
+            ->setSummary($subject)
+            ->setLocation($square->need('name') . ', TC Neuperlach Kail e.V., Kurt-Eisner-Str. 30, 81735 München')
+            ->setDescription($message)
+        ;
+        $vCalendar->addComponent($vEvent);
+
         if ($user->getMeta('notification.bookings', 'true') == 'true') {
-            $attachments = ['event.ics' => ['name' => 'event.ics', 'disposition' => true, 'type' => 'text/calendar', 'content' => $vCalendar->render()]];            
+            $attachments = ['event.ics' => ['name' => 'event.ics', 'disposition' => true, 'type' => 'text/calendar', 'content' => $vCalendar->render()]];
             $this->userMailService->send($user, $subject, $message, $attachments);
         }
 
