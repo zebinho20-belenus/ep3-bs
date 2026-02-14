@@ -150,7 +150,7 @@ class BookingFormat extends AbstractHelper
            }
         }
 
-        $html .= sprintf('<td class="price-col responsive-pass-5">%s</td>',
+        $html .= sprintf('<td class="price-col responsive-pass-5"><b>%s</b></td>',
             $view->currencyFormat($price / 100));
 
         /* Billing status col */
