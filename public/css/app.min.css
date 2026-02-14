@@ -364,7 +364,7 @@ select.col-filter { padding-right: 1.5rem !important; background-size: 10px; }
 }
 .status-single { background-color: #94A3B8; }
 .status-subscription { background-color: #046bd2; }
-.status-cancelled { background-color: #6b7280; }
+.status-cancelled { background-color: #DC2626; }
 
 /* Legacy table compatibility */
 .bordered-table tr td { padding: 0.5rem; border: 1px solid #dee2e6; }
