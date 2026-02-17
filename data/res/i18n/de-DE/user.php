@@ -194,8 +194,8 @@ return array(
 
     'You have no imminent bookings.' => 'Sie haben keine aktuellen Buchungen.',
     'You have not booked any %s yet.' => 'Sie haben noch keine %s gebucht.',
-    'You have already booked one %s.' => 'Sie haben bereits einen %s gebucht.',
-    'You have already booked %s %s.' => 'Sie haben bereits %s %s gebucht.',
+    'You have already booked one %s.' => 'Sie haben dieses Jahr einen %s gebucht.',
+    'You have already booked %s %s.' => 'Sie haben dieses Jahr %s %s gebucht.',
 
     'If you did not receive an activation email from us after registration, you can request a new one here.'
         => 'Wenn Sie nach der Registrierung keine Aktivierungs E-Mail von uns erhalten haben, können Sie sich hier eine neue zusenden lassen.',

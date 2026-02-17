@@ -41,8 +41,8 @@ class BookingController extends AbstractActionController
             $dateEnd->setTime(23, 59);
         }
 
-        // When search is provided without dates, default to ±2 weeks from today (#55)
-        if ($search && !$dateStart && !$dateEnd) {
+        // Default to ±2 weeks from today when no dates provided (#55)
+        if (!$dateStart && !$dateEnd) {
             $dateStart = new \DateTime();
             $dateStart->modify('-2 weeks');
             $dateEnd = new \DateTime();
@@ -227,12 +227,8 @@ class BookingController extends AbstractActionController
 
                         $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
 
-                        return $this->redirect()->toRoute('backend/booking/edit', [], ['query' => [
-                            'ds' => $reactivateReservation->get('date'),
-                            'ts' => substr($reactivateReservation->get('time_start'), 0, 5),
-                            'te' => substr($reactivateReservation->get('time_end'), 0, 5),
-                            's'  => $reactivateBooking->get('sid'),
-                            'r'  => $reactivateReservation->get('rid'),
+                        return $this->redirect()->toRoute('frontend', [], ['query' => [
+                            'date' => $reactivateReservation->get('date'),
                         ]]);
                     }
                 }
@@ -828,12 +824,8 @@ class BookingController extends AbstractActionController
                     }
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
-                    return $this->redirect()->toRoute('backend/booking/edit', [], ['query' => [
-                        'ds' => $reservation->get('date'),
-                        'ts' => substr($reservation->get('time_start'), 0, 5),
-                        'te' => substr($reservation->get('time_end'), 0, 5),
-                        's'  => $booking->get('sid'),
-                        'r'  => $reservation->get('rid'),
+                    return $this->redirect()->toRoute('frontend', [], ['query' => [
+                        'date' => $reservation->get('date'),
                     ]]);
                 }
             }
@@ -901,12 +893,8 @@ class BookingController extends AbstractActionController
                     
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
 
-                    return $this->redirect()->toRoute('backend/booking/edit', [], ['query' => [
-                        'ds' => $reservation->get('date'),
-                        'ts' => substr($reservation->get('time_start'), 0, 5),
-                        'te' => substr($reservation->get('time_end'), 0, 5),
-                        's'  => $booking->get('sid'),
-                        'r'  => $reservation->get('rid'),
+                    return $this->redirect()->toRoute('frontend', [], ['query' => [
+                        'date' => $reservation->get('date'),
                     ]]);
                 } else {
                     $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);

@@ -69,7 +69,7 @@ return array(
     'Complete booking' => 'Buchung bestätigen',
 
     'Cancel this booking' => 'Buchung stornieren',
-    'Cancel booking' => 'Buchung stornieren',
+    'Cancel booking' => 'Buchung entfernen',
     'Are you sure you want to cancel this booking?' => 'Sind Sie sicher, dass Sie diese Buchung stornieren möchten?',
     'Yes, cancel this booking' => 'Ja, Buchung stornieren',
     'No, go back' => 'Nein, zurück',

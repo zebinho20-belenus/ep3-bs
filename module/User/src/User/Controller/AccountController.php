@@ -442,6 +442,23 @@ class AccountController extends AbstractActionController
         $bookings = $bookingManager->getByValidity(array('uid' => $user->need('uid')));
         $reservations = $reservationManager->getByBookings($bookings, 'date DESC, time_start DESC');
 
+        // Filter reservations to current year only (#65)
+        $yearStart = new \DateTime('first day of January this year');
+        $yearStart->setTime(0, 0);
+        $reservations = array_filter($reservations, function($reservation) use ($yearStart) {
+            $date = new \DateTime($reservation->get('date'));
+            return $date >= $yearStart;
+        });
+
+        // Filter bookings to only those that have remaining reservations
+        $reservationBids = array();
+        foreach ($reservations as $reservation) {
+            $reservationBids[$reservation->get('bid')] = true;
+        }
+        $bookings = array_filter($bookings, function($booking) use ($reservationBids) {
+            return isset($reservationBids[$booking->get('bid')]);
+        });
+
         $bookingBillManager->getByBookings($bookings);
 
         return array(
