@@ -15,7 +15,8 @@ class LastBookingsFactory implements FactoryInterface
         return new LastBookings(
             $serviceManager->get('Booking\Manager\BookingManager'),
             $serviceManager->get('Booking\Manager\ReservationManager'),
-            $serviceManager->get('Square\Manager\SquareManager'));
+            $serviceManager->get('Square\Manager\SquareManager'),
+            $serviceManager->get('Booking\Manager\Booking\BillManager'));
     }
 
 }
