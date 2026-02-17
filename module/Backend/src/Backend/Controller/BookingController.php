@@ -599,6 +599,19 @@ class BookingController extends AbstractActionController
             }
         }
 
+        /* Calculate bill total for display (#67) */
+        $billTotal = null;
+        if ($booking) {
+            $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+            $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+            if ($bills) {
+                $billTotal = 0;
+                foreach ($bills as $bill) {
+                    $billTotal += $bill->need('price');
+                }
+            }
+        }
+
         if (! $sessionUser->can(['calendar.create-subscription-bookings'])) {
             return $this->ajaxViewModel(array_merge($params, array(
             'editMode' => 'no_subscr',
@@ -607,6 +620,7 @@ class BookingController extends AbstractActionController
             'reservation' => $reservation,
             'sessionUser' => $sessionUser,
             'playerNames' => $playerNamesForView,
+            'billTotal' => $billTotal,
             )));
         }
 
@@ -616,6 +630,7 @@ class BookingController extends AbstractActionController
             'reservation' => $reservation,
             'sessionUser' => $sessionUser,
             'playerNames' => $playerNamesForView,
+            'billTotal' => $billTotal,
         )));
     }
 

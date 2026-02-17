@@ -95,6 +95,7 @@ $this->setup(array(
                 }
 
                 $bills = $booking->getExtra('bills');
+                $statusBilling = $booking->get('status_billing');
 
                 if ($bills) {
                     $price = 0;
@@ -108,6 +109,13 @@ $this->setup(array(
                     $pricing .= '</a>';
                 } else {
                     $pricing = '<span class="text-muted">&middot;</span>';
+                }
+
+                /* Billing status badge (#5) */
+                if ($statusBilling == 'pending' && $price > 0) {
+                    $pricing .= ' <span class="badge bg-warning text-dark">' . $this->t('Pending') . '</span>';
+                } elseif ($statusBilling == 'paid') {
+                    $pricing .= ' <span class="badge bg-success">' . $this->t('Paid') . '</span>';
                 }
 
                 echo '<tr' . $rowClass . '>';

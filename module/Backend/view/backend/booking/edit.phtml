@@ -147,6 +147,11 @@ $this->setup(array(
                         <div class="separator-small separator-line"></div>
 
                         <?= $this->t('Bill') ?>:
+
+                        <?php if ($this->billTotal !== null): ?>
+                            <strong><?= number_format($this->billTotal / 100, 2, ',', '.') ?> €</strong>
+                        <?php endif; ?>
+
                         &nbsp;
                         <a href="<?= $this->url('user/bookings/bills', ['bid' => $this->booking->get('bid')]) ?>" class="symbolic symbolic-info unlined gray"><?= $this->t('View') ?></a>
 
