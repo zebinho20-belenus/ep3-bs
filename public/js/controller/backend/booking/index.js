@@ -28,6 +28,7 @@
 
         var $selectAll = $("#bulk-select-all");
         var $bulkActions = $("#bulk-actions");
+        var $reactivateBtn = $("#bulk-reactivate-btn");
 
         function updateBulkState() {
             var checked = $(".bulk-check:checked").length;
@@ -36,6 +37,15 @@
             } else {
                 $bulkActions.hide();
             }
+
+            // Show reactivate button only when cancelled bookings are selected
+            var cancelledChecked = $(".bulk-check:checked").filter('[data-status="cancelled"]').length;
+            if (cancelledChecked > 0) {
+                $reactivateBtn.show();
+            } else {
+                $reactivateBtn.hide();
+            }
+
             var total = $(".bulk-check:visible").length;
             $selectAll.prop("checked", checked > 0 && checked === total);
             $selectAll.prop("indeterminate", checked > 0 && checked < total);
@@ -53,9 +63,14 @@
         $("#bulk-form").on("submit", function(e) {
             var action = $(document.activeElement).val();
             var count = $(".bulk-check:checked").length;
-            var msg = action === "delete"
-                ? count + " Buchung(en) endgültig löschen?"
-                : count + " Buchung(en) stornieren?";
+            var msg;
+            if (action === "delete") {
+                msg = count + " Buchung(en) endgültig löschen?";
+            } else if (action === "reactivate") {
+                msg = count + " Buchung(en) reaktivieren?";
+            } else {
+                msg = count + " Buchung(en) stornieren?";
+            }
             if (!confirm(msg)) {
                 e.preventDefault();
             }

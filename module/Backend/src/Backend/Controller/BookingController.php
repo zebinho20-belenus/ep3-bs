@@ -1005,12 +1005,14 @@ class BookingController extends AbstractActionController
         $rids = $this->params()->fromPost('bulk-rids', []);
         $action = $this->params()->fromPost('bulk-action');
 
-        if (!is_array($rids) || empty($rids) || !in_array($action, ['cancel', 'delete'])) {
+        if (!is_array($rids) || empty($rids) || !in_array($action, ['cancel', 'delete', 'reactivate'])) {
             return $this->redirect()->toRoute('backend/booking');
         }
 
         $cancelCount = 0;
         $deleteCount = 0;
+        $reactivateCount = 0;
+        $reactivateFailCount = 0;
 
         foreach ($rids as $rid) {
             try {
@@ -1109,6 +1111,53 @@ class BookingController extends AbstractActionController
 
                 $bookingManager->delete($booking);
                 $deleteCount++;
+
+            } elseif ($action === 'reactivate' && $booking->get('status') === 'cancelled') {
+                $this->authorize('admin.booking');
+
+                // Collision check
+                $dateTimeStart = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_start'));
+                $dateTimeEnd = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_end'));
+                $overlapping = $reservationManager->getInRange($dateTimeStart, $dateTimeEnd);
+
+                $hasConflict = false;
+                if ($overlapping) {
+                    $bookingManager->getByReservations($overlapping);
+                    foreach ($overlapping as $overlapRes) {
+                        $overlapBooking = $overlapRes->getExtra('booking');
+                        if ($overlapBooking
+                            && $overlapBooking->get('bid') != $booking->get('bid')
+                            && $overlapBooking->get('sid') == $booking->get('sid')
+                            && $overlapBooking->get('status') != 'cancelled') {
+                            $hasConflict = true;
+                            break;
+                        }
+                    }
+                }
+
+                if ($hasConflict) {
+                    $reactivateFailCount++;
+                    continue;
+                }
+
+                $booking->set('status', 'single');
+                $booking->setMeta('cancellor', null);
+                $booking->setMeta('cancelled', null);
+                $booking->setMeta('admin_cancelled', null);
+                $booking->setMeta('backend_cancelled', null);
+                $booking->setMeta('reactivated_by', $sessionUser->get('alias'));
+                $booking->setMeta('reactivated', date('Y-m-d H:i:s'));
+                $bookingManager->save($booking);
+
+                // Send reactivation email
+                try {
+                    $user = $userManager->get($booking->get('uid'));
+                    $this->sendReactivationEmail($booking, $user, $sessionUser);
+                } catch (\Exception $e) {
+                    // Continue despite errors
+                }
+
+                $reactivateCount++;
             }
         }
 
@@ -1119,6 +1168,14 @@ class BookingController extends AbstractActionController
         if ($deleteCount > 0) {
             $this->flashMessenger()->addSuccessMessage(
                 sprintf($this->t('%d booking(s) have been deleted'), $deleteCount));
+        }
+        if ($reactivateCount > 0) {
+            $this->flashMessenger()->addSuccessMessage(
+                sprintf($this->t('%d booking(s) have been reactivated'), $reactivateCount));
+        }
+        if ($reactivateFailCount > 0) {
+            $this->flashMessenger()->addErrorMessage(
+                sprintf($this->t('%d booking(s) could not be reactivated (time slot occupied)'), $reactivateFailCount));
         }
 
         return $this->redirect()->toRoute('backend/booking');
