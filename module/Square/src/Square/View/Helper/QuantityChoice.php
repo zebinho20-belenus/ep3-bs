@@ -95,11 +95,27 @@ class QuantityChoice extends AbstractHelper
                     $this->view->translate('The names of the other players are <b>required</b>'));
             }
 
+            $isRequired = (isset($askNamesSegments[0]) && $askNamesSegments[0] != 'optional');
+            $requiredStar = $isRequired ? ' *' : '';
+
             for ($i = 2; $i <= $quantityAvailable; $i++) {
                 $html .= sprintf('<div class="sb-player-name sb-player-name-%s mb-1">', $i);
 
-                $html .= sprintf('<input type="text" name="sb-player-name-%1$s" id="sb-name-%1$s" value="" placeholder="%1$s. %2$s" class="form-control form-control-sm d-inline-block" style="min-width: 160px;">',
-                    $i, $this->view->translate('Player\'s name'));
+                $html .= sprintf('<div class="d-flex gap-1">'
+                    . '<div class="flex-fill">'
+                    . '<input type="text" name="sb-player-firstname-%1$s" id="sb-player-firstname-%1$s" value="" placeholder="%1$s. %2$s%3$s" class="sb-player-firstname form-control form-control-sm" style="min-width: 80px;">'
+                    . '<div class="invalid-feedback">%4$s</div>'
+                    . '</div>'
+                    . '<div class="flex-fill">'
+                    . '<input type="text" name="sb-player-lastname-%1$s" id="sb-player-lastname-%1$s" value="" placeholder="%5$s%3$s" class="sb-player-lastname form-control form-control-sm" style="min-width: 80px;">'
+                    . '<div class="invalid-feedback">%4$s</div>'
+                    . '</div>'
+                    . '</div>',
+                    $i,
+                    $this->view->translate('First name'),
+                    $requiredStar,
+                    $this->view->translate('Min. 2 characters'),
+                    $this->view->translate('Last name'));
 
                 if (isset($askNamesSegments[2]) && $askNamesSegments[2] == 'email') {
                     $html .= sprintf(' <input type="text" name="sb-player-email-%1$s" id="sb-player-email-%1$s" value="" placeholder="...%2$s" class="form-control form-control-sm d-inline-block" style="min-width: 160px;">',

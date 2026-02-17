@@ -9,9 +9,46 @@
 
         onQuantityChange();
 
-        $(".sb-player-names input").on("change keyup focusout", onPlayerNameUpdate);
+        $(".sb-player-names").on("input", ".sb-player-firstname, .sb-player-lastname", function() {
+            var $input = $(this);
+            if ($input.val().trim().length >= 2) {
+                $input.removeClass("is-invalid");
+            }
+            onPlayerNameUpdate();
+        });
+
+        $(".sb-player-names").on("change keyup focusout", "input:not(.sb-player-firstname):not(.sb-player-lastname)", onPlayerNameUpdate);
 
         $(".sb-product").on("change", onProductChange);
+
+        // Validate on button click
+        $(document).on("click", "#sb-button", function(e) {
+            var playerNameMode = $(".sb-player-names-mode").data("mode");
+            if (playerNameMode !== "required") return;
+
+            var quantity = $("#sb-quantity").val();
+            if (quantity <= 1) return;
+
+            var hasError = false;
+            $(".sb-player-name:visible").each(function() {
+                var $firstname = $(this).find(".sb-player-firstname");
+                var $lastname = $(this).find(".sb-player-lastname");
+
+                if ($firstname.val().trim().length < 2) {
+                    $firstname.addClass("is-invalid");
+                    hasError = true;
+                }
+                if ($lastname.val().trim().length < 2) {
+                    $lastname.addClass("is-invalid");
+                    hasError = true;
+                }
+            });
+
+            if (hasError) {
+                e.preventDefault();
+                return false;
+            }
+        });
 
     });
 
@@ -55,19 +92,45 @@
             var isGuestPlayer = $("#guest-player").is(":checked");
 
             var playerNameMode = $(".sb-player-names-mode").data("mode");
-            var playerNameInputs = $(".sb-player-names input:visible");
 
             if (quantity > 1) {
-                var playerNameData = playerNameInputs.serializeArray();
+                var playerNameData = [];
 
-                if (isGuestPlayer) {
-                    playerNameData = playerNameData.map(function(item) {
-                        if (item.value.trim() && !item.value.trim().endsWith(" Gastspieler")) {
-                            item.value = item.value.trim() + " Gastspieler";
-                        }
-                        return item;
+                $(".sb-player-name:visible").each(function() {
+                    var $row = $(this);
+                    var $firstname = $row.find(".sb-player-firstname");
+                    var $lastname = $row.find(".sb-player-lastname");
+
+                    var first = $firstname.val() ? $firstname.val().trim() : "";
+                    var last = $lastname.val() ? $lastname.val().trim() : "";
+                    var combined = "";
+
+                    if (first && last) {
+                        combined = first + " " + last;
+                    } else if (first) {
+                        combined = first;
+                    } else if (last) {
+                        combined = last;
+                    }
+
+                    if (isGuestPlayer && combined && !combined.endsWith(" Gastspieler")) {
+                        combined = combined + " Gastspieler";
+                    }
+
+                    // Use firstname field name as the key for backward compat
+                    playerNameData.push({
+                        name: $firstname.attr("name"),
+                        value: combined
                     });
-                }
+
+                    // Also include email/phone fields if visible
+                    $row.find("input:not(.sb-player-firstname):not(.sb-player-lastname)").each(function() {
+                        playerNameData.push({
+                            name: $(this).attr("name"),
+                            value: $(this).val()
+                        });
+                    });
+                });
 
                 var playerNameJson = JSON.stringify(playerNameData);
                 var playerNameQuery = "pn=" + encodeURIComponent(playerNameJson);
@@ -78,8 +141,12 @@
             sbButton.css({ opacity: 1 });
 
             if (playerNameMode == "required") {
-                playerNameInputs.each(function() {
-                    if (! $(this).val()) {
+                $(".sb-player-name:visible").each(function() {
+                    var $firstname = $(this).find(".sb-player-firstname");
+                    var $lastname = $(this).find(".sb-player-lastname");
+
+                    if (!$firstname.val() || $firstname.val().trim().length < 2 ||
+                        !$lastname.val() || $lastname.val().trim().length < 2) {
                         sbButton.css({ opacity: 0 });
                     }
                 });

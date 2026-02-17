@@ -117,6 +117,10 @@ return array(
     'The names of the other players are <b>optional</b>' => 'Die Namen der anderen Spieler sind <b>optional</b>',
     'The names of the other players are <b>required</b>' => 'Die <b>Vor- und Nachnamen</b> der anderen Spieler sind <b>erforderlich</b>',
     'Player\'s name' => 'Spieler Vor-/Nachname',
+    'First name' => 'Vorname',
+    'Last name' => 'Nachname',
+    'Min. 2 characters' => 'Mind. 2 Zeichen',
+    'Please enter first and last name (min. 2 characters each)' => 'Bitte Vor- und Nachnamen eingeben (je mind. 2 Zeichen)',
     'and email address' => 'und E-Mail Adresse',
     'and phone number' => 'und Telefonnummer',
     

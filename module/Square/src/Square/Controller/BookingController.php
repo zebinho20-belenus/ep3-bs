@@ -187,11 +187,22 @@ class BookingController extends AbstractActionController
         if ($playerNamesParam) {
             $playerNames = Json::decode($playerNamesParam, Json::TYPE_ARRAY);
 
-            /* Check if player names are valid  remove check for first an lastname no space is needed */
+            /* Validate player names: must contain first + last name (each >= 2 chars) */
             foreach ($playerNames as $playerName) {
                 $trimmedName = trim($playerName['value']);
-                if (strlen($trimmedName) <= 2) {
-                    throw new \RuntimeException('Die <b>vollständigen Vor- und Nachnamen</b> der anderen Spieler sind erforderlich');
+
+                // Strip " Gastspieler" suffix before validation
+                $nameToValidate = preg_replace('/ Gastspieler$/', '', $trimmedName);
+
+                // Must contain at least one space (first + last name)
+                $parts = preg_split('/\s+/', $nameToValidate, -1, PREG_SPLIT_NO_EMPTY);
+
+                if (count($parts) < 2 || mb_strlen($parts[0]) < 2 || mb_strlen($parts[1]) < 2) {
+                    // Backward compatibility: accept old format with single name >= 2 chars
+                    if (count($parts) == 1 && mb_strlen($parts[0]) >= 2) {
+                        continue;
+                    }
+                    throw new \RuntimeException($this->t('Please enter first and last name (min. 2 characters each)'));
                 }
             }
         } else {
