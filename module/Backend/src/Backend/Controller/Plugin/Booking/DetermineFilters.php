@@ -16,7 +16,7 @@ class DetermineFilters extends AbstractPlugin
         $filters = array();
         $filterParts = array();
 
-        preg_match_all('/\(([^\(\)]+[<=>][^\(\)]+)\)/', $search, $matches);
+        preg_match_all('/\(([^\(\)]+[<=>][^\(\)]+)\)/', (string) $search, $matches);
 
         if ($matches) {
 
