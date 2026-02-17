@@ -501,12 +501,21 @@ class AccountController extends AbstractActionController
 
         $bills = $bookingBillManager->getBy(array('bid' => $bid), 'bbid ASC');
 
+        $paymentConfig = array(
+            'paypal' => ($this->config('paypal') != null && $this->config('paypal') == true),
+            'stripe' => ($this->config('stripe') != null && $this->config('stripe') == true),
+            'klarna' => ($this->config('klarna') != null && $this->config('klarna') == true),
+            'payment_default' => $this->config('payment_default'),
+            'stripeIcon' => $this->config('stripeIcon'),
+        );
+
         return array(
             'booking' => $booking,
             'bookingBillingStatus' => $bookingBillingStatus,
             'bookingBillingStatusSlug' => $bookingBillingStatusSlug,
             'bills' => $bills,
             'user' => $user,
+            'paymentConfig' => $paymentConfig,
         );
     }
 

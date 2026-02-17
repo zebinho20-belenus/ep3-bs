@@ -103,7 +103,7 @@ class QuantityChoice extends AbstractHelper
 
                 $html .= sprintf('<div class="d-flex gap-1">'
                     . '<div class="flex-fill">'
-                    . '<input type="text" name="sb-player-firstname-%1$s" id="sb-player-firstname-%1$s" value="" placeholder="%1$s. %2$s%3$s" class="sb-player-firstname form-control form-control-sm" style="min-width: 80px;">'
+                    . '<input type="text" name="sb-player-firstname-%1$s" id="sb-player-firstname-%1$s" value="" placeholder="%2$s%3$s" class="sb-player-firstname form-control form-control-sm" style="min-width: 80px;">'
                     . '<div class="invalid-feedback">%4$s</div>'
                     . '</div>'
                     . '<div class="flex-fill">'

@@ -75,10 +75,12 @@ Entity (data container, extends AbstractEntity)
 | **Event** | Events and court closures |
 | **Frontend** | Public-facing index/calendar page |
 | **User** | Authentication, account management, user metadata |
-| **Payment** | Payum integration — PayPal, Stripe (card, SEPA, iDEAL, giropay), Klarna; Stripe webhook handler |
+| **Payment** | Payum integration — PayPal, Stripe (card, SEPA, iDEAL, giropay), Klarna; Stripe webhook handler. **NOT loaded as Zend module** (not in `config/application.php`). Its routes/controllers are never dispatched by Zend. All payment actions (confirm, done, webhook, pay) actually run via `Square\Controller\BookingController` with routes under `/square/booking/payment/*`. The Payment module code exists but is only used by `PaymentService` (service layer). |
 | **SquareControl** | Door code generation for Loxone MiniServer (toggled via config) |
 | **Service** | Shared cross-module services |
 | **Setup** | Installation wizard |
+
+**Important — Module loading**: Only modules listed in `config/application.php` (+ auto-discovered in `modulex/`) are loaded. The **Payment module is NOT listed** there. New routes and controller actions for payment must be added to the **Square module** (`Square\Controller\BookingController`), not the Payment module.
 
 Zend Framework packages are individually forked into `src/Zend/` with PSR-4 autoloading in `composer.json` (not the ZF2 metapackage).
 
@@ -91,11 +93,16 @@ Core entities (Booking, Reservation, Event, Square, User) use a parallel `*_meta
 Defined in each module's `config/module.config.php`. Key routes:
 - `/` — Frontend calendar
 - `/square/booking/*` — Booking flow (customization → confirmation → payment)
+- `/square/booking/payment/pay/:bid` — Pay open bill (payLater flow, #72)
+- `/square/booking/payment/done` — Payum done callback (PayPal, Klarna)
+- `/square/booking/payment/confirm` — Payum confirm callback (Stripe SCA)
 - `/backend/*` — Admin area
 - `/backend/booking` — Booking list with edit/cancel/delete actions
 - `/backend/booking/delete/:rid` — Booking cancel/delete confirmation page
-- `/payment/booking/*` — Payment processing and Stripe webhooks
 - `/user/*` — Login, account
+- `/user/bookings/bills/:bid` — User bill view (with payment buttons for pending bills)
+
+**Note**: Routes in `module/Payment/config/module.config.php` (e.g. `/payment/booking/*`) are **never loaded** because the Payment module is not in `config/application.php`. All payment routes are child routes under `square/booking/` in `module/Square/config/module.config.php`.
 
 ### Frontend Assets & UI Framework
 
@@ -126,9 +133,23 @@ Defined in each module's `config/module.config.php`. Key routes:
 
 Uses Payum framework with token-based security. Stripe supports PaymentIntents (SCA), webhooks for async payment confirmation, and multiple methods (card, SEPA, iDEAL, giropay, Apple Pay, Google Pay). Stripe twig templates live in `vendor/payum/stripe/`.
 
+**Important — Gateway-specific payment responses**: The `$payment` array from Payum `GetHumanStatus` has different keys per gateway. `$payment['status']` is **Stripe-specific** (values: `succeeded`, `processing`, `requires_action`). PayPal responses do NOT have this key. Always guard access with `isset($payment['status'])` or use a `$paymentStatus` variable. The `doneAction()` in `BookingController` extracts `$paymentStatus = isset($payment['status']) ? $payment['status'] : ''` before the success/error check.
+
 Payment options (PayPal/Stripe/Klarna) are only shown on the confirmation page when `$payable == true`, which requires `$total > 0`. The total is calculated via `SquarePricingManager::getFinalPricingInRange()` using `bs_squares_pricing` — if no pricing rule matches the booking date range, `$total` stays 0 and no payment buttons appear. Key pricing logic is in `module/Square/src/Square/Controller/BookingController.php`.
 
 Unpaid bookings are auto-removed via a MySQL scheduled event (every 15 min, bookings older than 3 hours with `directpay=true` and `status_billing=pending`).
+
+### Pay Later — Open Bill Payment (#72)
+
+Users with `status_billing=pending` bookings can pay from their bill page (`/user/bookings/bills/:bid`). The bills view shows PayPal/Stripe/Klarna radio buttons when conditions are met (pending, not cancelled, total > 0, gateway configured).
+
+**Flow**: Form POSTs to `/square/booking/payment/pay/:bid` → `BookingController::payAction()` → sets `payLater=true` meta → creates Payum tokens → redirects to gateway → `doneAction()` handles result.
+
+**Key difference from normal booking flow**: The `payLater` meta flag in `doneAction()` prevents `cancelSingle()` on payment failure. On error, only a flash message is shown and the booking remains intact. On success, `status_billing` is set to `paid` and the `payLater` meta is cleaned up.
+
+**Meta fields**: `payLater=true` (set in payAction, cleared in doneAction), `paymentMethod`, `directpay=true`
+
+**PayPal sandbox pending workaround**: PayPal sandbox returns `PAYMENTINFO_0_PAYMENTSTATUS: "Pending"` (reason: `paymentreview`) while `PAYMENTREQUEST_0_PAYMENTSTATUS: "Completed"`. Payum reads the former → reports `pending`. The `doneAction` checks `PAYMENTREQUEST_0_PAYMENTSTATUS == "Completed"` to correctly mark as `paid`. In production, both fields agree, so this is safe.
 
 ### Manual Payment Instructions (PayPal Friends & Family)
 
@@ -351,6 +372,22 @@ function updateCalendarEvents() {
 **Solution:** Added `array_filter()` after `getByBookings()` to remove reservations whose date falls outside `[$dateStart, $dateEnd]`.
 
 **File changed:** `module/Backend/src/Backend/Controller/BookingController.php` (lines 61-69)
+
+### PHP 8.1 Deprecation Fixes (Feb 2026)
+
+Several PHP 8.1 deprecations were patched directly in forked/vendored code:
+
+| File | Fix |
+|------|-----|
+| `module/Base/src/Base/Entity/AbstractEntity.php:165` | `strlen(null)` → `$value === null \|\| strlen((string) $value) == 0` in `setMeta()` |
+| `src/Zend/Uri/src/UriFactory.php:96` | `strtolower(null)` → `strtolower((string) ...)` |
+| `vendor/eluceo/ical/src/PropertyBag.php:69` | Added `#[\ReturnTypeWillChange]` to `getIterator()` |
+
+### Debugging Tips
+
+- Use `error_log()` for debug output — it goes to PHP error.log (`data/log/errors.txt` in Docker)
+- Do NOT use `syslog()` — it does not appear in PHP error.log on the Docker setup
+- Payum payment data can be dumped with: `error_log('payment: ' . json_encode($payment instanceof \ArrayAccess ? iterator_to_array($payment) : $payment))`
 
 ## Writable Directories
 

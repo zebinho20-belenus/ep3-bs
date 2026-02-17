@@ -21,6 +21,19 @@ return array(
                     ),
                 ),
             ),
+            'payment_pay' => array(
+                'type' => 'segment',
+                'options' => array(
+                    'route'    => '/payment/booking/pay/:bid',
+                    'defaults' => array(
+                        'controller' => 'Payment\Controller\Payment',
+                        'action' => 'pay',
+                    ),
+                    'constraints' => array(
+                        'bid' => '[0-9]+',
+                    ),
+                ),
+            ),
             'payment_webhook' => array(
                 'type' => 'Literal',
                 'options' => array(

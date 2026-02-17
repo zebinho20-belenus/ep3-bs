@@ -131,4 +131,10 @@ return array(
     'Timeblock choice:' => 'Zeitraum wählen:',
     'These booking times are reserved for the club.' => 'Diese Buchungszeiten sind für Vereinsmitglieder reserviert.',
     'You can only have <b>%s active bookings</b> at the same time at the moment.' => 'Sie können derzeit nur <b>%s aktive Buchung/en</b> gleichzeitig offen haben.',
+
+    'Pay now' => 'Jetzt bezahlen',
+    'Pay open bill now:' => 'Offene Rechnung jetzt bezahlen:',
+    '%sPayment successful!%s' => '%sZahlung erfolgreich!%s',
+    '%sPayment failed. Please try again.%s' => '%sZahlung fehlgeschlagen. Bitte erneut versuchen.%s',
+    'Please select a payment method' => 'Bitte wählen Sie eine Zahlungsmethode',
 );

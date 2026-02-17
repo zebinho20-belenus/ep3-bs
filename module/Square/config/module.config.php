@@ -78,6 +78,18 @@ return array(
                                     ),
                                 ),
                             ),
+                            'payment_pay' => array(
+                                'type' => 'segment',
+                                'options' => array(
+                                    'route'    => '/payment/pay/:bid',
+                                    'defaults' => array(
+                                        'action' => 'pay',
+                                    ),
+                                    'constraints' => array(
+                                        'bid' => '[0-9]+',
+                                    ),
+                                ),
+                            ),
                         ),
                     ),
                 ),

@@ -88,4 +88,48 @@ $this->setup(array(
         </table>
         </div>
     </div>
+
+    <?php
+    $paymentConfig = isset($this->paymentConfig) ? $this->paymentConfig : array();
+    $hasPaymentOption = !empty($paymentConfig['paypal']) || !empty($paymentConfig['stripe']) || !empty($paymentConfig['klarna']);
+    $isPending = ($this->bookingBillingStatusSlug == 'pending');
+    $isNotCancelled = ($this->booking->get('status') != 'cancelled');
+    ?>
+
+    <?php if ($isPending && $isNotCancelled && $total > 0 && $hasPaymentOption): ?>
+
+    <div class="mt-4">
+        <form method="post" action="<?= $this->url('square/booking/payment_pay', ['bid' => $this->booking->need('bid')]) ?>">
+
+            <p class="text-center text-muted mb-3"><?= $this->t('Pay open bill now:') ?></p>
+
+            <div class="payment-options">
+            <?php if (!empty($paymentConfig['paypal'])): ?>
+                <label for="paypal" class="payment_radio">
+                    <input type="radio" id="paypal" name="paymentservice" value="paypal" <?php if (isset($paymentConfig['payment_default']) && $paymentConfig['payment_default'] == 'paypal'): ?>checked<?php endif; ?>>
+                    <img src="<?= $this->basePath('imgs-client/layout/paypal.png') ?>" alt="PayPal" />
+                </label>
+            <?php endif; ?>
+            <?php if (!empty($paymentConfig['stripe'])): ?>
+                <label for="stripe" class="payment_radio">
+                    <input type="radio" id="stripe" name="paymentservice" value="stripe" <?php if (isset($paymentConfig['payment_default']) && $paymentConfig['payment_default'] == 'stripe'): ?>checked<?php endif; ?>>
+                    <img src="<?= $this->basePath('imgs-client/layout/stripe_icons/' . $paymentConfig['stripeIcon']) ?>" alt="Stripe" />
+                </label>
+            <?php endif; ?>
+            <?php if (!empty($paymentConfig['klarna'])): ?>
+                <label for="klarna" class="payment_radio">
+                    <input type="radio" id="klarna" name="paymentservice" value="klarna" <?php if (isset($paymentConfig['payment_default']) && $paymentConfig['payment_default'] == 'klarna'): ?>checked<?php endif; ?>>
+                    <span class="payment-label">Klarna</span>
+                </label>
+            <?php endif; ?>
+            </div>
+
+            <div class="text-center mt-3">
+                <input type="submit" value="<?= $this->t('Pay now') ?>" class="btn btn-primary btn-lg w-100">
+            </div>
+
+        </form>
+    </div>
+
+    <?php endif; ?>
 </div>

@@ -51,6 +51,7 @@ EP3-BS is a comprehensive online booking system designed specifically for sports
 - ✅ **PWA Support** (app-like experience on smartphones)
 - ✅ **Bootstrap 5 UI** (responsive design, mobile-first)
 - ✅ **Subscription Bookings** (weekly/biweekly recurring)
+- ✅ **Pay Open Bills** — users can pay pending invoices from their bill page (#72)
 - ✅ **Backend Bills Editor** (inline editing for admins)
 - ✅ **TinyMCE Rich Text Editor** for content management
 - ✅ **File Upload** for court images
@@ -159,7 +160,7 @@ Entity (data container, extends AbstractEntity)
 | **Event** | Events & closures | Event CRUD, court blocking |
 | **Frontend** | Public pages | Landing page, calendar display |
 | **User** | Authentication | Login, registration, account management |
-| **Payment** | Payment processing | Payum integration, PayPal/Stripe/Klarna, webhooks |
+| **Payment** | Payment service layer | Payum integration (NOT loaded as Zend module — routes via Square module) |
 | **SquareControl** | Door access | Loxone MiniServer integration, code generation |
 | **Service** | Shared services | Cross-module utilities |
 | **Setup** | Installation | Setup wizard |
@@ -211,9 +212,14 @@ Form helpers output Bootstrap 5 markup:
 Routes defined in each module's `config/module.config.php`:
 - `/` — Frontend calendar
 - `/square/booking/*` — Booking flow (customization → confirmation → payment)
+- `/square/booking/payment/pay/:bid` — Pay open bill (payLater flow, #72)
+- `/square/booking/payment/done` — Payum done callback (PayPal, Klarna)
+- `/square/booking/payment/confirm` — Payum confirm callback (Stripe SCA)
 - `/backend/*` — Admin area (bookings, users, config)
-- `/payment/booking/*` — Payment processing, webhooks
 - `/user/*` — Login, registration, account
+- `/user/bookings/bills/:bid` — User bill view (with payment buttons for pending bills)
+
+**Note:** The Payment module (`module/Payment/`) is NOT loaded as a Zend module (not in `config/application.php`). All payment routes run via `Square\Controller\BookingController`.
 
 ---
 
@@ -361,6 +367,21 @@ Available via Stripe as payment method.
    Email sent, booking status set to `paid` or `pending`
 7. **Webhook (Stripe):**
    Async confirmation for SEPA, updates booking status
+
+### Pay Open Bills (#72)
+
+Users with `status_billing=pending` bookings can pay later from their bill page (`/user/bookings/bills/:bid`).
+
+**Flow:**
+1. User opens bill page → sees PayPal/Stripe/Klarna radio buttons (if pending + not cancelled + total > 0)
+2. Selects payment method, clicks "Jetzt bezahlen"
+3. Form POSTs to `/square/booking/payment/pay/:bid` → `BookingController::payAction()`
+4. Sets `payLater=true` booking meta → creates Payum tokens → redirects to gateway
+5. After payment: `doneAction()` sets `status_billing=paid` (success) or shows error (failure)
+
+**Key difference from normal flow:** The `payLater` meta flag prevents `cancelSingle()` on payment failure — the booking stays intact, only an error message is shown.
+
+**Technical note:** PayPal sandbox may report `PAYMENTINFO_0_PAYMENTSTATUS: "Pending"` (paymentreview) while the payment actually completed (`PAYMENTREQUEST_0_PAYMENTSTATUS: "Completed"`). The `doneAction` checks the latter to correctly detect success.
 
 ### Manual Payment Instructions
 
@@ -1028,7 +1049,7 @@ git push
 
 Closes #123
 
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 ```
 
 **Phase Labels:**
@@ -1113,6 +1134,16 @@ npm run cypress:open
 - **Problem:** Budget not refunded on booking deletion
 - **Cause:** Refund logic only in cancel path, not delete path
 - **Fix:** Added refund logic to both paths (Feb 2026)
+
+**Backend Booking List Out-of-Range Abo Reservations (#47, Fixed Feb 2026):**
+- **Problem:** Subscription bookings showed extra rows outside the searched date range
+- **Cause:** `getByBookings()` fetches ALL reservations for matched bookings, not just in-range ones
+- **Fix:** Added `array_filter()` after `getByBookings()` in `Backend\BookingController::indexAction()`
+
+**PHP 8.1 Deprecation Warnings (Fixed Feb 2026):**
+- `strlen(null)` in `AbstractEntity::setMeta()` → cast to `(string)` before `strlen()`
+- `strtolower(null)` in `src/Zend/Uri/src/UriFactory.php` → cast to `(string)`
+- `getIterator()` return type in `vendor/eluceo/ical/src/PropertyBag.php` → added `#[\ReturnTypeWillChange]`
 
 ---
 

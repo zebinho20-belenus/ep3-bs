@@ -162,7 +162,7 @@ abstract class AbstractEntity
             throw new InvalidArgumentException('Meta value must be scalar');
         }
 
-        if (strlen($value) == 0) {
+        if ($value === null || strlen((string) $value) == 0) {
             $value = null;
         }
 
