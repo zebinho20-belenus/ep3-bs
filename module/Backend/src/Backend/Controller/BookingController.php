@@ -436,6 +436,27 @@ class BookingController extends AbstractActionController
                         }
                     }
 
+                    /* Check for double-booking after save (warn but don't prevent) */
+                    $updatedReservation = $reservationManager->get($d['bf-rid']);
+                    $dtStart = new \DateTime($updatedReservation->get('date') . ' ' . $updatedReservation->get('time_start'));
+                    $dtEnd = new \DateTime($updatedReservation->get('date') . ' ' . $updatedReservation->get('time_end'));
+                    $overlapping = $reservationManager->getInRange($dtStart, $dtEnd);
+
+                    if ($overlapping) {
+                        $bookingManager->getByReservations($overlapping);
+                        foreach ($overlapping as $overlapRes) {
+                            $overlapBooking = $overlapRes->getExtra('booking');
+                            if ($overlapBooking
+                                && $overlapBooking->get('bid') != $savedBooking->get('bid')
+                                && $overlapBooking->get('sid') == $savedBooking->get('sid')
+                                && $overlapBooking->get('status') != 'cancelled') {
+                                $this->flashMessenger()->addInfoMessage(
+                                    'Warning: This time slot is also occupied by another booking (double booking)');
+                                break;
+                            }
+                        }
+                    }
+
                 } else {
 
                     /* Create booking/reservation */

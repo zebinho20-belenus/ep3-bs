@@ -61,6 +61,8 @@ return array(
     'Reactivate booking' => 'Buchung reaktivieren',
     'This booking has been cancelled' => 'Diese Buchung wurde storniert',
     'This time slot is already occupied by another booking' => 'Dieser Zeitslot ist bereits durch eine andere Buchung belegt',
+    'Warning: This time slot is also occupied by another booking (double booking)'
+        => 'Achtung: Dieser Zeitslot ist auch durch eine andere Buchung belegt (Doppelbelegung)',
     'Reservation has been deleted' => 'Reservierung wurde gelöscht',
     'Event has been saved' => 'Veranstaltung wurde gespeichert',
     'Event has been deleted' => 'Veranstaltung wurde gelöscht',
