@@ -54,6 +54,31 @@ class LastBookings extends AbstractHelper
             $bookingsActuallyDisplayed = 0;
             $hasUnpaid = false;
 
+            // Check for unpaid bookings in current year (beyond display window)
+            $yearStart = new DateTime('first day of January this year');
+            $yearStart->setTime(0, 0);
+
+            foreach ($userBookings as $b) {
+                $bStatusBilling = $b->get('status_billing');
+                $bBills = $b->getExtra('bills');
+                $bPrice = 0;
+                if ($bBills) {
+                    foreach ($bBills as $bill) {
+                        $bPrice += $bill->need('price');
+                    }
+                }
+                if ($bStatusBilling == 'pending' && $bPrice > 0) {
+                    $bReservations = $b->needExtra('reservations');
+                    foreach ($bReservations as $bRes) {
+                        $bDate = new DateTime($bRes->need('date'));
+                        if ($bDate >= $yearStart) {
+                            $hasUnpaid = true;
+                            break 2;
+                        }
+                    }
+                }
+            }
+
             foreach ($userBookings as $booking) {
                 $reservations = $booking->needExtra('reservations');
 
@@ -90,9 +115,6 @@ class LastBookings extends AbstractHelper
                     $billingInfo = '';
                     if ($statusBilling == 'pending' && $price > 0) {
                         $billingInfo = ' <span style=\'color: #d97706; font-size: 0.85em;\'>(' . $view->t('Pending') . ')</span>';
-                        if ($bookingDateTimeStart >= $now) {
-                            $hasUnpaid = true;
-                        }
                     } elseif ($statusBilling == 'paid') {
                         $billingInfo = ' <span style=\'color: #16a34a; font-size: 0.85em;\'>(' . $view->t('Paid') . ')</span>';
                     }
