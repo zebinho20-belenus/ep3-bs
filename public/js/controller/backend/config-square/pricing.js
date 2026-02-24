@@ -14,7 +14,7 @@
             $(this).before($rule);
             $rule.fadeIn();
 
-            $rule.find(".datepicker").datepicker();
+            $rule.find(".datepicker").removeClass("hasDatepicker").removeAttr("id").datepicker();
         });
 
         /* --- Add new day range --- */
@@ -285,7 +285,7 @@
             latestStartEndTime = thisStartEndTime;
         });
 
-        $(".datepicker").datepicker();
+        $container.find(".datepicker").removeClass("hasDatepicker").removeAttr("id").datepicker();
     });
 
 })();

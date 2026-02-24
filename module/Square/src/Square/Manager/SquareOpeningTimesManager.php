@@ -58,7 +58,7 @@ class SquareOpeningTimesManager extends AbstractManager
 
         try {
             $adapter = $this->squareOpeningTimesTable->getAdapter();
-            $adapter->query('TRUNCATE TABLE ' . SquareOpeningTimesTable::NAME, Adapter::QUERY_MODE_EXECUTE);
+            $adapter->query('DELETE FROM ' . SquareOpeningTimesTable::NAME, Adapter::QUERY_MODE_EXECUTE);
 
             $statement = $adapter->query('INSERT INTO ' . SquareOpeningTimesTable::NAME . ' (sid, priority, date_start, date_end, time_start, time_end) VALUES (?, ?, ?, ?, ?, ?)', Adapter::QUERY_MODE_PREPARE);
 
@@ -70,7 +70,9 @@ class SquareOpeningTimesManager extends AbstractManager
                 $statement->execute($rule);
             }
 
-            $connection->commit();
+            if ($transaction) {
+                $connection->commit();
+            }
 
             $this->getEventManager()->trigger('create', $rules);
 

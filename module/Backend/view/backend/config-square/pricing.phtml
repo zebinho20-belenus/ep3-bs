@@ -46,67 +46,73 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
     </script>
 
     <!-- Template for cloning -->
-    <div id="pricing-template">
+    <div id="pricing-template" style="display: none;">
         <div class="pricing-rule card mb-3">
             <div class="card-header d-flex align-items-center gap-2 py-2">
-                <span class="pricing-grammar"><?= $this->t('From') ?></span>
+                <span class="text-muted small"><?= $this->t('From') ?></span>
                 <input type="text" value="" class="pricing-dateStart datepicker form-control form-control-sm" style="width: 110px;">
-                <span class="pricing-grammar"><?= $this->t('to') ?></span>
+                <span class="text-muted small"><?= $this->t('to') ?></span>
                 <input type="text" value="" class="pricing-dateEnd datepicker form-control form-control-sm" style="width: 110px;">
-                <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                <a href="#" class="pricing-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete rule') ?>"><span class="fa fa-times"></span></a>
             </div>
-            <div class="card-body p-2">
+            <div class="card-body p-3">
+                <?php
+                $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
+                ?>
                 <div class="pricing-day-block border-start border-2 border-primary ps-3 mb-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <?php
-                        $days = array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday');
-
                         echo '<select class="pricing-dayStart form-select form-select-sm" style="width: auto;">';
                         foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 0 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
                         echo '</select>';
-
-                        echo '<span class="pricing-grammar">' . $this->t('to') . '</span>';
-
+                        ?>
+                        <span class="text-muted">&ndash;</span>
+                        <?php
                         echo '<select class="pricing-dayEnd form-select form-select-sm" style="width: auto;">';
                         foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 4 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
                         echo '</select>';
                         ?>
-                        <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                        <a href="#" class="pricing-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete day range') ?>"><span class="fa fa-times"></span></a>
                     </div>
 
                     <div class="pricing-time-block ps-3 mb-2">
-                        <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
-                            <input type="text" value="06:00" maxlength="5" class="pricing-timeStart timepicker form-control form-control-sm" style="width: 65px;">
-                            <span class="pricing-grammar"><?= $this->t('to') ?></span>
-                            <input type="text" value="24:00" maxlength="5" class="pricing-timeEnd timepicker form-control form-control-sm" style="width: 65px;">
-                            <span class="pricing-grammar"><?= $this->t('Clock') ?></span>
-                            <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                        <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="text" value="06:00" maxlength="5" class="pricing-timeStart timepicker form-control form-control-sm" style="width: 65px;">
+                                <span class="text-muted">&ndash;</span>
+                                <input type="text" value="24:00" maxlength="5" class="pricing-timeEnd timepicker form-control form-control-sm" style="width: 65px;">
+                                <span class="text-muted small"><?= $this->t('Clock') ?></span>
+                            </div>
+                            <a href="#" class="pricing-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete time range') ?>"><span class="fa fa-times"></span></a>
                         </div>
 
-                        <div class="pricing-price-line mb-2">
-                            <div class="d-flex align-items-center gap-1 mb-1">
-                                <?php
-                                echo '<input type="text" value="0,00" maxlength="6" class="pricing-price-number pricepicker form-control form-control-sm" style="width: 80px;">';
-                                echo '<span class="pricing-grammar">' . $this->config('i18n.currency') . '</span>';
+                        <div class="pricing-price-line mb-2 ps-2 py-2" style="border-left: 2px solid #dee2e6;">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                <div class="d-flex align-items-center gap-1">
+                                    <?php
+                                    echo '<input type="text" value="0,00" maxlength="6" class="pricing-price-number pricepicker form-control form-control-sm" style="width: 80px;">';
+                                    echo '<span class="text-muted small">' . $this->config('i18n.currency') . '</span>';
+                                    ?>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <?php
+                                    echo '<select class="pricing-rate-gross form-select form-select-sm" style="width: auto;">';
+                                    echo '<option value="0">' . $this->t('plus') . '</option>';
+                                    echo '<option value="1" selected="selected">' . $this->t('including') . '</option>';
+                                    echo '</select>';
 
-                                echo '<select class="pricing-rate-gross form-select form-select-sm" style="width: auto;">';
-                                echo '<option value="0">' . $this->t('plus') . '</option>';
-                                echo '<option value="1" selected="selected">' . $this->t('including') . '</option>';
-                                echo '</select>';
-
-                                echo '<select class="pricing-rate form-select form-select-sm" style="width: auto;">';
-                                echo '<option value="0">0%</option>';
-                                echo '<option value="7">7%</option>';
-                                echo '<option value="19" selected="selected">19%</option>';
-                                echo '</select>';
-                                echo '<span class="pricing-grammar">' . $this->t('VAT') . '</span>';
-                                ?>
-                                <a href="#" class="pricing-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                                    echo '<select class="pricing-rate form-select form-select-sm" style="width: auto;">';
+                                    echo '<option value="0">0%</option>';
+                                    echo '<option value="7">7%</option>';
+                                    echo '<option value="19" selected="selected">19%</option>';
+                                    echo '</select>';
+                                    echo '<span class="text-muted small">' . $this->t('VAT') . '</span>';
+                                    ?>
+                                </div>
+                                <a href="#" class="pricing-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete price') ?>"><span class="fa fa-times"></span></a>
                             </div>
-                            <div class="d-flex align-items-center flex-wrap gap-1 ps-2">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mt-1">
                                 <?php
-                                echo '<span class="pricing-grammar">' . $this->t('for') . '</span>';
-
                                 echo '<select class="pricing-sid form-select form-select-sm" style="width: auto;">';
                                 echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
                                 foreach ($this->squares as $square) {
@@ -114,14 +120,17 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
                                 }
                                 echo '</select>';
 
+                                echo '<span class="text-muted mx-1">|</span>';
+
                                 echo '<select class="pricing-member form-select form-select-sm" style="width: auto;">';
                                 echo '<option value="0" selected="selected">' . $this->t('no member') . '</option>';
                                 echo '<option value="1">' . $this->t('member') . '</option>';
                                 echo '</select>';
 
-                                echo '<span class="pricing-grammar">' . $this->t('and') . '</span>';
+                                echo '<span class="text-muted mx-1">|</span>';
+
                                 echo '<input type="text" value="' . round($this->squaresTimeBlock / 60) . '" maxlength="3" class="pricing-timeBlock timeblockpicker form-control form-control-sm" style="width: 50px;">';
-                                echo '<span class="pricing-grammar">Min.</span>';
+                                echo '<span class="text-muted small">Min.</span>';
                                 ?>
                             </div>
                         </div>

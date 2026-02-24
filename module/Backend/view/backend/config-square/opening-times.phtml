@@ -46,43 +46,46 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
     </script>
 
     <!-- Template for cloning -->
-    <div id="opening-times-template">
+    <div id="opening-times-template" style="display: none;">
         <div class="opening-times-rule card mb-3">
             <div class="card-header d-flex align-items-center gap-2 py-2">
-                <span class="opening-times-grammar"><?= $this->t('From') ?></span>
+                <span class="text-muted small"><?= $this->t('From') ?></span>
                 <input type="text" value="" class="opening-times-dateStart datepicker form-control form-control-sm" style="width: 110px;">
-                <span class="opening-times-grammar"><?= $this->t('to') ?></span>
+                <span class="text-muted small"><?= $this->t('to') ?></span>
                 <input type="text" value="" class="opening-times-dateEnd datepicker form-control form-control-sm" style="width: 110px;">
-                <a href="#" class="opening-times-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                <a href="#" class="opening-times-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete rule') ?>"><span class="fa fa-times"></span></a>
             </div>
-            <div class="card-body p-2">
+            <div class="card-body p-3">
+                <?php
+                $hours = array();
+                for ($h = 6; $h <= 24; $h++) {
+                    $hours[] = sprintf('%02d:00', $h);
+                }
+                ?>
                 <div class="opening-times-time-block border-start border-2 border-primary ps-3 mb-2">
-                    <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
-                        <?php
-                        $hours = array();
-                        for ($h = 6; $h <= 24; $h++) {
-                            $hours[] = sprintf('%02d:00', $h);
-                        }
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-1">
+                            <?php
+                            echo '<select class="opening-times-timeStart form-select form-select-sm" style="width: auto;">';
+                            foreach ($hours as $hour) {
+                                $sel = ($hour == '08:00') ? ' selected="selected"' : '';
+                                echo '<option value="' . $hour . '"' . $sel . '>' . $hour . '</option>';
+                            }
+                            echo '</select>';
+                            ?>
+                            <span class="text-muted">&ndash;</span>
+                            <?php
+                            echo '<select class="opening-times-timeEnd form-select form-select-sm" style="width: auto;">';
+                            foreach ($hours as $hour) {
+                                $sel = ($hour == '21:00') ? ' selected="selected"' : '';
+                                echo '<option value="' . $hour . '"' . $sel . '>' . $hour . '</option>';
+                            }
+                            echo '</select>';
+                            ?>
+                            <span class="text-muted small"><?= $this->t('Clock') ?></span>
+                        </div>
 
-                        echo '<select class="opening-times-timeStart form-select form-select-sm" style="width: auto;">';
-                        foreach ($hours as $hour) {
-                            $sel = ($hour == '08:00') ? ' selected="selected"' : '';
-                            echo '<option value="' . $hour . '"' . $sel . '>' . $hour . '</option>';
-                        }
-                        echo '</select>';
-                        ?>
-                        <span class="opening-times-grammar"><?= $this->t('to') ?></span>
-                        <?php
-                        echo '<select class="opening-times-timeEnd form-select form-select-sm" style="width: auto;">';
-                        foreach ($hours as $hour) {
-                            $sel = ($hour == '21:00') ? ' selected="selected"' : '';
-                            echo '<option value="' . $hour . '"' . $sel . '>' . $hour . '</option>';
-                        }
-                        echo '</select>';
-                        ?>
-                        <span class="opening-times-grammar"><?= $this->t('Clock') ?></span>
-
-                        <span class="opening-times-grammar"><?= $this->t('for') ?></span>
+                        <span class="text-muted mx-1">|</span>
 
                         <?php
                         echo '<select class="opening-times-sid form-select form-select-sm" style="width: auto;">';
@@ -93,9 +96,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
                         echo '</select>';
                         ?>
 
-                        <a href="#" class="opening-times-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                        <a href="#" class="opening-times-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete time') ?>"><span class="fa fa-times"></span></a>
                     </div>
-
                 </div>
 
                 <a href="#" class="opening-times-time-new small text-muted"><em>+ <?= $this->t('New time') ?></em></a>
