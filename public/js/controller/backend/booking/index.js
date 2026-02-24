@@ -65,7 +65,7 @@
             var count = $(".bulk-check:checked").length;
             var msg;
             if (action === "delete") {
-                msg = count + " Buchung(en) endgültig löschen?";
+                msg = count + " Buchung(en) endgültig löschen? (Aktive Buchungen werden dabei storniert und gelöscht)";
             } else if (action === "reactivate") {
                 msg = count + " Buchung(en) reaktivieren?";
             } else {

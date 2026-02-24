@@ -1084,11 +1084,39 @@ class BookingController extends AbstractActionController
 
                 $cancelCount++;
 
-            } elseif ($action === 'delete' && $booking->get('status') === 'cancelled') {
+            } elseif ($action === 'delete') {
                 $this->authorize('admin.all');
+
+                // If booking is still active, cancel it first (like single delete)
+                if ($booking->get('status') !== 'cancelled') {
+                    $booking->set('status', 'cancelled');
+                    $booking->setMeta('cancellor', $sessionUser->get('alias'));
+                    $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+                    $booking->setMeta('admin_cancelled', 'true');
+                    $booking->setMeta('backend_cancelled', 'true');
+                    $booking->setMeta('admin_deleted', 'true');
+                    $bookingManager->save($booking);
+
+                    // Door code deactivation
+                    $square = $squareManager->get($booking->get('sid'));
+                    if ($this->config('genDoorCode') != null && $this->config('genDoorCode') == true && $square->getMeta('square_control') == true) {
+                        $squareControlService->deactivateDoorCode($booking->get('bid'));
+                    }
+
+                    // Send cancellation email
+                    try {
+                        $user = $userManager->get($booking->get('uid'));
+                        $this->sendAdminCancellationEmail($booking, $user);
+                    } catch (\Exception $e) {
+                        // Continue despite errors
+                    }
+                }
 
                 // Budget refund before deletion (if not already refunded)
                 if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
+                    $booking->setMeta('refunded', 'true');
+                    $bookingManager->save($booking);
+
                     $user = $userManager->get($booking->get('uid'));
 
                     $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
