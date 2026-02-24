@@ -31,4 +31,9 @@ mycourt-pay.sql
 
 
 
+# Claude Code skills
+/.agents/skills/
+/.claude/skills/
+skills-lock.json
+
 *~
