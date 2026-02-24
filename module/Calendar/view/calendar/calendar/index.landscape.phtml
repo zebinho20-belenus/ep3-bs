@@ -37,6 +37,23 @@ while ($walkingDate <= $this->dateEnd) {
     echo $this->calendarDateRow($walkingDate, $this->squaresCount);
     echo $this->calendarSquareRow($this->squares, $this->squaresCount);
 
+    /* Update square opening times for this specific date */
+
+    foreach ($this->squares as $sq) {
+        $ot = $this->openingTimesManager->getOpeningTimes($walkingDate, $sq->need('sid'));
+        if ($ot) {
+            $parts = explode(':', $ot['time_start']);
+            $sq->setExtra('time_start_sec', $parts[0] * 3600 + $parts[1] * 60);
+            $parts = explode(':', $ot['time_end']);
+            $sq->setExtra('time_end_sec', $parts[0] * 3600 + $parts[1] * 60);
+        } else {
+            $parts = explode(':', $sq->need('time_start'));
+            $sq->setExtra('time_start_sec', $parts[0] * 3600 + $parts[1] * 60);
+            $parts = explode(':', $sq->need('time_end'));
+            $sq->setExtra('time_end_sec', $parts[0] * 3600 + $parts[1] * 60);
+        }
+    }
+
     /* Loop through time rows */
 
     for ($walkingTime = $this->timeStart; $walkingTime < $this->timeEnd; $walkingTime += $this->timeBlock) {

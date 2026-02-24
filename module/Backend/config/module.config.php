@@ -334,6 +334,15 @@ return array(
                                             ),
                                         ),
                                     ),
+                                    'opening-times' => array(
+                                        'type' => 'Literal',
+                                        'options' => array(
+                                            'route' => '/opening-times',
+                                            'defaults' => array(
+                                                'action' => 'openingTimes',
+                                            ),
+                                        ),
+                                    ),
                                     'product' => array(
                                         'type' => 'Literal',
                                         'options' => array(

@@ -110,12 +110,32 @@ class CalendarController extends AbstractActionController
         $dateEnd->setTime(23, 59, 59);
         $dateNow = new DateTime();
 
+        $openingTimesManager = $serviceManager->get('Square\Manager\SquareOpeningTimesManager');
+
         $timeStart = $squareManager->getMinStartTime();
         $timeEnd = $squareManager->getMaxEndTime();
         $timeBlock = $squareManager->getMinTimeBlock();
-        $timeBlockCount = ceil(($timeEnd - $timeStart) / $timeBlock);
 
         $squares = $this->calendarDetermineSquares();
+
+        // Check all opening time rules for wider windows in the visible date range
+        $walkDate = clone $dateStart;
+        while ($walkDate <= $dateEnd) {
+            foreach ($squares as $sq) {
+                $ot = $openingTimesManager->getOpeningTimes($walkDate, $sq->need('sid'));
+                if ($ot) {
+                    $parts = explode(':', $ot['time_start']);
+                    $sec = $parts[0] * 3600 + $parts[1] * 60;
+                    if ($sec < $timeStart) $timeStart = $sec;
+                    $parts = explode(':', $ot['time_end']);
+                    $sec = $parts[0] * 3600 + $parts[1] * 60;
+                    if ($sec > $timeEnd) $timeEnd = $sec;
+                }
+            }
+            $walkDate->modify('+1 day');
+        }
+
+        $timeBlockCount = ceil(($timeEnd - $timeStart) / $timeBlock);
         $squaresCount = count($squares);
         $squaresFilter = $this->params()->fromQuery('squares');
 
@@ -171,6 +191,7 @@ class CalendarController extends AbstractActionController
             'reservations' => $reservations,
             'events' => $events,
             'user' => $user,
+            'openingTimesManager' => $openingTimesManager,
         );
     }
 

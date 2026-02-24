@@ -339,6 +339,62 @@ class ConfigSquareController extends AbstractActionController
         );
     }
 
+    public function openingTimesAction()
+    {
+        $this->authorize('admin.config');
+
+        $serviceManager = @$this->getServiceLocator();
+        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+        $squareOpeningTimesManager = $serviceManager->get('Square\Manager\SquareOpeningTimesManager');
+
+        $squares = $squareManager->getAll();
+        $openingTimesRules = $squareOpeningTimesManager->getAll();
+
+        if ($this->getRequest()->isPost()) {
+            $rulesCount = $this->params()->fromPost('opening-times-rules-count');
+
+            if (is_numeric($rulesCount) && $rulesCount >= 0) {
+
+                try {
+
+                    $rules = array();
+
+                    for ($i = 0; $i < $rulesCount; $i++) {
+                        $rule = $this->params()->fromPost('opening-times-rule-' . $i);
+                        $rule = urldecode($rule);
+                        $rule = json_decode($rule);
+
+                        // Transform sid if null
+                        if ($rule[0] == 'null') {
+                            $rule[0] = null;
+                        }
+
+                        // Transform dates from DD.MM.YYYY to YYYY-MM-DD
+                        $rule[2] = implode('-', array_reverse(explode('.', $rule[2])));
+                        $rule[3] = implode('-', array_reverse(explode('.', $rule[3])));
+
+                        $rules[] = $rule;
+                    }
+
+                    $squareOpeningTimesManager->create($rules);
+
+                    $this->flashMessenger()->addMessage('Opening time rules have been saved');
+                } catch (\Exception $e) {
+                    $this->flashMessenger()->addErrorMessage($e->getMessage());
+                }
+            } else {
+                $this->flashMessenger()->addErrorMessage('Unknown opening time rules error');
+            }
+
+            return $this->redirect()->toRoute('backend/config/square/opening-times');
+        }
+
+        return array(
+            'squares' => $squares,
+            'openingTimesRules' => $openingTimesRules,
+        );
+    }
+
     public function productAction()
     {
         $this->authorize('admin.config');

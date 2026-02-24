@@ -1,0 +1,123 @@
+<?php
+
+$this->setup(array(
+    'title' => 'Opening times',
+    'panel' => 'centered-panel giant-sized',
+    'back' => array(
+        'Configuration' => $this->url('backend/config'),
+    ),
+));
+
+$this->headScript()->appendFile($this->basePath('js/controller/backend/config-square/opening-times.min.js'));
+
+?>
+
+<div>
+    <h1><?= $this->t('Seasonal opening times') ?></h1>
+
+    <div class="separator-small"></div>
+
+    <p><?= sprintf($this->t('Configure date-dependent opening times for your %s'), $this->option('subject.square.type.plural')) ?></p>
+
+    <div class="separator separator-line"></div>
+
+    <script type="text/javascript">
+        <?php
+
+        $jsRules = array();
+
+        foreach ($this->openingTimesRules as $rule) {
+            $jsRule = array();
+
+            foreach ($rule as $key => $value) {
+                if ($key == 'date_start' || $key == 'date_end') {
+                    $value = implode('.', array_reverse(explode('-', $value)));
+                }
+
+                $jsRule[] = '"' . $value . '"';
+            }
+
+            $jsRules[] = '[ ' . implode(', ', $jsRule) . ' ]';
+        }
+
+        ?>
+
+        var openingTimesRules = [ <?= implode(', ', $jsRules) ?> ];
+    </script>
+
+    <!-- Template for cloning -->
+    <div id="opening-times-template">
+        <div class="opening-times-rule card mb-3">
+            <div class="card-header d-flex align-items-center gap-2 py-2">
+                <span class="opening-times-grammar"><?= $this->t('From') ?></span>
+                <input type="text" value="" class="opening-times-dateStart datepicker form-control form-control-sm" style="width: 110px;">
+                <span class="opening-times-grammar"><?= $this->t('to') ?></span>
+                <input type="text" value="" class="opening-times-dateEnd datepicker form-control form-control-sm" style="width: 110px;">
+                <a href="#" class="opening-times-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+            </div>
+            <div class="card-body p-2">
+                <div class="opening-times-time-block border-start border-2 border-primary ps-3 mb-2">
+                    <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                        <?php
+                        $hours = array();
+                        for ($h = 6; $h <= 24; $h++) {
+                            $hours[] = sprintf('%02d:00', $h);
+                        }
+
+                        echo '<select class="opening-times-timeStart form-select form-select-sm" style="width: auto;">';
+                        foreach ($hours as $hour) {
+                            $sel = ($hour == '08:00') ? ' selected="selected"' : '';
+                            echo '<option value="' . $hour . '"' . $sel . '>' . $hour . '</option>';
+                        }
+                        echo '</select>';
+                        ?>
+                        <span class="opening-times-grammar"><?= $this->t('to') ?></span>
+                        <?php
+                        echo '<select class="opening-times-timeEnd form-select form-select-sm" style="width: auto;">';
+                        foreach ($hours as $hour) {
+                            $sel = ($hour == '21:00') ? ' selected="selected"' : '';
+                            echo '<option value="' . $hour . '"' . $sel . '>' . $hour . '</option>';
+                        }
+                        echo '</select>';
+                        ?>
+                        <span class="opening-times-grammar"><?= $this->t('Clock') ?></span>
+
+                        <span class="opening-times-grammar"><?= $this->t('for') ?></span>
+
+                        <?php
+                        echo '<select class="opening-times-sid form-select form-select-sm" style="width: auto;">';
+                        echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
+                        foreach ($this->squares as $square) {
+                            echo '<option value="' . $square->get('sid') . '">' . $this->option('subject.square.type') . ' ' . $square->get('name') . '</option>';
+                        }
+                        echo '</select>';
+                        ?>
+
+                        <a href="#" class="opening-times-delete ms-auto" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                    </div>
+
+                </div>
+
+                <a href="#" class="opening-times-time-new small text-muted"><em>+ <?= $this->t('New time') ?></em></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active opening time rules container -->
+    <div id="opening-times-container">
+        <a href="#" class="opening-times-date-range-new small text-muted"><em>+ <?= $this->t('New opening time rule') ?></em></a>
+    </div>
+
+    <div class="separator separator-line"></div>
+
+    <div class="py-3">
+        <form method="post" action="<?= $this->url('backend/config/square/opening-times') ?>" id="opening-times-form">
+            <div id="opening-times-form-rules"></div>
+
+            <div class="edit-actions">
+                <input type="hidden" name="opening-times-rules-count" id="opening-times-rules-count" value="0">
+                <input type="submit" id="opening-times-save" value="<?= $this->t('Save') ?>" class="default-button">
+            </div>
+        </form>
+    </div>
+</div>

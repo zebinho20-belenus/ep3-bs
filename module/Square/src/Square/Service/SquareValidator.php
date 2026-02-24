@@ -12,6 +12,7 @@ use Event\Manager\EventManager;
 use Exception;
 use RuntimeException;
 use Square\Manager\SquareManager;
+use Square\Manager\SquareOpeningTimesManager;
 use User\Manager\UserSessionManager;
 
 class SquareValidator extends AbstractService
@@ -21,17 +22,19 @@ class SquareValidator extends AbstractService
     protected $reservationManager;
     protected $eventManager;
     protected $squareManager;
+    protected $openingTimesManager;
     protected $optionManager;
     protected $user;
 
     public function __construct(BookingManager $bookingManager, ReservationManager $reservationManager,
         EventManager $eventManager, SquareManager $squareManager, UserSessionManager $userSessionManager,
-        OptionManager $optionManager)
+        OptionManager $optionManager, SquareOpeningTimesManager $openingTimesManager)
     {
         $this->bookingManager = $bookingManager;
         $this->reservationManager = $reservationManager;
         $this->eventManager = $eventManager;
         $this->squareManager = $squareManager;
+        $this->openingTimesManager = $openingTimesManager;
         $this->optionManager = $optionManager;
         $this->user = $userSessionManager->getSessionUser();
     }
@@ -144,15 +147,19 @@ class SquareValidator extends AbstractService
             }
         }
 
-        /* Validate square time range */
+        /* Validate square time range (date-dependent with fallback) */
 
-        $squareTimeStartParts = explode(':', $square->need('time_start'));
+        $effectiveTimes = $this->openingTimesManager->getOpeningTimes($timeStart, $square->need('sid'));
+        $squareTimeStartStr = $effectiveTimes ? $effectiveTimes['time_start'] : $square->need('time_start');
+        $squareTimeEndStr = $effectiveTimes ? $effectiveTimes['time_end'] : $square->need('time_end');
+
+        $squareTimeStartParts = explode(':', $squareTimeStartStr);
         $squareTimeStart = clone $timeStart;
-        $squareTimeStart->setTime($squareTimeStartParts[0], $squareTimeStartParts[1], $squareTimeStartParts[2]);
+        $squareTimeStart->setTime($squareTimeStartParts[0], $squareTimeStartParts[1], isset($squareTimeStartParts[2]) ? $squareTimeStartParts[2] : 0);
 
-        $squareTimeEndParts = explode(':', $square->need('time_end'));
+        $squareTimeEndParts = explode(':', $squareTimeEndStr);
         $squareTimeEnd = clone $timeEnd;
-        $squareTimeEnd->setTime($squareTimeEndParts[0], $squareTimeEndParts[1], $squareTimeEndParts[2]);
+        $squareTimeEnd->setTime($squareTimeEndParts[0], $squareTimeEndParts[1], isset($squareTimeEndParts[2]) ? $squareTimeEndParts[2] : 0);
 
         if ($timeStart < $squareTimeStart || $timeEnd > $squareTimeEnd) {
             throw new RuntimeException('The passed time range is invalid');

@@ -108,6 +108,7 @@ return array(
         'factories' => array(
             'Square\Manager\SquareManager' => 'Square\Manager\SquareManagerFactory',
             'Square\Manager\SquarePricingManager' => 'Square\Manager\SquarePricingManagerFactory',
+            'Square\Manager\SquareOpeningTimesManager' => 'Square\Manager\SquareOpeningTimesManagerFactory',
             'Square\Manager\SquareProductManager' => 'Square\Manager\SquareProductManagerFactory',
 
             'Square\Service\SquareValidator' => 'Square\Service\SquareValidatorFactory',
@@ -116,6 +117,7 @@ return array(
             'Square\Table\SquareTable' => 'Square\Table\SquareTableFactory',
 
             'Square\Table\SquarePricingTable' => 'Square\Table\SquarePricingTableFactory',
+            'Square\Table\SquareOpeningTimesTable' => 'Square\Table\SquareOpeningTimesTableFactory',
             'Square\Table\SquareProductTable' => 'Square\Table\SquareProductTableFactory',
         ),
     ),

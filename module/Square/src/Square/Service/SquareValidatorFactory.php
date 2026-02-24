@@ -16,7 +16,8 @@ class SquareValidatorFactory implements FactoryInterface
             $sm->get('Event\Manager\EventManager'),
             $sm->get('Square\Manager\SquareManager'),
             $sm->get('User\Manager\UserSessionManager'),
-            $sm->get('Base\Manager\OptionManager'));
+            $sm->get('Base\Manager\OptionManager'),
+            $sm->get('Square\Manager\SquareOpeningTimesManager'));
     }
 
 }

@@ -49,6 +49,11 @@ $this->setup(array(
                 <span class="text-muted d-none d-sm-inline"><?= sprintf($this->t('How much do bookings cost for your %s?'), $this->option('subject.square.type.plural')) ?></span>
             </a>
 
+            <a href="<?= $this->url('backend/config/square/opening-times') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+                <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Opening times') ?></span>
+                <span class="text-muted d-none d-sm-inline"><?= sprintf($this->t('When are your %s open during the season?'), $this->option('subject.square.type.plural')) ?></span>
+            </a>
+
             <a href="<?= $this->url('backend/config/square/product') ?>" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
                 <span class="symbolic symbolic-config default-button" style="min-width: 160px; text-align: left;"><?= $this->t('Products') ?></span>
                 <span class="text-muted d-none d-sm-inline"><?= $this->t('Which additional products or services do you offer with your bookings?') ?></span>

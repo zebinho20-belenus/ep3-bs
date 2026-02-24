@@ -1126,5 +1126,7 @@ a.squarebox-primary-close-link:hover {
     box-shadow: 0 0 0 0.2rem rgba(4, 107, 210, 0.25);
 }
 
+.pricing-price-line + .pricing-price-line { padding-top: 0.5rem; border-top: 1px dashed #dee2e6; }
+
 .pricing-delete { color: #999 !important; text-decoration: none; cursor: pointer; font-size: 1rem; }
 .pricing-delete:hover { color: #DC2626 !important; }

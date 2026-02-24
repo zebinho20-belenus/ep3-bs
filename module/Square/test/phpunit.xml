@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    PHPUnit 5.7 + PHP 8.1: The -c flag triggers a $GLOBALS bug in Configuration.php.
+    Run from project root instead:
+      docker compose exec court php vendor/phpunit/phpunit/phpunit \
+        - -bootstrap module/Square/test/bootstrap.php module/Square/test/SquareTest/
+-->
+<phpunit backupGlobals="false" bootstrap="bootstrap.php" colors="true">
+    <testsuites>
+        <testsuite name="Square">
+            <directory>SquareTest</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

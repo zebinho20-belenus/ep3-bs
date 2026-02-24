@@ -374,6 +374,15 @@ return array(
     'New day' => 'Neuer Wochentag',
     'New period' => 'Neuer Zeitraum',
     'New rule' => 'Neue Regel',
+    'New opening time rule' => 'Neue Öffnungszeit-Regel',
+
+    'Opening times' => 'Öffnungszeiten',
+    'Seasonal opening times' => 'Saisonale Öffnungszeiten',
+    'Configure date-dependent opening times for your %s'
+        => 'Konfigurieren Sie datumsabhängige Öffnungszeiten für Ihre %s',
+    'When are your %s open during the season?' => 'Wann haben Ihre %s in der Saison geöffnet?',
+    'Opening time rules have been saved' => 'Öffnungszeit-Regeln wurden gespeichert',
+    'Unknown opening time rules error' => 'Unbekannter Fehler mit den Öffnungszeit-Regeln',
 
     'Display pricing:' => 'Preise anzeigen:',
     'For no one' => 'Für niemanden',
