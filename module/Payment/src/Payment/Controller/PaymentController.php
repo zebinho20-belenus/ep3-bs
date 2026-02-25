@@ -267,7 +267,7 @@ class PaymentController extends AbstractActionController
 
         if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $payment['status'] == 'processing') || $status->getValue() === "success" || $payment['status'] === "succeeded" ) {
 
-            if (!$booking->getMeta('directpay_pending') == 'true') {
+            if ($booking->getMeta('directpay_pending') != 'true') {
                 if ($booking->getMeta('payLater') == 'true') {
                     $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sPayment successful!%s'),
                         '<b>', '</b>'));
@@ -334,7 +334,7 @@ class PaymentController extends AbstractActionController
                 $booking->setMeta('directpay', 'false');
                 $bookingManager->save($booking);
             } else {
-                if (!$booking->getMeta('directpay_pending') == 'true') {
+                if ($booking->getMeta('directpay_pending') != 'true') {
                     if(isset($payment['error']['message'])) {
                         $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
                                                 '<b>', '</b>'));

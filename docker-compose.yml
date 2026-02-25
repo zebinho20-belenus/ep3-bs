@@ -8,7 +8,7 @@ services:
       - courtnet
 
   mariadb:
-    image: mariadb:latest
+    image: mariadb:10.11
     restart: always
     ports:
       - ${MYSQL_PORT}:3306
@@ -19,6 +19,11 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - ./tmp/db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - courtnet
 
@@ -32,8 +37,10 @@ services:
     volumes:
       - ./:/var/www/html
     depends_on:
-      - mailhog
-      - mariadb
+      mailhog:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
     networks:
       - courtnet
       - traefik_web

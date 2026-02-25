@@ -702,12 +702,8 @@ class RegistrationForm extends Form
                                     $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
                                     $result = json_decode($response, true);
 
-                                    // Log the validation attempt for debugging
-                                    error_log('Turnstile validation attempt: ' . json_encode($result));
-                                    
                                     return isset($result['success']) && $result['success'] === true;
                                 } catch (\Exception $e) {
-                                    error_log('Turnstile validation error: ' . $e->getMessage());
                                     return false;
                                 }
                             },

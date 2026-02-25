@@ -52,7 +52,7 @@ class UserManager extends AbstractManager
         }
 
         $bcrypt = new Bcrypt();
-        $bcrypt->setCost(6);
+        $bcrypt->setCost(10);
 
         $user = new User(array(
             'alias' => $alias,

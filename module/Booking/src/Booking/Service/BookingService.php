@@ -114,7 +114,6 @@ class BookingService extends AbstractService
             $customPrice = isset($meta['price']) ? $meta['price'] : null;
             
             if ($customPrice) {
-                error_log("Using custom price from controller: " . $customPrice);
                 
                 $squareType = $this->optionManager->need('subject.square.type');
                 $squareName = $this->t($square->need('name'));
@@ -203,17 +202,6 @@ class BookingService extends AbstractService
                 $isAdminCreated = true;
             }
             
-            // Detect if we're in a backend context by checking the request URI if available
-            if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/backend/') !== false) {
-                $isAdminCreated = true;
-                // Set the admin_created flag so we can check for it later
-                $booking->setMeta('admin_created', 'true');
-                $this->bookingManager->save($booking);
-            }
-            
-            // Add debug log
-            error_log('Booking created with ID: ' . $booking->need('bid') . ', Admin created: ' . ($isAdminCreated ? 'Yes' : 'No'));
-            
             // If this is an admin-created booking, send email notification
             if ($isAdminCreated) {
                 $this->sendAdminBookingNotification($booking, $user, $square, $dateTimeStart, $dateTimeEnd);
@@ -226,9 +214,6 @@ class BookingService extends AbstractService
                 $this->connection->rollback();
             }
             
-            // Log any exceptions that occur
-            error_log('Exception in createSingle: ' . $e->getMessage());
-
             throw $e;
         }
     }
@@ -240,145 +225,160 @@ class BookingService extends AbstractService
         return $booking;
     }
 
-    public function cancelSingle(Booking $booking)
+    /**
+     * Refund budget to user if booking was paid and not yet refunded.
+     *
+     * @param Booking $booking
+     * @return int Total refunded amount in cents, or 0 if no refund
+     */
+    public function refundBudget(Booking $booking)
     {
-        error_log('---------- CANCELLATION DEBUG START ----------');
-        error_log('cancelSingle called for booking ID: ' . $booking->need('bid'));
-        error_log('Current booking status: ' . $booking->get('status'));
-        
-        // Log metadata differently (without using getAllMeta which doesn't exist)
-        error_log('Booking metadata (partial):');
-        // Just log some common meta keys we're interested in
-        $metaKeys = ['cancelled', 'cancellor', 'self_cancelled', 'admin_cancelled', 'backend_cancelled'];
-        foreach ($metaKeys as $key) {
-            $value = $booking->getMeta($key);
-            if ($value) {
-                error_log("  $key: $value");
-            }
-        }
-        
-        $booking->set('status', 'cancelled');
-        
-        // Set cancellation metadata
-        if (!$booking->getMeta('cancelled')) {
-            $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
-            error_log('Added cancelled timestamp: ' . date('Y-m-d H:i:s'));
-        }
-        
-        // Debug the cancellor value specifically
-        $cancellor = $booking->getMeta('cancellor');
-        error_log('Cancellor value: ' . ($cancellor ?: 'not set'));
-        
-        $selfCancelled = $booking->getMeta('self_cancelled');
-        error_log('Self-cancelled value: ' . ($selfCancelled ?: 'not set'));
-        
-        // Check if this is an admin-initiated cancellation
-        $isAdminCancelled = false;
-        
-        // Try multiple heuristics to determine if this is an admin cancellation
-        if ($cancellor && $selfCancelled != 'true') {
-            $isAdminCancelled = true;
-            error_log('Admin cancellation detected based on cancellor presence and no self_cancelled flag');
-        } else if ($booking->getMeta('admin_cancelled') == 'true') {
-            $isAdminCancelled = true;
-            error_log('Admin cancellation detected based on admin_cancelled meta flag');
-        } else if ($booking->getMeta('backend_cancelled') == 'true') {
-            $isAdminCancelled = true;
-            error_log('Admin cancellation detected based on backend_cancelled meta flag');
-        } else {
-            error_log('No admin cancellation detected based on available metadata');
+        if ($booking->get('status_billing') != 'paid' || $booking->getMeta('refunded') == 'true') {
+            return 0;
         }
 
-        // Force admin cancellation for testing
-        if (!$isAdminCancelled) {
-            error_log('Forcing admin cancellation for testing purposes');
+        $booking->setMeta('refunded', 'true');
+        $this->bookingManager->save($booking);
+
+        $bills = $this->billManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+        $total = 0;
+        if ($bills) {
+            foreach ($bills as $bill) {
+                $total += $bill->need('price');
+            }
+        }
+
+        if ($total <= 0) {
+            return 0;
+        }
+
+        $userManager = $this->serviceManager->get('User\Manager\UserManager');
+        $user = $userManager->get($booking->get('uid'));
+
+        $olduserbudget = $user->getMeta('budget');
+        if ($olduserbudget == null || $olduserbudget == '') {
+            $olduserbudget = 0;
+        }
+
+        $newbudget = ($olduserbudget * 100 + $total) / 100;
+        $user->setMeta('budget', $newbudget);
+        $userManager->save($user);
+
+        return $total;
+    }
+
+    public function cancelSingle(Booking $booking)
+    {
+        $booking->set('status', 'cancelled');
+
+        if (!$booking->getMeta('cancelled')) {
+            $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+        }
+
+        $cancellor = $booking->getMeta('cancellor');
+        $selfCancelled = $booking->getMeta('self_cancelled');
+
+        // Check if this is an admin-initiated cancellation
+        $isAdminCancelled = false;
+        if ($cancellor && $selfCancelled != 'true') {
+            $isAdminCancelled = true;
+        } else if ($booking->getMeta('admin_cancelled') == 'true') {
+            $isAdminCancelled = true;
+        } else if ($booking->getMeta('backend_cancelled') == 'true') {
             $isAdminCancelled = true;
         }
 
         $this->bookingManager->save($booking);
-        error_log('Booking saved with status: ' . $booking->get('status'));
-        
+
         // Send cancellation email for admin-cancelled bookings
         if ($isAdminCancelled) {
             try {
-                error_log('Preparing to send admin cancellation email for booking ID: ' . $booking->need('bid'));
-                
-                // Get the user details
                 $userManager = $this->serviceManager->get('User\Manager\UserManager');
-                if (!$userManager) {
-                    error_log('ERROR: Failed to get User Manager service');
-                } else {
-                    error_log('Successfully got User Manager service');
-                }
-                
                 $user = $userManager->get($booking->need('uid'));
-                if (!$user) {
-                    error_log('ERROR: Failed to get user with UID: ' . $booking->need('uid'));
-                } else {
-                    error_log('Successfully got user: ' . $user->need('alias') . ' (' . $user->need('email') . ')');
-                }
-                
-                // Get the square details
+
                 $squareManager = $this->serviceManager->get('Square\Manager\SquareManager');
-                if (!$squareManager) {
-                    error_log('ERROR: Failed to get Square Manager service');
-                } else {
-                    error_log('Successfully got Square Manager service');
-                }
-                
                 $square = $squareManager->get($booking->need('sid'));
-                if (!$square) {
-                    error_log('ERROR: Failed to get square with SID: ' . $booking->need('sid'));
-                } else {
-                    error_log('Successfully got square: ' . $square->need('name'));
-                }
-                
+
                 // Calculate refund if applicable
                 $total = 0;
                 if ($booking->get('status_billing') == 'paid') {
-                    error_log('Booking is paid, calculating refund amount');
-                    $bookingBillManager = $this->serviceManager->get('Booking\Manager\Booking\BillManager');
-                    $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
+                    $bills = $this->billManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
                     if ($bills) {
                         foreach ($bills as $bill) {
                             $total += $bill->need('price');
                         }
                     }
-                    error_log('Calculated refund amount: ' . $total);
-                } else {
-                    error_log('Booking is not paid, no refund necessary');
                 }
-                
-                // Get the controller to send the email
-                $controllerManager = $this->serviceManager->get('ControllerManager');
-                if (!$controllerManager) {
-                    error_log('ERROR: Failed to get Controller Manager service');
-                } else {
-                    error_log('Successfully got Controller Manager service');
-                }
-                
-                $squareController = $controllerManager->get('Square\Controller\BookingController');
-                if (!$squareController) {
-                    error_log('ERROR: Failed to get Square BookingController');
-                } else {
-                    error_log('Successfully got Square BookingController');
-                }
-                
-                // Send the cancellation email
-                error_log('About to call sendCancellationEmail');
-                $squareController->sendCancellationEmail($booking, $user, $total);
-                
-                error_log('Successfully sent admin cancellation email for booking ID: ' . $booking->need('bid'));
+
+                $this->sendCancellationNotification($booking, $user, $square, $total);
             } catch (\Exception $e) {
-                // Just catch exception and move on
+                // Silently continue — email failure should not break cancellation
             }
         }
-        
-        error_log('Triggering cancel.single event');
+
         $this->getEventManager()->trigger('cancel.single', $booking);
-        
-        error_log('---------- CANCELLATION DEBUG END ----------');
+
         return $booking;
+    }
+
+    /**
+     * Send cancellation notification email to user.
+     */
+    protected function sendCancellationNotification(Booking $booking, User $user, Square $square, $total)
+    {
+        if (!$this->mailService) {
+            return;
+        }
+
+        $reservationManager = $this->serviceManager->get('Booking\Manager\ReservationManager');
+        $reservations = $reservationManager->getBy(array('bid' => $booking->get('bid')), 'date ASC, time_start ASC');
+        $reservation = current($reservations);
+
+        $formattedDate = '';
+        $formattedTime = '';
+        if ($reservation) {
+            $formattedDate = date('d.m.Y', strtotime($reservation->get('date')));
+            $formattedTime = $reservation->get('time_start');
+        }
+
+        $squareName = $square->need('name');
+        $clientName = $this->optionManager->get('client.name');
+        $fromAddress = $this->optionManager->get('client.contact.email');
+        if (empty($fromAddress)) {
+            $fromAddress = $this->optionManager->get('client.mail');
+        }
+
+        $refundMessage = '';
+        if ($total > 0) {
+            $refundAmount = number_format($total / 100, 2);
+            $refundMessage = "\n\nEine Rückerstattung von " . $refundAmount . " EUR wurde Ihrem Konto gutgeschrieben.";
+        }
+
+        $subject = sprintf('Ihre Buchung für %s wurde storniert', $squareName);
+        $body = sprintf(
+            "Hallo %s,\n\nIhre Buchung für %s am %s um %s Uhr wurde storniert.%s\n\nBei Fragen kontaktieren Sie uns bitte.\n\nViele Grüße,\n%s",
+            $user->need('alias'),
+            $squareName,
+            $formattedDate,
+            $formattedTime,
+            $refundMessage,
+            $clientName
+        );
+
+        $this->mailService->sendPlain(
+            $fromAddress,
+            $clientName,
+            $fromAddress,
+            $clientName,
+            $user->need('email'),
+            $user->need('alias'),
+            $subject,
+            $body,
+            []
+        );
+
+        $booking->setMeta('cancellation_notification_sent', date('Y-m-d H:i:s'));
+        $this->bookingManager->save($booking);
     }
 
     /**

@@ -132,7 +132,7 @@ class UserSessionManager extends AbstractManager
         }
 
         $bcrypt = new Bcrypt();
-        $bcrypt->setCost(6);
+        $bcrypt->setCost(10);
 
         /* If legacy password is detected, use it for login and then delete it */
 

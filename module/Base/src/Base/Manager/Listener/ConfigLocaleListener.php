@@ -38,7 +38,13 @@ class ConfigLocaleListener extends AbstractListenerAggregate
             if ($locale && isset($configI18n['choice'][$locale])) {
                 $configManager->set('i18n.locale', $locale);
 
-                setcookie($cookieName, $locale, time() + 1209600, '/');
+                setcookie($cookieName, $locale, [
+                    'expires' => time() + 1209600,
+                    'path' => '/',
+                    'secure' => true,
+                    'httponly' => true,
+                    'samesite' => 'Lax',
+                ]);
             } else {
                 if (isset($_COOKIE[$cookieName])) {
                     $locale = $_COOKIE[$cookieName];

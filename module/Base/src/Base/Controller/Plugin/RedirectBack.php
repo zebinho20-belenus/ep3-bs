@@ -49,7 +49,13 @@ class RedirectBack extends AbstractPlugin
             'options' => $options,
         ));
 
-        setcookie($this->cookieName, $origin, 0, '/');
+        setcookie($this->cookieName, $origin, [
+            'expires' => 0,
+            'path' => '/',
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     public function getOrigin()

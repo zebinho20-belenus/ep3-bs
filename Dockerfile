@@ -54,7 +54,7 @@ RUN cd /var/www/html \
     && chmod -R u+w public/imgs-client/upload/
 
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
-    && sed -i -e "s/^ *memory_limit.*/memory_limit = 4G/g" /usr/local/etc/php/php.ini
+    && sed -i -e "s/^ *memory_limit.*/memory_limit = 256M/g" /usr/local/etc/php/php.ini
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf

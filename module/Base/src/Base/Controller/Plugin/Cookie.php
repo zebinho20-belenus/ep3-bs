@@ -28,7 +28,13 @@ class Cookie extends AbstractPlugin
 
         $fullName = $this->configManager->need('cookie_config.cookie_name_prefix') . '-' . $name;
 
-        setcookie($fullName, $value, 0, '/');
+        setcookie($fullName, $value, [
+            'expires' => 0,
+            'path' => '/',
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     public function get($name, $default = null)

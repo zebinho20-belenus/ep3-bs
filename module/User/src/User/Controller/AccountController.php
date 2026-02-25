@@ -112,7 +112,7 @@ class AccountController extends AbstractActionController
                 $resetData = $resetForm->getData();
 
                 $bcrypt = new Bcrypt();
-                $bcrypt->setCost(6);
+                $bcrypt->setCost(10);
 
                 $user->set('pw', $bcrypt->create($resetData['prf-pw1']));
 
@@ -673,7 +673,7 @@ class AccountController extends AbstractActionController
                 $passwordNew = $data['epf-pw1'];
 
                 $bcrypt = new Bcrypt();
-                $bcrypt->setCost(6);
+                $bcrypt->setCost(10);
 
                 if ($bcrypt->verify($passwordCurrent, $user->need('pw'))) {
 
@@ -705,7 +705,7 @@ class AccountController extends AbstractActionController
                 $passwordCurrent = $data['daf-pw-current'];
 
                 $bcrypt = new Bcrypt();
-                $bcrypt->setCost(6);
+                $bcrypt->setCost(10);
 
                 if ($bcrypt->verify($passwordCurrent, $user->need('pw'))) {
 

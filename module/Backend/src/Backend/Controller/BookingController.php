@@ -222,7 +222,7 @@ class BookingController extends AbstractActionController
                             $bookingUser = $userManager->get($reactivateBooking->get('uid'));
                             $this->sendReactivationEmail($reactivateBooking, $bookingUser, $sessionUser);
                         } catch (\Exception $e) {
-                            error_log(sprintf("Fehler beim Senden der Reaktivierungsemail für Buchung %s: %s", $reactivateBooking->get('bid'), $e->getMessage()));
+                            // Continue despite errors
                         }
 
                         $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
@@ -260,7 +260,7 @@ class BookingController extends AbstractActionController
                         }
                     }
                     if (!empty($playerNames)) {
-                        $savedBooking->setMeta('player-names', serialize($playerNames));
+                        $savedBooking->setMeta('player-names', json_encode($playerNames));
                     } else {
                         $savedBooking->setMeta('player-names', null);
                     }
@@ -274,7 +274,7 @@ class BookingController extends AbstractActionController
                         /* Update player names: add/remove "Gastspieler" suffix */
                         $storedNames = $savedBooking->getMeta('player-names');
                         if ($storedNames) {
-                            $namesList = @unserialize($storedNames);
+                            $namesList = json_decode($storedNames, true) ?: @unserialize($storedNames);
                             if (is_array($namesList)) {
                                 foreach ($namesList as &$entry) {
                                     if (isset($entry['value'])) {
@@ -288,7 +288,7 @@ class BookingController extends AbstractActionController
                                     }
                                 }
                                 unset($entry);
-                                $savedBooking->setMeta('player-names', serialize($namesList));
+                                $savedBooking->setMeta('player-names', json_encode($namesList));
                                 $bookingManager->save($savedBooking);
                             }
                         }
@@ -432,7 +432,7 @@ class BookingController extends AbstractActionController
                             $bookingUser = $userManager->get($savedBooking->get('uid'));
                             $this->sendAdminBookingEditEmail($savedBooking, $bookingUser, $changes, $sessionUser, $squareManager);
                         } catch (\Exception $e) {
-                            error_log(sprintf("Fehler beim Senden der Änderungsemail für Buchung %s: %s", $savedBooking->get('bid'), $e->getMessage()));
+                            // Continue despite errors
                         }
                     }
 
@@ -596,7 +596,7 @@ class BookingController extends AbstractActionController
             $playerNames = $booking->getMeta('player-names');
 
             if ($playerNames) {
-                $playerNamesUnserialized = @unserialize($booking->getMeta('player-names'));
+                $playerNamesUnserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'));
 
                 if ($playerNamesUnserialized && is_array($playerNamesUnserialized)) {
                     foreach ($playerNamesUnserialized as $i => $playerName) {
@@ -612,7 +612,7 @@ class BookingController extends AbstractActionController
         /* Extract player names for view */
         $playerNamesForView = [];
         if ($booking && $booking->getMeta('player-names')) {
-            $unserialized = @unserialize($booking->getMeta('player-names'));
+            $unserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'));
             if (is_array($unserialized)) {
                 foreach ($unserialized as $i => $entry) {
                     $playerNamesForView[$i + 2] = $entry['value'];
@@ -856,7 +856,7 @@ class BookingController extends AbstractActionController
                         $bookingUser = $userManager->get($booking->get('uid'));
                         $this->sendReactivationEmail($booking, $bookingUser, $sessionUser);
                     } catch (\Exception $e) {
-                        error_log(sprintf("Fehler beim Senden der Reaktivierungsemail für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
+                        // Continue despite errors
                     }
 
                     $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
@@ -889,34 +889,9 @@ class BookingController extends AbstractActionController
                     }
 
                     # redefine user budget if status paid
-                    if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
-                        $booking->setMeta('refunded', 'true');
-                        $bookingManager->save($booking);
+                    $bookingService = $serviceManager->get('Booking\Service\BookingService');
+                    $bookingService->refundBudget($booking);
 
-                        $userManager = $serviceManager->get('User\Manager\UserManager');
-                        $user = $userManager->get($booking->get('uid'));
-
-                        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager'); 
-
-                        $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                        $total = 0;
-                        if ($bills) {
-                            foreach ($bills as $bill) {
-                                $total += $bill->need('price');
-                            }
-                        }
-
-                        $olduserbudget = $user->getMeta('budget');
-                        if ($olduserbudget == null || $olduserbudget == '') {
-                            $olduserbudget = 0;
-                        }
-
-                        $newbudget = ($olduserbudget*100+$total)/100;
-
-                        $user->setMeta('budget', $newbudget);
-                        $userManager->save($user);
-                    }
-                    
                     // Send cancellation email directly
                     $userManager = $serviceManager->get('User\Manager\UserManager');
                     $user = $userManager->get($booking->get('uid'));
@@ -964,26 +939,9 @@ class BookingController extends AbstractActionController
                         // Continue despite errors
                     }
 
-                    // Budget refund before deletion (same logic as cancel path)
-                    if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
-                        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
-                        $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                        $total = 0;
-                        if ($bills) {
-                            foreach ($bills as $bill) {
-                                $total += $bill->need('price');
-                            }
-                        }
-
-                        $olduserbudget = $user->getMeta('budget');
-                        if ($olduserbudget == null || $olduserbudget == '') {
-                            $olduserbudget = 0;
-                        }
-
-                        $newbudget = ($olduserbudget * 100 + $total) / 100;
-                        $user->setMeta('budget', $newbudget);
-                        $userManager->save($user);
-                    }
+                    // Budget refund before deletion
+                    $bookingService = $serviceManager->get('Booking\Service\BookingService');
+                    $bookingService->refundBudget($booking);
 
                     // Now delete the booking
                     $bookingManager->delete($booking);
@@ -1022,6 +980,7 @@ class BookingController extends AbstractActionController
         $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
         $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
         $userManager = $serviceManager->get('User\Manager\UserManager');
+        $bookingService = $serviceManager->get('Booking\Service\BookingService');
 
         $rids = $this->params()->fromPost('bulk-rids', []);
         $action = $this->params()->fromPost('bulk-action');
@@ -1071,29 +1030,7 @@ class BookingController extends AbstractActionController
                 }
 
                 // Budget refund
-                if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
-                    $booking->setMeta('refunded', 'true');
-                    $bookingManager->save($booking);
-
-                    $user = $userManager->get($booking->get('uid'));
-
-                    $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                    $total = 0;
-                    if ($bills) {
-                        foreach ($bills as $bill) {
-                            $total += $bill->need('price');
-                        }
-                    }
-
-                    $olduserbudget = $user->getMeta('budget');
-                    if ($olduserbudget == null || $olduserbudget == '') {
-                        $olduserbudget = 0;
-                    }
-
-                    $newbudget = ($olduserbudget * 100 + $total) / 100;
-                    $user->setMeta('budget', $newbudget);
-                    $userManager->save($user);
-                }
+                $bookingService->refundBudget($booking);
 
                 // Send cancellation email
                 try {
@@ -1133,30 +1070,8 @@ class BookingController extends AbstractActionController
                     }
                 }
 
-                // Budget refund before deletion (if not already refunded)
-                if ($booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
-                    $booking->setMeta('refunded', 'true');
-                    $bookingManager->save($booking);
-
-                    $user = $userManager->get($booking->get('uid'));
-
-                    $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
-                    $total = 0;
-                    if ($bills) {
-                        foreach ($bills as $bill) {
-                            $total += $bill->need('price');
-                        }
-                    }
-
-                    $olduserbudget = $user->getMeta('budget');
-                    if ($olduserbudget == null || $olduserbudget == '') {
-                        $olduserbudget = 0;
-                    }
-
-                    $newbudget = ($olduserbudget * 100 + $total) / 100;
-                    $user->setMeta('budget', $newbudget);
-                    $userManager->save($user);
-                }
+                // Budget refund before deletion
+                $bookingService->refundBudget($booking);
 
                 $bookingManager->delete($booking);
                 $deleteCount++;
@@ -1425,7 +1340,7 @@ class BookingController extends AbstractActionController
             throw new \RuntimeException('This booking has no additional player names');
         }
 
-        $playerNames = @unserialize($booking->getMeta('player-names'));
+        $playerNames = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'));
 
         if (! $playerNames) {
             throw new \RuntimeException('Invalid player names data stored in database');
@@ -1626,42 +1541,37 @@ class BookingController extends AbstractActionController
                 if ($booking->get('sid')) {
                     $square = $squareManager->get($booking->need('sid'));
                     $squareName = $square->need('name');
-                    error_log(sprintf("Square für Buchung %s gefunden: %s", $booking->get('bid'), $squareName));
                 }
             } catch (\Exception $e) {
                 // Fallback wenn Square nicht gefunden wird
-                error_log(sprintf("Square für Buchung %s nicht gefunden: %s", $booking->get('bid'), $e->getMessage()));
             }
 
             try {
                 // Reservierungsdaten für die Buchung abrufen
                 $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
                 $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
-                
+
                 if (!empty($reservations)) {
                     $reservation = current($reservations);
-                    
+
                     // Datum und Zeiten aus der Reservierung extrahieren mit modernem DateTime
                     if ($reservation->get('date')) {
                         $date = new \DateTime($reservation->need('date'));
                         $formattedDate = $date->format('d.m.Y');
-                        error_log(sprintf("Formatiertes Datum für Buchung %s: %s", $booking->get('bid'), $formattedDate));
                     }
-                    
+
                     if ($reservation->get('time_start')) {
                         $formattedTime = $reservation->get('time_start');
                     }
-                    
+
                     if ($reservation->get('time_end')) {
                         $formattedEndTime = $reservation->get('time_end');
                     }
-                } else {
-                    error_log(sprintf("Keine Reservierungen für Buchung %s gefunden", $booking->get('bid')));
                 }
             } catch (\Exception $e) {
-                error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
+                // Continue despite errors
             }
-            
+
             // Personalisierte Anrede
             $anrede = 'Hallo';
             if ($user->getMeta('gender') == 'male') {
@@ -1669,7 +1579,7 @@ class BookingController extends AbstractActionController
             } elseif ($user->getMeta('gender') == 'female') {
                 $anrede = 'Sehr geehrte Frau';
             }
-            
+
             if ($user->getMeta('lastname')) {
                 $anrede .= ' ' . $user->getMeta('lastname');
             } else {
@@ -1742,9 +1652,7 @@ class BookingController extends AbstractActionController
                         $contactInfo,  // zusätzliche Information als Nachsatz
                         false  // skipCopy = false, um Admin-Kopien zu senden
                     );
-                    
-                    error_log(sprintf("Stornierungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
-                    
+
                     // Admin-Kopie mit zusätzlichen Informationen über den Admin, der storniert hat
                     // Holen des aktuellen Admin-Benutzers
                     $adminUser = null;
@@ -1834,11 +1742,6 @@ class BookingController extends AbstractActionController
                     // Falls konfiguriert, System-E-Mail auch verwenden
                     //$systemEmail = $this->option('client.system.email', '');
                    // $systemEmail = 'system@platzbuchung.tcn-kail.de';
-                    // Debug the email settings
-//                    error_log("DEBUG: About to send cancellation email");
-//                    error_log("DEBUG: Client contact email: " . $this->option('client.contact.email', 'NOT SET'));
-//                    error_log("DEBUG: skipCopy setting: false");
-
                     // Admin-Kopie mit den zusätzlichen Informationen senden
                     if (!empty($contactEmail)) {
                         $adminEmailText = $emailText . $adminInfo;
@@ -1858,9 +1761,6 @@ class BookingController extends AbstractActionController
                             true  // skipCopy = true, um doppelte Emails zu vermeiden
                         );
                     }
-                    } else {
-                        // Fallback-Information wenn keine Kontakt-E-Mail-Adresse konfiguriert ist
-                        error_log(sprintf("Keine Kontakt-E-Mail-Adresse konfiguriert, kann keine Admin-Kopie senden"));
                     }
                     // Zweite Admin-E-Mail versenden, falls konfiguriert und unterschiedlich
                     //if (!empty($systemEmail) && $systemEmail !== $contactEmail) {
@@ -1878,23 +1778,19 @@ class BookingController extends AbstractActionController
                     return true;
                 } else {
                     // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
-                    error_log("Backend\\Service\\MailService nicht verfügbar, verwende Fallback-Methode");
                     $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede);
                 }
             } catch (\Exception $e) {
-                error_log(sprintf("Fehler bei Verwendung von Backend\\Service\\MailService: %s", $e->getMessage()));
                 // Fallback auf die alte Methode
                 $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede);
             }
             
             return true;
         } catch (\Exception $e) {
-            // Log the exception for debugging
-            error_log(sprintf("Fehler beim Senden der Stornierungsemail: %s", $e->getMessage()));
             return false;
         }
     }
-    
+
     /**
      * Fallback-Methode zum Senden der Stornierungsemail, wenn Backend\Service\MailService nicht verfügbar ist
      */
@@ -1911,20 +1807,17 @@ class BookingController extends AbstractActionController
                 throw new \Exception("MailService konnte nicht initialisiert werden");
             }
             
-            // Debug-Log für Fehleranalyse
-            error_log(sprintf("Sende Stornierungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
-            
             // Verwende Konfigurationswerte aus den Client-Einstellungen
             $fromAddress = $this->option('client.website.contact', 'noreply@example.com');
             if (strpos($fromAddress, 'mailto:') === 0) {
                 $fromAddress = substr($fromAddress, 7); // Entferne "mailto:"
             }
-            
-            $fromName = sprintf('%s %s', 
+
+            $fromName = sprintf('%s %s',
                 $this->option('client.name.short', 'BS'),
                 $this->option('service.name.full', 'Buchungssystem')
             );
-            
+
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
                 "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s",
@@ -1932,7 +1825,7 @@ class BookingController extends AbstractActionController
                 $buchungsDetails,
                 !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
-            
+
             // Send to user
             $mailService->sendPlain(
                 $fromAddress,         // fromAddress
@@ -1947,11 +1840,10 @@ class BookingController extends AbstractActionController
             
             return true;
         } catch (\Exception $e) {
-            error_log(sprintf("Fehler beim Senden der E-Mail (Fallback): %s", $e->getMessage()));
             return false;
         }
     }
-    
+
     /**
      * Send reactivation email to user and admin when a cancelled booking is reactivated
      */
@@ -1974,7 +1866,7 @@ class BookingController extends AbstractActionController
                     $squareName = $square->need('name');
                 }
             } catch (\Exception $e) {
-                error_log(sprintf("Square für Buchung %s nicht gefunden: %s", $booking->get('bid'), $e->getMessage()));
+                // Continue despite errors
             }
 
             try {
@@ -1996,7 +1888,7 @@ class BookingController extends AbstractActionController
                     }
                 }
             } catch (\Exception $e) {
-                error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
+                // Continue despite errors
             }
 
             // Personalisierte Anrede
@@ -2094,7 +1986,6 @@ class BookingController extends AbstractActionController
 
             return true;
         } catch (\Exception $e) {
-            error_log(sprintf("Fehler beim Senden der Reaktivierungsemail: %s", $e->getMessage()));
             return false;
         }
     }
@@ -2129,42 +2020,37 @@ class BookingController extends AbstractActionController
                 if ($booking->get('sid')) {
                     $square = $squareManager->get($booking->need('sid'));
                     $squareName = $square->need('name');
-                    error_log(sprintf("Square für Buchung %s gefunden: %s", $booking->get('bid'), $squareName));
                 }
             } catch (\Exception $e) {
                 // Fallback wenn Square nicht gefunden wird
-                error_log(sprintf("Square für Buchung %s nicht gefunden: %s", $booking->get('bid'), $e->getMessage()));
             }
 
             try {
                 // Reservierungsdaten für die Buchung abrufen
                 $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
                 $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
-                
+
                 if (!empty($reservations)) {
                     $reservation = current($reservations);
-                    
+
                     // Datum und Zeiten aus der Reservierung extrahieren mit modernem DateTime
                     if ($reservation->get('date')) {
                         $date = new \DateTime($reservation->need('date'));
                         $formattedDate = $date->format('d.m.Y');
-                        error_log(sprintf("Formatiertes Datum für Buchung %s: %s", $booking->get('bid'), $formattedDate));
                     }
-                    
+
                     if ($reservation->get('time_start')) {
                         $formattedTime = $reservation->get('time_start');
                     }
-                    
+
                     if ($reservation->get('time_end')) {
                         $formattedEndTime = $reservation->get('time_end');
                     }
-                } else {
-                    error_log(sprintf("Keine Reservierungen für Buchung %s gefunden", $booking->get('bid')));
                 }
             } catch (\Exception $e) {
-                error_log(sprintf("Fehler beim Abrufen der Reservierungen für Buchung %s: %s", $booking->get('bid'), $e->getMessage()));
+                // Continue despite errors
             }
-            
+
             // Personalisierte Anrede
             $anrede = 'Hallo';
             if ($user->getMeta('gender') == 'male') {
@@ -2172,7 +2058,7 @@ class BookingController extends AbstractActionController
             } elseif ($user->getMeta('gender') == 'female') {
                 $anrede = 'Sehr geehrte Frau';
             }
-            
+
             if ($user->getMeta('lastname')) {
                 $anrede .= ' ' . $user->getMeta('lastname');
             } else {
@@ -2231,7 +2117,7 @@ class BookingController extends AbstractActionController
                     $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($total / 100, 2, ',', '.') . " €";
                 }
             } catch (\Exception $e) {
-                error_log("Fehler beim Laden der Rechnungspositionen: " . $e->getMessage());
+                // Continue despite errors
             }
 
             /* Payment instructions for guest player bookings with pending billing */
@@ -2279,9 +2165,7 @@ class BookingController extends AbstractActionController
                         $contactInfo,  // zusätzliche Information als Nachsatz
                         false  // skipCopy = false, um Admin-Kopien zu senden
                     );
-                    
-                    error_log(sprintf("Buchungsbestätigungsemail über Backend\\Service\\MailService an %s gesendet", $user->need('email')));
-                    
+
                     // Admin-Kopie mit zusätzlichen Informationen über den Admin, der die Buchung erstellt hat
                     // Holen des aktuellen Admin-Benutzers
                     $adminUser = null;
@@ -2404,21 +2288,17 @@ class BookingController extends AbstractActionController
                     return true;
                 } else {
                     // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
-                    error_log("Backend\\Service\\MailService nicht verfügbar, verwende Fallback-Methode");
                     $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails,
                         $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede, $rechnungsInfo, $zahlungshinweis);
                 }
             } catch (\Exception $e) {
-                error_log(sprintf("Fehler bei Verwendung von Backend\\Service\\MailService: %s", $e->getMessage()));
                 // Fallback auf die alte Methode
-                $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails, 
+                $this->sendAdminBookingCreationEmailFallback($booking, $user, $subject, $buchungsDetails,
                     $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $calendarAttachment, $anrede);
             }
-            
+
             return true;
         } catch (\Exception $e) {
-            // Log the exception for debugging
-            error_log(sprintf("Fehler beim Senden der Buchungsbestätigungsemail: %s", $e->getMessage()));
             return false;
         }
     }
@@ -2695,7 +2575,6 @@ class BookingController extends AbstractActionController
 
             return false;
         } catch (\Exception $e) {
-            error_log(sprintf("Fehler beim Senden der Änderungsemail: %s", $e->getMessage()));
             return false;
         }
     }
@@ -2716,9 +2595,6 @@ class BookingController extends AbstractActionController
             if (!$mailService) {
                 throw new \Exception("MailService konnte nicht initialisiert werden");
             }
-            
-            // Debug-Log für Fehleranalyse
-            error_log(sprintf("Sende Buchungsbestätigungsemail an Benutzer %s (%s)", $user->need('alias'), $user->need('email')));
             
             // Verwende Konfigurationswerte aus den Client-Einstellungen
             $fromAddress = $this->option('client.website.contact', 'noreply@example.com');
@@ -2741,9 +2617,6 @@ class BookingController extends AbstractActionController
                 $stornierungsBedingungen,
                 !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
-            
-            // Protokollieren des E-Mail-Inhalts zur Fehleranalyse
-            error_log(sprintf("E-Mail-Inhalt für Buchung %s: %s", $booking->get('bid'), str_replace("\n", " ", $body)));
             
             // Send to user - ACHTUNG: sendPlain statt sendTextMail verwenden
             // Wenn ICS-Anhang verfügbar, diesen hinzufügen
@@ -2775,11 +2648,10 @@ class BookingController extends AbstractActionController
             
             return true;
         } catch (\Exception $e) {
-            error_log(sprintf("Fehler beim Senden der E-Mail (Fallback): %s", $e->getMessage()));
             return false;
         }
     }
-    
+
     /**
      * Prüft, ob ein reservierter Platz einen Zugangscode hat
      *
@@ -2799,12 +2671,12 @@ class BookingController extends AbstractActionController
                 return $doorCode;
             }
         } catch (\Exception $e) {
-            error_log(sprintf("Fehler beim Abrufen des Zugangscodes: %s", $e->getMessage()));
+            // Continue despite errors
         }
-        
+
         return null;
     }
-    
+
     /**
      * Erstellt einen iCalendar-Anhang für eine Buchung
      *
@@ -2839,11 +2711,6 @@ class BookingController extends AbstractActionController
                 $endDate->setTime($endHour, $endMinute);
             }
             
-            // Debug-Log für Zeitinformationen
-            error_log(sprintf("iCalendar-Zeitangaben: Start=%s, End=%s", 
-                $startDate->format('Y-m-d H:i:s'), 
-                $endDate->format('Y-m-d H:i:s')));
-                
             $clientName = $this->option('client.name', 'Online-Platzbuchung');
             $locationDetails = sprintf("%s (%s)", 
                 $squareName, 
@@ -2910,8 +2777,7 @@ class BookingController extends AbstractActionController
                             }
                         }
                     } catch (\Exception $e) {
-                        error_log(sprintf("Fehler beim Abrufen des Squares für Buchung %s: %s", 
-                            $booking->get('bid'), $e->getMessage()));
+                        // Continue despite errors
                     }
                 }
             }
@@ -2940,7 +2806,6 @@ class BookingController extends AbstractActionController
                 'type' => 'text/calendar'
             );
         } catch (\Exception $e) {
-            error_log(sprintf("Fehler beim Erstellen des iCalendar-Anhangs: %s", $e->getMessage()));
             return null;
         }
     }
