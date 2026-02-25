@@ -6,6 +6,8 @@ return array(
     'Date' => 'Datum',
     'Time' => 'Zeit',
     'Show' => 'Anzeigen',
+    'Previous day' => 'Vorheriger Tag',
+    'Next day' => 'Nächster Tag',
 
     'To book %s, %splease register first%s' => 'Um %s zu buchen, %sregistrieren Sie sich bitte%s',
     'or simply %s login here' => 'oder melden %s Sie sich an',

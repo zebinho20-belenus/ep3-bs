@@ -216,30 +216,30 @@ class BookingFormat extends AbstractHelper
                 $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
 
                 $html .= sprintf('<td class="actions-col no-print">'
-                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
-                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-reload"></a> '
-                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-cross"></a>'
+                    . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-edit"></a> '
+                    . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-reload"></a> '
+                    . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-cross"></a>'
                     . '</td>',
-                    $editUrl, $view->t('Edit'),
-                    $reactivateUrl, $view->t('Reactivate'),
-                    $deleteUrl, $view->t('Delete'));
+                    $editUrl, $view->t('Edit'), $view->t('Edit'),
+                    $reactivateUrl, $view->t('Reactivate'), $view->t('Reactivate'),
+                    $deleteUrl, $view->t('Delete'), $view->t('Delete'));
             } else {
                 $html .= sprintf('<td class="actions-col no-print">'
-                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
-                    . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-cross"></a>'
+                    . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-edit"></a> '
+                    . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-cross"></a>'
                     . '</td>',
-                    $editUrl, $view->t('Edit'),
-                    $deleteUrl, $view->t('Delete'));
+                    $editUrl, $view->t('Edit'), $view->t('Edit'),
+                    $deleteUrl, $view->t('Delete'), $view->t('Delete'));
             }
 
         } else {
 
             $html .= sprintf('<td class="actions-col no-print">'
-                . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
-                . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-cross"></a>'
+                . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-edit"></a> '
+                . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-cross"></a>'
                 . '</td>',
-                $editUrl, $view->t('Edit'),
-                $deleteUrl, $view->t('Cancel booking'));
+                $editUrl, $view->t('Edit'), $view->t('Edit'),
+                $deleteUrl, $view->t('Cancel booking'), $view->t('Cancel booking'));
         }
 
         $html .= '</tr>';

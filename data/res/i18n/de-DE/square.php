@@ -73,6 +73,8 @@ return array(
     'Are you sure you want to cancel this booking?' => 'Sind Sie sicher, dass Sie diese Buchung stornieren möchten?',
     'Yes, cancel this booking' => 'Ja, Buchung stornieren',
     'No, go back' => 'Nein, zurück',
+    'Processing payment ...' => 'Zahlung wird verarbeitet ...',
+    'Processing cancellation ...' => 'Stornierung wird verarbeitet ...',
 
     'This %s is still free.' => 'Dieser %s ist noch frei.',
     'This %s is still free for %s %s.' => 'Dieser %s ist noch frei für %s %s.',

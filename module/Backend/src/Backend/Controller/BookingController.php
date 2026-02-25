@@ -809,10 +809,14 @@ class BookingController extends AbstractActionController
                 break;
         }
 
-        if ($this->params()->fromQuery('confirmed') == 'true') {
+        $confirmed = $this->params()->fromPost('confirmed', $this->params()->fromQuery('confirmed'));
+        $reactivateParam = $this->params()->fromPost('reactivate', $this->params()->fromQuery('reactivate'));
+        $cancelParam = $this->params()->fromPost('cancel', $this->params()->fromQuery('cancel'));
+
+        if ($confirmed == 'true') {
 
             /* Reactivate cancelled booking directly from booking list */
-            if ($this->params()->fromQuery('reactivate') == 'true') {
+            if ($reactivateParam == 'true') {
                 $this->authorize('admin.booking');
 
                 if ($booking->get('status') == 'cancelled') {
@@ -874,7 +878,7 @@ class BookingController extends AbstractActionController
                 $this->flashMessenger()->addSuccessMessage('Reservation has been deleted');
             } else {
 
-                if ($this->params()->fromQuery('cancel') == 'true') {
+                if ($cancelParam == 'true') {
                     $this->authorize(['calendar.cancel-single-bookings', 'calendar.cancel-subscription-bookings']);
 
                     $booking->set('status', 'cancelled');

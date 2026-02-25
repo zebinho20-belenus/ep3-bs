@@ -33,11 +33,11 @@ There is no test runner configured yet (PHPUnit skeleton exists in `module/User/
 Docker environment variables are in `.env` (from `.env.example`). Additionally, PHP config `.dist` files must be copied and configured:
 - `config/autoload/local.php.dist` → `config/autoload/local.php` (DB credentials, mail, payment API keys)
 - `config/autoload/project.php.dist` → `config/autoload/project.php` (instance URLs, session config, payment method toggles, PayPal email for manual payments, feature flags)
-- `config/init.php.dist` → `config/init.php` (dev mode flag, timezone, error reporting)
+- `config/init.php.dist` → `config/init.php` (dev mode flag `EP3_BS_DEV_TAG` — default: `false`, timezone, error reporting)
 
 The `.dist` files contain Docker-friendly defaults (DB hostname `mariadb`, MailHog SMTP on port 1025).
 
-Database schema: `data/db/ep3-bs.sql`
+Database schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` (run manually).
 
 ### Loading a Production DB Dump
 
@@ -133,9 +133,13 @@ Defined in each module's `config/module.config.php`. Key routes:
 
 Uses Payum framework with token-based security. Stripe supports PaymentIntents (SCA), webhooks for async payment confirmation, and multiple methods (card, SEPA, iDEAL, giropay, Apple Pay, Google Pay). Stripe twig templates live in `vendor/payum/stripe/`.
 
+**Payment gateway setup**: The `BookingController::createPaymentAndRedirect()` private method handles Payum token creation and gateway redirect for all payment methods (PayPal, Stripe, Klarna). Used by both `confirmationAction()` and `payAction()` to avoid code duplication.
+
 **Important — Gateway-specific payment responses**: The `$payment` array from Payum `GetHumanStatus` has different keys per gateway. `$payment['status']` is **Stripe-specific** (values: `succeeded`, `processing`, `requires_action`). PayPal responses do NOT have this key. Always guard access with `isset($payment['status'])` or use a `$paymentStatus` variable. The `doneAction()` in `BookingController` extracts `$paymentStatus = isset($payment['status']) ? $payment['status'] : ''` before the success/error check.
 
 Payment options (PayPal/Stripe/Klarna) are only shown on the confirmation page when `$payable == true`, which requires `$total > 0`. The total is calculated via `SquarePricingManager::getFinalPricingInRange()` using `bs_squares_pricing` — if no pricing rule matches the booking date range, `$total` stays 0 and no payment buttons appear. Key pricing logic is in `module/Square/src/Square/Controller/BookingController.php`.
+
+**Guest player parameter**: The `gp` (guest player) flag is passed as view variable `$guestPlayer` from the controller to confirmation.phtml and as optional parameter to view helpers `PricingSummary` and `PricingHints`. Do NOT use `$_GET['gp']` directly in views or services — use the controller-provided value.
 
 Unpaid bookings are auto-removed via a MySQL scheduled event (every 15 min, bookings older than 3 hours with `directpay=true` and `status_billing=pending`).
 
@@ -184,7 +188,7 @@ Users can have a prepaid budget stored in `bs_users_meta` (key: `budget`, value 
 4. Budget deducted: immediately for budget-only; after gateway success for partial payments
 5. Budget info stored in booking meta: `hasBudget`, `budget`, `newbudget`, `budgetpayment`
 
-**Budget refund on cancellation or deletion**: budget is restored to user account. Refund logic exists in both the cancel path and the delete path of `Backend\Controller\BookingController` (checks `status_billing == 'paid'` and `refunded != 'true'`).
+**Budget refund on cancellation or deletion**: budget is restored to user account via `BookingService::refundBudget(Booking $booking)`. This centralized method handles the refund check (`status_billing == 'paid'` and `refunded != 'true'`) and returns the refund amount in cents. Called from Square\BookingController (user cancellation), Backend\BookingController (admin cancel/delete/bulk), and PaymentController (webhook).
 
 ### Member/Guest Pricing Logic
 
@@ -227,7 +231,9 @@ Email includes: booking details, player names, itemized bill, payment informatio
 
 **Reactivate collision check**: `BookingFormat` has `ReservationManager` + `BookingManager` injected via `BookingFormatFactory`. Before showing the reactivate icon, it calls `getInRange()` to check for overlapping active bookings on the same court.
 
-**Delete confirmation page** (`delete.phtml`): Uses `.edit-actions` flex container for button group. Delete button only visible to admin users (`admin.all` permission). Cancel sets status to `cancelled`. Both paths refund budget if paid.
+**Delete confirmation page** (`delete.phtml`): Uses `<form method="post">` for destructive actions (cancel/delete). Delete button only visible to admin users (`admin.all` permission). Cancel sets status to `cancelled`. Both paths refund budget via `BookingService::refundBudget()`.
+
+**Cancellation page** (`cancellation.phtml`): Also uses `<form method="post">` with hidden `confirmed` field. Shows spinner overlay during processing. Controllers accept both POST and GET params (backward compatible).
 
 **Booking format helper**: `Backend\View\Helper\Booking\BookingFormat` — renders each booking row including status badges (E/A/S), billing status badges, budget info, and conditional reactivation link.
 
@@ -300,6 +306,7 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 | User table rows | `module/Backend/src/Backend/View/Helper/User/UserFormat.php` |
 | Translations (German) | `data/res/i18n/de-DE/booking.php`, `square.php`, `backend.php` |
 | Backend pricing config view | `module/Backend/view/backend/config-square/pricing.phtml` |
+| SQL index migration | `data/db/migrations/001-add-indexes.sql` |
 
 ## Docker Setup
 
@@ -322,8 +329,8 @@ docker compose -f docker-compose.dev-server.yml up -d
 | Service | Default Port | Purpose |
 |---------|-------------|---------|
 | traefik | 80, 443, 8080 | Reverse proxy with HTTPS (self-signed locally, Let's Encrypt on prod), dashboard |
-| court | (via Traefik) | PHP 8.1 Apache app server |
-| mariadb | 3306 | MariaDB |
+| court | (via Traefik) | PHP 8.1 Apache app server (memory_limit 256M) |
+| mariadb | 3306 | MariaDB 10.11 (pinned, with healthcheck) |
 | mailhog | 8025 (UI) | Email testing (SMTP 1025 internal) |
 
 **DEV vs PROD** is toggled via `INSTALL_XDEBUG` in `.env`:

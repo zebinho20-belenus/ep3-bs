@@ -25,7 +25,7 @@ class PricingHints extends AbstractHelper
         $this->user = $userSessionManager->getSessionUser();
     }
 
-    public function __invoke(DateTime $dateStart, DateTime $dateEnd, Square $square)
+    public function __invoke(DateTime $dateStart, DateTime $dateEnd, Square $square, $guestPlayer = null)
     {
         $pricingVisibility = $this->optionManager->get('service.pricing.visibility', 'private');
 
@@ -35,11 +35,15 @@ class PricingHints extends AbstractHelper
             if ($this->user != null && $this->user->getMeta('member') != null) {
                    $member = $this->user->getMeta('member');
             }
-            
+
             $pricing = $this->squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, 1, $member);
 
             // Check guest player checkbox
-            $guestPlayerCheckbox = isset($_GET['gp']) && $_GET['gp'] == '1';
+            if ($guestPlayer === null) {
+                $guestPlayerCheckbox = isset($_GET['gp']) && $_GET['gp'] == '1';
+            } else {
+                $guestPlayerCheckbox = (bool) $guestPlayer;
+            }
 
             if ($pricing) {
                 if ($guestPlayerCheckbox) {

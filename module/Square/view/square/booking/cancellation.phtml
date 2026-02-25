@@ -12,7 +12,8 @@ $this->setup(array(
 function showHide() {
    var div = document.getElementById('hidden_div');
    if (div.style.display == 'none') {
-      div.style = 'position:absolute; top:0; right:0; bottom:0; left:0; background-color: gray; opacity: .5;';
+      div.style = 'position:fixed; top:0; right:0; bottom:0; left:0; background-color: rgba(0,0,0,0.5); z-index: 9999; display:flex; align-items:center; justify-content:center;';
+      div.innerHTML = '<div style="text-align:center;color:#fff"><div class="spinner-border text-light mb-3" role="status"></div><div><?= $this->t('Processing cancellation ...') ?></div></div>';
    }
    else {
       div.style.display = 'none';
@@ -24,9 +25,12 @@ function showHide() {
     <p><span class="symbolic symbolic-warning"><?= $this->t('Are you sure you want to cancel this booking?') ?></span></p>
 
     <p class="no-wrap">
-        <a href="<?= $this->url('square/booking/cancellation', [], ['query' => ['bid' => $this->bid, 'confirmed' => 'true']]) ?>" class="default-button" id="cancel-button" onclick="showHide();setTimeout(function(){document.getElementById('cancel-button').removeAttribute('href');}, 1);">
-            <span class="symbolic symbolic-cross"><?= $this->t('Yes, cancel this booking') ?></span>
-        </a>
+        <form method="post" action="<?= $this->url('square/booking/cancellation', [], ['query' => ['bid' => $this->bid]]) ?>" style="display:inline" onsubmit="showHide();">
+            <input type="hidden" name="confirmed" value="true">
+            <button type="submit" class="default-button" id="cancel-button">
+                <span class="symbolic symbolic-cross"><?= $this->t('Yes, cancel this booking') ?></span>
+            </button>
+        </form>
 
         &nbsp;
 
@@ -34,5 +38,5 @@ function showHide() {
     </p>
 </div>
 
-<div id="hidden_div" style="display:none" >
+<div id="hidden_div" style="display:none" aria-busy="true">
 </div>

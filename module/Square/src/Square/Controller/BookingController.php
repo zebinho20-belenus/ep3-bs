@@ -368,6 +368,7 @@ class BookingController extends AbstractActionController
 
         $byproducts['payable'] = $payable;
         $byproducts['budgetpayment'] = $budgetpayment;
+        $byproducts['guestPlayer'] = ($guestPlayerCheckbox == 1);
 
         /* Check booking form submission */
 
@@ -543,7 +544,7 @@ class BookingController extends AbstractActionController
 
         /* Check cancellation confirmation */
 
-        $confirmed = $this->params()->fromQuery('confirmed');
+        $confirmed = $this->params()->fromPost('confirmed', $this->params()->fromQuery('confirmed'));
 
         if ($confirmed == 'true') {
 
@@ -791,7 +792,7 @@ class BookingController extends AbstractActionController
 
         if ($payservice == 'klarna') {
             $model['merchant'] = array(
-                'terms_uri' => 'http://example.com/terms',
+                'terms_uri' => $this->config('klarnaTermsUri', 'http://example.com/terms'),
                 'checkout_uri' => $captureToken->getTargetUrl(),
                 'confirmation_uri' => $captureToken->getTargetUrl(),
                 'push_uri' => $notifyToken->getTargetUrl(),
@@ -1010,8 +1011,7 @@ class BookingController extends AbstractActionController
 
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {
-                    $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
-                                            '<b>', '</b>'));
+                    $this->flashMessenger()->addErrorMessage($payment['error']['message']);
                 }
                 $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sPayment failed. Please try again.%s'),
                     '<b>', '</b>'));

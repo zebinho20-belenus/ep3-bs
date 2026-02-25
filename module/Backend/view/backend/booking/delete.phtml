@@ -13,14 +13,21 @@ $this->setup(array(
 
     <div class="edit-actions">
         <?php if ($this->sessionUser->can('admin.all')): ?>
-            <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true']]) ?>" class="default-button default-button-danger">
-                <span class="symbolic symbolic-cross"><?= $this->t('Yes, delete this booking') ?></span>
-            </a>
+            <form method="post" action="<?= $this->url('backend/booking/delete', ['rid' => $this->rid]) ?>" style="display:inline">
+                <input type="hidden" name="confirmed" value="true">
+                <button type="submit" class="default-button default-button-danger">
+                    <span class="symbolic symbolic-cross"><?= $this->t('Yes, delete this booking') ?></span>
+                </button>
+            </form>
         <?php endif; ?>
 
-        <a href="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['confirmed' => 'true', 'cancel' => 'true']]) ?>" class="default-button default-button-danger">
-            <span class="symbolic symbolic-cross"><?= $this->t('Yes, cancel this booking') ?></span>
-        </a>
+        <form method="post" action="<?= $this->url('backend/booking/delete', ['rid' => $this->rid]) ?>" style="display:inline">
+            <input type="hidden" name="confirmed" value="true">
+            <input type="hidden" name="cancel" value="true">
+            <button type="submit" class="default-button default-button-danger">
+                <span class="symbolic symbolic-cross"><?= $this->t('Yes, cancel this booking') ?></span>
+            </button>
+        </form>
 
         <a href="<?= $this->url('frontend') ?>" class="default-button default-button-outline squarebox-close-link"><?= $this->t('No, go back') ?></a>
     </div>

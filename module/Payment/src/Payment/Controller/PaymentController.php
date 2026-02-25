@@ -190,7 +190,7 @@ class PaymentController extends AbstractActionController
         #klarna checkout update merchant details
         if ($payservice == 'klarna') {
             $model['merchant'] = array(
-                'terms_uri' => 'http://example.com/terms',
+                'terms_uri' => $this->config('klarnaTermsUri', 'http://example.com/terms'),
                 'checkout_uri' => $captureToken->getTargetUrl(),
                 'confirmation_uri' => $captureToken->getTargetUrl(),
                 'push_uri' => $notifyToken->getTargetUrl()
@@ -325,8 +325,7 @@ class PaymentController extends AbstractActionController
         {
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {
-                    $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
-                                            '<b>', '</b>'));
+                    $this->flashMessenger()->addErrorMessage($payment['error']['message']);
                 }
                 $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sPayment failed. Please try again.%s'),
                     '<b>', '</b>'));

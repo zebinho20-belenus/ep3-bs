@@ -83,13 +83,13 @@ class UserFormat extends AbstractHelper
         /* Actions col */
 
         $html .= sprintf('<td class="actions-col no-print">'
-            . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-edit"></a> '
-            . '<a href="%s" title="%s" class="unlined gray symbolic symbolic-booking"></a>'
+            . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-edit"></a> '
+            . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-booking"></a>'
             . '</td>',
             $view->url('backend/user/edit', ['uid' => $user->need('uid')], ['query' => ['search' => $search]]),
-            $view->t('Edit'),
+            $view->t('Edit'), $view->t('Edit'),
             $view->url('backend/booking', [], ['query' => ['search' => '(uid = ' . $user->need('uid') . ')']]),
-            $view->t('Bookings'));
+            $view->t('Bookings'), $view->t('Bookings'));
 
         $html .= '</tr>';
 

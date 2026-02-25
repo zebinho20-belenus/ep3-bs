@@ -94,7 +94,7 @@ class PaymentService extends AbstractService
         #klarna checkout update merchant details
         if ($payservice == 'klarna') {
             $model['merchant'] = array(
-                'terms_uri' => 'http://example.com/terms',
+                'terms_uri' => $this->configManager->get('klarnaTermsUri', 'http://example.com/terms'),
                 'checkout_uri' => $captureToken->getTargetUrl(),
                 'confirmation_uri' => $captureToken->getTargetUrl(),
                 'push_uri' => $notifyToken->getTargetUrl()

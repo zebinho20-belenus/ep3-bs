@@ -70,6 +70,8 @@ return array(
     'stripeWebhookCancel' => true, 
     // not yet fully implemented
     'klarna' => false,
+    // Klarna terms URL (required for Klarna checkout)
+    'klarnaTermsUri' => 'http://example.com/terms',
     // classic behaviour of ep3-bs with booking on bill 
     'billing' => false,
     // select which payment provider should be activated as default 

@@ -346,7 +346,7 @@ select.col-filter { padding-right: 1.5rem !important; background-size: 10px; }
 .table .budget-col { text-align: right; }
 .table .bulk-check-col { width: 36px; text-align: center; }
 .table .actions-col { }
-.table .actions-col .symbolic { min-width: 18px; min-height: 16px; padding-top: 2px; padding-bottom: 2px; }
+.table .actions-col .symbolic { min-width: 44px; min-height: 44px; padding-top: 12px; padding-bottom: 12px; }
 /* Flexible columns that can wrap/truncate to absorb remaining space */
 .table .notes-col { white-space: normal; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
 .table .email-col { white-space: normal; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
@@ -460,16 +460,6 @@ a.mini-button:link,
 a.mini-button:visited {
     padding: 0.25rem 0.5rem;
     font-size: 0.8125rem;
-}
-
-.back-button,
-a.back-button:link,
-a.back-button:visited {
-    display: inline-block;
-    padding-left: 42px;
-    min-height: 32px;
-    line-height: 1.5;
-    background: url(../imgs/icons/misc-back.png) no-repeat left center;
 }
 
 /* ---------- Footer ---------- */
@@ -990,14 +980,6 @@ a.squarebox-primary-close-link:hover {
     th.sortable::after { display: none; }
     footer { margin: 0; border: none; }
 }
-
-/* ---------- Accordion (legacy) ---------- */
-
-.accordion-header { display: flex; }
-.accordion-controller { padding: 1rem 0.5rem; background-color: unset; border-width: 0; }
-.accordion-icon { margin-right: 1rem; transform: scaleY(2); }
-.hidden { display: none; }
-.rotate-90 { transform: rotateZ(90deg) scaleY(2); }
 
 /* ---------- Links Navigation (replaces old positioned layout) ---------- */
 

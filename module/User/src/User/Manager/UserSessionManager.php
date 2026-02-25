@@ -43,7 +43,9 @@ class UserSessionManager extends AbstractManager
         /* Prepare session validators */
 
         $sessionManager->getValidatorChain()->attach('session.validate', array(new HttpUserAgent(), 'isValid'));
-        $sessionManager->getValidatorChain()->attach('session.validate', array(new RemoteAddr(), 'isValid'));
+        // RemoteAddr validator disabled: causes unexpected logouts on mobile networks
+        // where IP addresses change frequently (carrier-grade NAT, WiFi/cellular switching)
+        // $sessionManager->getValidatorChain()->attach('session.validate', array(new RemoteAddr(), 'isValid'));
     }
 
     /**

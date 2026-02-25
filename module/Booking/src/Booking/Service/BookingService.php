@@ -74,8 +74,8 @@ class BookingService extends AbstractService
             // Determine if the user is a member
             $member = $user ? $user->getMeta('member') : 0;
 
-            // Get guest parameter value - either from meta or from GET params
-            $guestPlayer = isset($meta['guestPlayer']) ? $meta['guestPlayer'] : (isset($_GET['gp']) ? $_GET['gp'] : '0');
+            // Get guest parameter value from meta (set by controller as 'gp')
+            $guestPlayer = isset($meta['gp']) ? $meta['gp'] : '0';
 
             // Use status_billing from controller meta if explicitly set (e.g. member with pricing > 0)
             // Otherwise default: 'member' for members without guest, 'pending' for others

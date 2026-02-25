@@ -25,7 +25,7 @@ class PricingSummary extends AbstractHelper
         $this->user = $userSessionManager->getSessionUser();
     }
 
-    public function __invoke(DateTime $dateStart, DateTime $dateEnd, Square $square, $quantity = 1, array $products = array())
+    public function __invoke(DateTime $dateStart, DateTime $dateEnd, Square $square, $quantity = 1, array $products = array(), $guestPlayer = null)
     {
         $pricingVisibility = $this->optionManager->get('service.pricing.visibility', 'private');
 
@@ -45,9 +45,10 @@ class PricingSummary extends AbstractHelper
         }
 
         $total = 0;
-        //zebinho20 - show half price for guest player if member is playing with guest ( gp=1 in url)
         // Check for guest player parameter
-        $guestPlayer = isset($_GET['gp']) && $_GET['gp'] == '1';
+        if ($guestPlayer === null) {
+            $guestPlayer = isset($_GET['gp']) && $_GET['gp'] == '1';
+        }
 
         // Member with guest: half of non-member price
         if ($member && $guestPlayer && $finalPricing['price'] == 0) {

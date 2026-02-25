@@ -21,7 +21,9 @@ $this->setup(array(
 function showHide() {
    var div = document.getElementById('hidden_div');
    if (div.style.display == 'none') {
-     div.style = 'position:fixed; top:0; right:0; bottom:0; left:0; background-color: gray; opacity: .5; z-index: 9999;';
+     div.style = 'position:fixed; top:0; right:0; bottom:0; left:0; background-color: rgba(0,0,0,0.5); z-index: 9999; display:flex; align-items:center; justify-content:center;';
+     div.innerHTML = '<div style="text-align:center;color:#fff"><div class="spinner-border text-light mb-3" role="status"></div><div><?= $this->t('Processing payment ...') ?></div></div>';
+     div.setAttribute('aria-busy', 'true');
    }
    else {
      div.style.display = 'none';
@@ -34,7 +36,7 @@ function showHide() {
     <form id="confirmform" method="post" onSubmit="showHide();" action="<?= $this->url ?>">
 <?php
 
-        $pricingSummary = $this->squarePricingSummary($dateStart, $dateEnd, $square, $this->quantityChoosen, $this->products);
+        $pricingSummary = $this->squarePricingSummary($dateStart, $dateEnd, $square, $this->quantityChoosen, $this->products, $this->guestPlayer);
 
         if ($pricingSummary) {
             echo '<p class="text-center text-muted"><em>' . $this->t('Summary of your booking:') . '</em></p>';
@@ -102,7 +104,7 @@ function showHide() {
                 echo $this->t('Your booking will be binding.');
             }
 
-            $guestPlayer = isset($_GET['gp']) && $_GET['gp'] == '1';
+            $guestPlayer = $this->guestPlayer;
 
             if ($guestPlayer && !$this->budgetpayment) {
                 echo '<div class="guest-payment-instructions mt-2">';
