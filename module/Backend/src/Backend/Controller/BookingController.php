@@ -889,7 +889,7 @@ class BookingController extends AbstractActionController
                     }
 
                     # redefine user budget if status paid
-                    if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && !$booking->getMeta('refunded') == 'true') {
+                    if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
                         $booking->setMeta('refunded', 'true');
                         $bookingManager->save($booking);
 

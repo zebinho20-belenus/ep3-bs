@@ -644,7 +644,7 @@ class BookingController extends AbstractActionController
             $bookingService->cancelSingle($booking);
 
             # redefine user budget if status paid
-            if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && !$booking->getMeta('refunded') == 'true') {
+            if ($booking->need('status') == 'cancelled' && $booking->get('status_billing') == 'paid' && $booking->getMeta('refunded') != 'true') {
                 $booking->setMeta('refunded', 'true');
                 $bookingManager->save($booking);
                 $bills = $bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
@@ -1044,7 +1044,7 @@ class BookingController extends AbstractActionController
 
             // syslog(LOG_EMERG, 'doneAction - success');
 
-            if (!$booking->getMeta('directpay_pending') == 'true') {
+            if ($booking->getMeta('directpay_pending') != 'true') {
                 if ($booking->getMeta('payLater') == 'true') {
                     $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sPayment successful!%s'),
                         '<b>', '</b>'));
@@ -1060,7 +1060,6 @@ class BookingController extends AbstractActionController
                    }
                 }
                 else {
-                    // syslog(LOG_EMERG, 'success not pending');
                     $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sCongratulations:%s Your %s has been booked!'),
                         '<b>', '</b>',$this->option('subject.square.type')));
                 }
@@ -1118,7 +1117,7 @@ class BookingController extends AbstractActionController
                 $booking->setMeta('directpay', 'false');
                 $bookingManager->save($booking);
             } else {
-                if (!$booking->getMeta('directpay_pending') == 'true') {
+                if ($booking->getMeta('directpay_pending') != 'true') {
                     if(isset($payment['error']['message'])) {
                         $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
                                                 '<b>', '</b>'));
