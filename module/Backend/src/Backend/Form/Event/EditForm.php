@@ -194,6 +194,15 @@ class EditForm extends Form
         ));
 
         $this->add(array(
+            'name' => 'ef-force',
+            'type' => 'Hidden',
+            'attributes' => array(
+                'id' => 'ef-force',
+                'value' => '0',
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'ef-submit',
             'type' => 'Submit',
             'attributes' => array(
@@ -351,6 +360,9 @@ class EditForm extends Form
                 'required' => false,
             ),
             'ef-repeat' => array(
+                'required' => false,
+            ),
+            'ef-force' => array(
                 'required' => false,
             ),
         )));

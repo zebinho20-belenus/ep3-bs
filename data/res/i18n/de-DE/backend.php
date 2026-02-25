@@ -474,4 +474,10 @@ return array(
     '%s event(s) have been created' => '%s Veranstaltung(en) wurden erstellt',
     '%s event(s) have been deleted' => '%s Veranstaltung(en) wurden gelöscht',
     'Series' => 'Serie',
+
+    'The following conflicts were found:' => 'Folgende Konflikte wurden gefunden:',
+    'Create anyway' => 'Trotzdem erstellen',
+    'Existing booking' => 'Bestehende Buchung',
+    'Existing event' => 'Bestehende Veranstaltung',
+    'Type' => 'Typ',
 );

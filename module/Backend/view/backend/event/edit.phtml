@@ -33,6 +33,34 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
 
     <div class="separator separator-line"></div>
 
+    <?php if (isset($this->conflicts) && $this->conflicts): ?>
+    <div class="alert alert-warning mt-3 mb-0">
+        <strong><?= $this->t('The following conflicts were found:') ?></strong>
+        <table class="table table-sm table-bordered mt-2 mb-0 bg-white">
+            <thead>
+                <tr>
+                    <th><?= $this->t('Type') ?></th>
+                    <th><?= $this->t('Name') ?></th>
+                    <th><?= $this->t('Square') ?></th>
+                    <th><?= $this->t('Date') ?></th>
+                    <th><?= $this->t('Time') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($this->conflicts as $conflict): ?>
+                <tr>
+                    <td><?= $this->t($conflict['type'] === 'booking' ? 'Existing booking' : 'Existing event') ?></td>
+                    <td><?= $this->escapeHtml($conflict['name']) ?></td>
+                    <td><?= $this->escapeHtml($conflict['square']) ?></td>
+                    <td><?= $this->escapeHtml($conflict['date']) ?></td>
+                    <td><?= $this->escapeHtml($conflict['time']) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+
     <div class="py-3">
         <?php
 
@@ -40,6 +68,8 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
         $form->setAttribute('method', 'post');
         $form->setAttribute('action', $this->url('backend/event/edit', ['eid' => $eid]));
         $form->prepare();
+
+        $hasConflicts = isset($this->conflicts) && $this->conflicts;
 
         ?>
 
@@ -78,6 +108,12 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
         <?= $this->formRowDefault($form, 'ef-capacity') ?>
         <?= $this->formRowDefault($form, 'ef-notes') ?>
 
+        <?= $this->formHidden($form->get('ef-force')) ?>
+
+        <?php if ($hasConflicts): ?>
+            <?php $form->get('ef-submit')->setValue($this->t('Create anyway')); ?>
+        <?php endif; ?>
+
         <div class="edit-actions">
             <?= $this->formElement($form->get('ef-submit')) ?>
 
@@ -92,26 +128,36 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
     </div>
 </div>
 
-<?php if (! $eid): ?>
-<script>
+<?php
+$js = <<<'JSEOF'
 $(function() {
-    var $from = $('#ef-sid-from');
-    var $to = $('#ef-sid-to');
+    var $ds = $("#ef-date-start"), $de = $("#ef-date-end");
 
-    function toggleSidTo() {
-        if ($from.val() === 'null') {
-            $to.val('null').prop('disabled', true);
-        } else {
-            $to.prop('disabled', false);
-        }
-    }
-
-    $from.on('change', toggleSidTo);
-    toggleSidTo();
-
-    $from.closest('form').on('submit', function() {
-        $to.prop('disabled', false);
+    $ds.on("change", function() {
+        try {
+            var fmt = $ds.datepicker("option", "dateFormat") || "dd.mm.yy";
+            var s = $.datepicker.parseDate(fmt, $ds.val());
+            var e = $.datepicker.parseDate(fmt, $de.val());
+            if (s && (!e || s > e)) { $de.val($ds.val()); }
+        } catch(x) {}
     });
-});
-</script>
-<?php endif; ?>
+JSEOF;
+
+if (! $eid) {
+    $js .= <<<'JSEOF'
+
+    var $f = $("#ef-sid-from"), $t = $("#ef-sid-to");
+    function tog() {
+        if ($f.val() === "null") { $t.val("null").prop("disabled", true); }
+        else { $t.prop("disabled", false); }
+    }
+    $f.on("change", tog);
+    tog();
+    $f.closest("form").on("submit", function() { $t.prop("disabled", false); });
+JSEOF;
+}
+
+$js .= "\n});";
+
+$this->headScript()->appendScript($js);
+?>

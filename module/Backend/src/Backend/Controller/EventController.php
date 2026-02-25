@@ -170,6 +170,101 @@ class EventController extends AbstractActionController
                         $dates[] = null;
                     }
 
+                    /* Conflict check before creation (skip if force=1) */
+                    $force = isset($data['ef-force']) && $data['ef-force'] == '1';
+
+                    if (! $force) {
+                        $conflicts = array();
+
+                        /* Calculate overall time range for conflict query */
+                        $rangeStart = new \DateTime($data['ef-date-start']);
+                        $rangeStart->setTime($timeStartParts[0], $timeStartParts[1], 0);
+                        $rangeEnd = new \DateTime($data['ef-date-end']);
+                        $rangeEnd->setTime($timeEndParts[0], $timeEndParts[1], 0);
+
+                        /* "All squares" → match any sid */
+                        $allSquaresSelected = in_array(null, $squareIds, true);
+
+                        /* Check for conflicting bookings */
+                        $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                        $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+
+                        $reservations = $reservationManager->getInRange($rangeStart, $rangeEnd);
+
+                        if ($reservations) {
+                            $bookingManager->getByReservations($reservations);
+
+                            foreach ($reservations as $reservation) {
+                                $booking = $reservation->getExtra('booking');
+
+                                if (! $booking || $booking->get('status') == 'cancelled') {
+                                    continue;
+                                }
+
+                                $bookingSid = $booking->get('sid');
+
+                                if (! $allSquaresSelected && ! in_array($bookingSid, $squareIds)) {
+                                    continue;
+                                }
+
+                                $squareName = isset($allSquares[$bookingSid])
+                                    ? $allSquares[$bookingSid]->get('name')
+                                    : '?';
+
+                                $userName = $booking->getExtra('user')
+                                    ? $booking->getExtra('user')->get('alias')
+                                    : 'Booking #' . $booking->get('bid');
+
+                                $conflicts[] = array(
+                                    'type' => 'booking',
+                                    'name' => $userName,
+                                    'square' => $squareName,
+                                    'date' => $reservation->get('date'),
+                                    'time' => substr($reservation->get('time_start'), 0, 5) . '–' . substr($reservation->get('time_end'), 0, 5),
+                                );
+                            }
+                        }
+
+                        /* Check for conflicting events */
+                        $existingEvents = $eventManager->getInRange($rangeStart, $rangeEnd);
+
+                        if ($existingEvents) {
+                            foreach ($existingEvents as $existingEvent) {
+                                $eventSid = $existingEvent->get('sid');
+
+                                if (! $allSquaresSelected && $eventSid !== null && ! in_array($eventSid, $squareIds)) {
+                                    continue;
+                                }
+
+                                $squareName = ($eventSid === null)
+                                    ? $this->translate('All squares')
+                                    : (isset($allSquares[$eventSid]) ? $allSquares[$eventSid]->get('name') : '?');
+
+                                $evtStart = new \DateTime($existingEvent->need('datetime_start'));
+                                $evtEnd = new \DateTime($existingEvent->need('datetime_end'));
+
+                                $conflicts[] = array(
+                                    'type' => 'event',
+                                    'name' => $existingEvent->getMeta('name') ?: '?',
+                                    'square' => $squareName,
+                                    'date' => $evtStart->format('d.m.Y'),
+                                    'time' => $evtStart->format('H:i') . '–' . $evtEnd->format('H:i'),
+                                );
+                            }
+                        }
+
+                        if ($conflicts) {
+                            /* Re-render form with conflicts — set force to 1 for next submit */
+                            $editForm->get('ef-force')->setValue('1');
+
+                            return array(
+                                'event' => $event,
+                                'editForm' => $editForm,
+                                'conflicts' => $conflicts,
+                            );
+                        }
+                    }
+
                     $groupId = uniqid('evtgrp_', true);
                     $capacity = $data['ef-capacity'];
                     if (! $capacity) {
