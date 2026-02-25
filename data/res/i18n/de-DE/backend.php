@@ -465,4 +465,13 @@ return array(
     'Square' => 'Platz',
     'Time' => 'Zeit',
     'Date' => 'Datum',
+
+    'Square (from)' => 'Platz (von)',
+    'Square (to)' => 'Platz (bis)',
+    'Only once' => 'Nur einmal',
+    'Daily' => 'Täglich',
+    'Delete entire series' => 'Gesamte Serie löschen',
+    '%s event(s) have been created' => '%s Veranstaltung(en) wurden erstellt',
+    '%s event(s) have been deleted' => '%s Veranstaltung(en) wurden gelöscht',
+    'Series' => 'Serie',
 );

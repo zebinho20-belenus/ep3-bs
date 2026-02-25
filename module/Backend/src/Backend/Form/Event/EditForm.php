@@ -126,6 +126,48 @@ class EditForm extends Form
         ));
 
         $this->add(array(
+            'name' => 'ef-sid-from',
+            'type' => 'Select',
+            'attributes' => array(
+                'id' => 'ef-sid-from',
+                'style' => 'width: 124px',
+            ),
+            'options' => array(
+                'label' => 'Square (from)',
+                'value_options' => $squareOptions,
+            ),
+        ));
+
+        $this->add(array(
+            'name' => 'ef-sid-to',
+            'type' => 'Select',
+            'attributes' => array(
+                'id' => 'ef-sid-to',
+                'style' => 'width: 124px',
+            ),
+            'options' => array(
+                'label' => 'Square (to)',
+                'value_options' => $squareOptions,
+            ),
+        ));
+
+        $this->add(array(
+            'name' => 'ef-repeat',
+            'type' => 'Select',
+            'attributes' => array(
+                'id' => 'ef-repeat',
+                'style' => 'width: 124px',
+            ),
+            'options' => array(
+                'label' => 'Repeat',
+                'value_options' => array(
+                    '0' => 'Only once',
+                    '1' => 'Daily',
+                ),
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'ef-capacity',
             'type' => 'Text',
             'attributes' => array(
@@ -298,6 +340,18 @@ class EditForm extends Form
                 'filters' => array(
                     array('name' => 'StringTrim'),
                 ),
+            ),
+            'ef-sid' => array(
+                'required' => false,
+            ),
+            'ef-sid-from' => array(
+                'required' => false,
+            ),
+            'ef-sid-to' => array(
+                'required' => false,
+            ),
+            'ef-repeat' => array(
+                'required' => false,
             ),
         )));
     }

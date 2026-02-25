@@ -59,7 +59,22 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
             </div>
         </div>
 
-        <?= $this->formRowDefault($form, 'ef-sid') ?>
+        <?php if ($eid): ?>
+            <?= $this->formRowDefault($form, 'ef-sid') ?>
+        <?php else: ?>
+            <div class="sandbox mb-3">
+                <div class="row">
+                    <div class="col-md-6">
+                        <?= $this->formRowDefault($form, 'ef-sid-from') ?>
+                    </div>
+                    <div class="col-md-6">
+                        <?= $this->formRowDefault($form, 'ef-sid-to') ?>
+                    </div>
+                </div>
+                <?= $this->formRowDefault($form, 'ef-repeat') ?>
+            </div>
+        <?php endif; ?>
+
         <?= $this->formRowDefault($form, 'ef-capacity') ?>
         <?= $this->formRowDefault($form, 'ef-notes') ?>
 
@@ -76,3 +91,27 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
         <?= $this->form()->closeTag() ?>
     </div>
 </div>
+
+<?php if (! $eid): ?>
+<script>
+$(function() {
+    var $from = $('#ef-sid-from');
+    var $to = $('#ef-sid-to');
+
+    function toggleSidTo() {
+        if ($from.val() === 'null') {
+            $to.val('null').prop('disabled', true);
+        } else {
+            $to.prop('disabled', false);
+        }
+    }
+
+    $from.on('change', toggleSidTo);
+    toggleSidTo();
+
+    $from.closest('form').on('submit', function() {
+        $to.prop('disabled', false);
+    });
+});
+</script>
+<?php endif; ?>

@@ -56,6 +56,7 @@ class EventController extends AbstractActionController
 
         $serviceManager = @$this->getServiceLocator();
         $eventManager = $serviceManager->get('Event\Manager\EventManager');
+        $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $formElementManager = $serviceManager->get('FormElementManager');
 
         $eid = $this->params()->fromRoute('eid');
@@ -76,51 +77,157 @@ class EventController extends AbstractActionController
             if ($editForm->isValid()) {
                 $data = $editForm->getData();
 
-                if (! $event) {
-                    $event = new Event();
-                }
-
                 $locale = $this->config('i18n.locale');
 
-                $event->setMeta('name', $data['ef-name'], $locale);
-                $event->setMeta('description', $data['ef-description'], $locale);
+                if ($event) {
+                    /* Update existing single event */
 
-                $dateStart = new \DateTime($data['ef-date-start']);
+                    $event->setMeta('name', $data['ef-name'], $locale);
+                    $event->setMeta('description', $data['ef-description'], $locale);
 
-                $timeStartParts = explode(':', $data['ef-time-start']);
+                    $dateStart = new \DateTime($data['ef-date-start']);
+                    $timeStartParts = explode(':', $data['ef-time-start']);
+                    $dateStart->setTime($timeStartParts[0], $timeStartParts[1], 0);
 
-                $dateStart->setTime($timeStartParts[0], $timeStartParts[1], 0);
+                    $dateEnd = new \DateTime($data['ef-date-end']);
+                    $timeEndParts = explode(':', $data['ef-time-end']);
+                    $dateEnd->setTime($timeEndParts[0], $timeEndParts[1], 0);
 
-                $dateEnd = new \DateTime($data['ef-date-end']);
+                    $event->set('datetime_start', $dateStart->format('Y-m-d H:i:s'));
+                    $event->set('datetime_end', $dateEnd->format('Y-m-d H:i:s'));
 
-                $timeEndParts = explode(':', $data['ef-time-end']);
+                    $sid = $data['ef-sid'];
+                    if ($sid == 'null') {
+                        $sid = null;
+                    }
+                    $event->set('sid', $sid);
 
-                $dateEnd->setTime($timeEndParts[0], $timeEndParts[1], 0);
+                    $capacity = $data['ef-capacity'];
+                    if (! $capacity) {
+                        $capacity = null;
+                    }
+                    $event->set('capacity', $capacity);
 
-                $event->set('datetime_start', $dateStart->format('Y-m-d H:i:s'));
-                $event->set('datetime_end', $dateEnd->format('Y-m-d H:i:s'));
+                    $event->setMeta('notes', $data['ef-notes']);
 
-                $sid = $data['ef-sid'];
+                    $eventManager->save($event);
 
-                if ($sid == 'null') {
-                    $sid = null;
+                    $this->flashMessenger()->addSuccessMessage('Event has been saved');
+
+                } else {
+                    /* Create new event(s) — with square range and optional repeat */
+
+                    $sidFrom = isset($data['ef-sid-from']) ? $data['ef-sid-from'] : 'null';
+                    $sidTo = isset($data['ef-sid-to']) ? $data['ef-sid-to'] : 'null';
+                    $repeat = isset($data['ef-repeat']) ? (int) $data['ef-repeat'] : 0;
+
+                    /* Determine square list */
+                    $allSquares = $squareManager->getAll();
+                    $squareIds = array();
+
+                    if ($sidFrom == 'null' || $sidTo == 'null') {
+                        /* "All squares" selected on either side → null (all) */
+                        $squareIds[] = null;
+                    } else {
+                        $inRange = false;
+                        foreach ($allSquares as $sid => $square) {
+                            if ($sid == $sidFrom) {
+                                $inRange = true;
+                            }
+                            if ($inRange) {
+                                $squareIds[] = $sid;
+                            }
+                            if ($sid == $sidTo) {
+                                break;
+                            }
+                        }
+                        if (empty($squareIds)) {
+                            $squareIds[] = null;
+                        }
+                    }
+
+                    /* Determine date list */
+                    $dateStart = new \DateTime($data['ef-date-start']);
+                    $dateStart->setTime(0, 0, 0);
+                    $dateEnd = new \DateTime($data['ef-date-end']);
+                    $dateEnd->setTime(0, 0, 0);
+
+                    $timeStart = $data['ef-time-start'];
+                    $timeEnd = $data['ef-time-end'];
+                    $timeStartParts = explode(':', $timeStart);
+                    $timeEndParts = explode(':', $timeEnd);
+
+                    $dates = array();
+                    if ($repeat == 1) {
+                        /* Daily: one event per day */
+                        $walkingDate = clone $dateStart;
+                        while ($walkingDate <= $dateEnd) {
+                            $dates[] = clone $walkingDate;
+                            $walkingDate->modify('+1 day');
+                        }
+                    } else {
+                        /* Only once: single event spanning date-start to date-end */
+                        $dates[] = null;
+                    }
+
+                    $groupId = uniqid('evtgrp_', true);
+                    $capacity = $data['ef-capacity'];
+                    if (! $capacity) {
+                        $capacity = null;
+                    }
+
+                    /* Use transaction for batch creation */
+                    $connection = $serviceManager->get('Zend\Db\Adapter\Adapter')
+                        ->getDriver()->getConnection();
+                    $connection->beginTransaction();
+
+                    try {
+                        $count = 0;
+
+                        foreach ($dates as $date) {
+                            foreach ($squareIds as $sid) {
+                                $newEvent = new Event();
+
+                                $newEvent->setMeta('name', $data['ef-name'], $locale);
+                                $newEvent->setMeta('description', $data['ef-description'], $locale);
+
+                                if ($date !== null) {
+                                    /* Daily repeat: same time on each day */
+                                    $evtStart = clone $date;
+                                    $evtStart->setTime($timeStartParts[0], $timeStartParts[1], 0);
+                                    $evtEnd = clone $date;
+                                    $evtEnd->setTime($timeEndParts[0], $timeEndParts[1], 0);
+                                } else {
+                                    /* Single event spanning full range */
+                                    $evtStart = new \DateTime($data['ef-date-start']);
+                                    $evtStart->setTime($timeStartParts[0], $timeStartParts[1], 0);
+                                    $evtEnd = new \DateTime($data['ef-date-end']);
+                                    $evtEnd->setTime($timeEndParts[0], $timeEndParts[1], 0);
+                                }
+
+                                $newEvent->set('datetime_start', $evtStart->format('Y-m-d H:i:s'));
+                                $newEvent->set('datetime_end', $evtEnd->format('Y-m-d H:i:s'));
+                                $newEvent->set('sid', $sid);
+                                $newEvent->set('capacity', $capacity);
+                                $newEvent->setMeta('notes', $data['ef-notes']);
+                                $newEvent->setMeta('group', $groupId);
+
+                                $eventManager->save($newEvent);
+                                $count++;
+                            }
+                        }
+
+                        $connection->commit();
+
+                        $this->flashMessenger()->addSuccessMessage(sprintf(
+                            $this->translate('%s event(s) have been created'), $count
+                        ));
+
+                    } catch (\Exception $e) {
+                        $connection->rollback();
+                        throw $e;
+                    }
                 }
-
-                $event->set('sid', $sid);
-
-                $capacity = $data['ef-capacity'];
-
-                if (! $capacity) {
-                    $capacity = null;
-                }
-
-                $event->set('capacity', $capacity);
-
-                $event->setMeta('notes', $data['ef-notes']);
-
-                $eventManager->save($event);
-
-                $this->flashMessenger()->addSuccessMessage('Event has been saved');
 
                 return $this->redirectBack()->toOrigin();
             }
@@ -138,14 +245,40 @@ class EventController extends AbstractActionController
                     'ef-notes' =>  $event->getMeta('notes'),
                 ));
             } else {
-                $params = $this->backendBookingDetermineParams();
+                /* Default dates: today, default times: 18:00–21:00 */
+                $dateStartParam = $this->params()->fromQuery('ds');
+                $dateEndParam = $this->params()->fromQuery('de');
+                $timeStartParam = $this->params()->fromQuery('ts');
+                $timeEndParam = $this->params()->fromQuery('te');
+                $squareParam = $this->params()->fromQuery('s');
+
+                $dateTimeStart = new \DateTime($dateStartParam ?: 'now');
+                $dateTimeEnd = new \DateTime($dateEndParam ?: 'now');
+
+                if ($timeStartParam && preg_match('/^[0-9]?[0-9]:[0-9][0-9]$/', $timeStartParam)) {
+                    $tsParts = explode(':', $timeStartParam);
+                    $dateTimeStart->setTime($tsParts[0], $tsParts[1]);
+                } else {
+                    $dateTimeStart->setTime(18, 0);
+                }
+
+                if ($timeEndParam && preg_match('/^[0-9]?[0-9]:[0-9][0-9]$/', $timeEndParam)) {
+                    $teParts = explode(':', $timeEndParam);
+                    $dateTimeEnd->setTime($teParts[0], $teParts[1]);
+                } else {
+                    $dateTimeEnd->setTime(21, 0);
+                }
+
+                $defaultSid = $squareParam ?: 'null';
 
                 $editForm->setData(array(
-                    'ef-date-start' => $this->dateFormat($params['dateTimeStart'], \IntlDateFormatter::MEDIUM),
-                    'ef-time-start' => $params['dateTimeStart']->format('H:i'),
-                    'ef-date-end' => $this->dateFormat($params['dateTimeEnd'], \IntlDateFormatter::MEDIUM),
-                    'ef-time-end' => $params['dateTimeEnd']->format('H:i'),
-                    'ef-sid' =>  $params['square']->get('sid'),
+                    'ef-date-start' => $this->dateFormat($dateTimeStart, \IntlDateFormatter::MEDIUM),
+                    'ef-time-start' => $dateTimeStart->format('H:i'),
+                    'ef-date-end' => $this->dateFormat($dateTimeEnd, \IntlDateFormatter::MEDIUM),
+                    'ef-time-end' => $dateTimeEnd->format('H:i'),
+                    'ef-sid' => $defaultSid,
+                    'ef-sid-from' => $defaultSid,
+                    'ef-sid-to' => $defaultSid,
                     'ef-capacity' => 0,
                 ));
             }
@@ -186,17 +319,51 @@ class EventController extends AbstractActionController
 
         $event = $eventManager->get($eid);
 
+        $groupId = $event->getMeta('group');
+
         if ($this->params()->fromQuery('confirmed') == 'true') {
 
-            $eventManager->delete($event);
+            if ($this->params()->fromQuery('group') == 'true' && $groupId) {
+                /* Delete entire series */
+                $eventMetaTable = $serviceManager->get('Event\Table\EventMetaTable');
 
-            $this->flashMessenger()->addSuccessMessage('Event has been deleted');
+                $groupEvents = $eventMetaTable->select(array(
+                    'key' => 'group',
+                    'value' => $groupId,
+                ));
+
+                $connection = $serviceManager->get('Zend\Db\Adapter\Adapter')
+                    ->getDriver()->getConnection();
+                $connection->beginTransaction();
+
+                try {
+                    $count = 0;
+                    foreach ($groupEvents as $row) {
+                        $eventManager->delete($row['eid']);
+                        $count++;
+                    }
+                    $connection->commit();
+
+                    $this->flashMessenger()->addSuccessMessage(sprintf(
+                        $this->translate('%s event(s) have been deleted'), $count
+                    ));
+                } catch (\Exception $e) {
+                    $connection->rollback();
+                    throw $e;
+                }
+            } else {
+                /* Delete single event */
+                $eventManager->delete($event);
+
+                $this->flashMessenger()->addSuccessMessage('Event has been deleted');
+            }
 
             return $this->redirectBack()->toOrigin();
         }
 
         return array(
             'event' => $event,
+            'groupId' => $groupId,
         );
     }
 

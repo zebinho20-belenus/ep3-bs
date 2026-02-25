@@ -34,6 +34,10 @@ class EventFormat extends AbstractHelper
             $name = substr($name, 0, 48) . '&hellip;';
         }
 
+        if ($event->getMeta('group')) {
+            $name .= ' <i class="fa fa-repeat" title="' . $view->t('Series') . '"></i>';
+        }
+
         $html .= sprintf('<td>%s</td>',
             $name);
 
