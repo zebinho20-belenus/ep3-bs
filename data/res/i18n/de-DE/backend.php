@@ -374,6 +374,10 @@ return array(
     'New day' => 'Neuer Wochentag',
     'New period' => 'Neuer Zeitraum',
     'New rule' => 'Neue Regel',
+    'Delete rule' => 'Regel löschen',
+    'Delete day range' => 'Wochentag löschen',
+    'Delete time range' => 'Zeitraum löschen',
+    'Delete price' => 'Preis löschen',
     'New opening time rule' => 'Neue Öffnungszeit-Regel',
 
     'Opening times' => 'Öffnungszeiten',

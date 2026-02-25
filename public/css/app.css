@@ -1110,5 +1110,33 @@ a.squarebox-primary-close-link:hover {
 
 .pricing-price-line + .pricing-price-line { padding-top: 0.5rem; border-top: 1px dashed #dee2e6; }
 
+.pricing-price-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: flex-end;
+}
+.pricing-field-group { flex: 0 0 auto; }
+.pricing-field-label {
+    display: block;
+    font-size: 0.675rem;
+    color: #6c757d;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+.pricing-field-delete {
+    margin-left: auto;
+    align-self: flex-end;
+    padding-bottom: 2px;
+}
+
+.pricing-select-day { width: 130px; }
+.pricing-select-gross { width: 80px; }
+.pricing-select-rate { width: 68px; }
+.pricing-select-sid { width: 140px; }
+.pricing-select-member { width: 140px; }
+
 .pricing-delete { color: #999 !important; text-decoration: none; cursor: pointer; font-size: 1rem; }
 .pricing-delete:hover { color: #DC2626 !important; }

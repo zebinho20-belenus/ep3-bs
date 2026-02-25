@@ -62,13 +62,13 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
                 <div class="pricing-day-block border-start border-2 border-primary ps-3 mb-2">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <?php
-                        echo '<select class="pricing-dayStart form-select form-select-sm" style="width: auto;">';
+                        echo '<select class="pricing-dayStart form-select form-select-sm pricing-select-day">';
                         foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 0 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
                         echo '</select>';
                         ?>
                         <span class="text-muted">&ndash;</span>
                         <?php
-                        echo '<select class="pricing-dayEnd form-select form-select-sm" style="width: auto;">';
+                        echo '<select class="pricing-dayEnd form-select form-select-sm pricing-select-day">';
                         foreach ($days as $index => $day) echo '<option value="' . $index . '"' . ($index == 4 ? ' selected="selected"' : '') . '>' . $this->t($day) . '</option>';
                         echo '</select>';
                         ?>
@@ -87,51 +87,64 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
                         </div>
 
                         <div class="pricing-price-line mb-2 ps-2 py-2" style="border-left: 2px solid #dee2e6;">
-                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
-                                <div class="d-flex align-items-center gap-1">
+                            <div class="pricing-price-grid">
+                                <div class="pricing-field-group">
+                                    <span class="pricing-field-label"><?= $this->t('Price') ?></span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <?php
+                                        echo '<input type="text" value="0,00" maxlength="6" class="pricing-price-number pricepicker form-control form-control-sm" style="width: 80px;">';
+                                        echo '<span class="text-muted small">' . $this->config('i18n.currency') . '</span>';
+                                        ?>
+                                    </div>
+                                </div>
+                                <div class="pricing-field-group">
+                                    <span class="pricing-field-label"><?= $this->t('VAT') ?></span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <?php
+                                        echo '<select class="pricing-rate-gross form-select form-select-sm pricing-select-gross">';
+                                        echo '<option value="0">' . $this->t('plus') . '</option>';
+                                        echo '<option value="1" selected="selected">' . $this->t('including') . '</option>';
+                                        echo '</select>';
+                                        echo '<select class="pricing-rate form-select form-select-sm pricing-select-rate">';
+                                        echo '<option value="0">0%</option>';
+                                        echo '<option value="7">7%</option>';
+                                        echo '<option value="19" selected="selected">19%</option>';
+                                        echo '</select>';
+                                        ?>
+                                    </div>
+                                </div>
+                                <div class="pricing-field-group">
+                                    <span class="pricing-field-label"><?= $this->option('subject.square.type') ?></span>
                                     <?php
-                                    echo '<input type="text" value="0,00" maxlength="6" class="pricing-price-number pricepicker form-control form-control-sm" style="width: 80px;">';
-                                    echo '<span class="text-muted small">' . $this->config('i18n.currency') . '</span>';
+                                    echo '<select class="pricing-sid form-select form-select-sm pricing-select-sid">';
+                                    echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
+                                    foreach ($this->squares as $square) {
+                                        echo '<option value="' . $square->get('sid') . '">' . $square->get('name') . '</option>';
+                                    }
+                                    echo '</select>';
                                     ?>
                                 </div>
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="pricing-field-group">
+                                    <span class="pricing-field-label"><?= $this->t('Status') ?></span>
                                     <?php
-                                    echo '<select class="pricing-rate-gross form-select form-select-sm" style="width: auto;">';
-                                    echo '<option value="0">' . $this->t('plus') . '</option>';
-                                    echo '<option value="1" selected="selected">' . $this->t('including') . '</option>';
+                                    echo '<select class="pricing-member form-select form-select-sm pricing-select-member">';
+                                    echo '<option value="0" selected="selected">' . $this->t('no member') . '</option>';
+                                    echo '<option value="1">' . $this->t('member') . '</option>';
                                     echo '</select>';
-
-                                    echo '<select class="pricing-rate form-select form-select-sm" style="width: auto;">';
-                                    echo '<option value="0">0%</option>';
-                                    echo '<option value="7">7%</option>';
-                                    echo '<option value="19" selected="selected">19%</option>';
-                                    echo '</select>';
-                                    echo '<span class="text-muted small">' . $this->t('VAT') . '</span>';
                                     ?>
                                 </div>
-                                <a href="#" class="pricing-delete ms-auto btn btn-sm btn-outline-danger" title="<?= $this->t('Delete price') ?>"><span class="fa fa-times"></span></a>
-                            </div>
-                            <div class="d-flex align-items-center flex-wrap gap-2 mt-1">
-                                <?php
-                                echo '<select class="pricing-sid form-select form-select-sm" style="width: auto;">';
-                                echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
-                                foreach ($this->squares as $square) {
-                                    echo '<option value="' . $square->get('sid') . '">' . $this->option('subject.square.type') . ' ' . $square->get('name') . '</option>';
-                                }
-                                echo '</select>';
-
-                                echo '<span class="text-muted mx-1">|</span>';
-
-                                echo '<select class="pricing-member form-select form-select-sm" style="width: auto;">';
-                                echo '<option value="0" selected="selected">' . $this->t('no member') . '</option>';
-                                echo '<option value="1">' . $this->t('member') . '</option>';
-                                echo '</select>';
-
-                                echo '<span class="text-muted mx-1">|</span>';
-
-                                echo '<input type="text" value="' . round($this->squaresTimeBlock / 60) . '" maxlength="3" class="pricing-timeBlock timeblockpicker form-control form-control-sm" style="width: 50px;">';
-                                echo '<span class="text-muted small">Min.</span>';
-                                ?>
+                                <div class="pricing-field-group">
+                                    <span class="pricing-field-label"><?= $this->t('Time block') ?></span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <?php
+                                        echo '<input type="text" value="' . round($this->squaresTimeBlock / 60) . '" maxlength="3" class="pricing-timeBlock timeblockpicker form-control form-control-sm" style="width: 55px;">';
+                                        echo '<span class="text-muted small">Min.</span>';
+                                        ?>
+                                    </div>
+                                </div>
+                                <div class="pricing-field-delete">
+                                    <a href="#" class="pricing-delete btn btn-sm btn-outline-danger" title="<?= $this->t('Delete price') ?>" aria-label="<?= $this->t('Delete price') ?>"><span class="fa fa-times"></span></a>
+                                </div>
                             </div>
                         </div>
 
