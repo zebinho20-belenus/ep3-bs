@@ -402,6 +402,15 @@ return array(
                                     ),
                                 ),
                             ),
+                            'member-emails' => array(
+                                'type' => 'Literal',
+                                'options' => array(
+                                    'route' => '/member-emails',
+                                    'defaults' => array(
+                                        'action' => 'memberEmails',
+                                    ),
+                                ),
+                            ),
                             'behaviour' => array(
                                 'type' => 'Literal',
                                 'options' => array(
@@ -468,6 +477,8 @@ return array(
     'service_manager' => array(
         'factories' => array(
             'Backend\Service\MailService' => 'Backend\Service\MailServiceFactory',
+            'Backend\Table\MemberEmailTable' => 'Backend\Table\MemberEmailTableFactory',
+            'Backend\Manager\MemberEmailManager' => 'Backend\Manager\MemberEmailManagerFactory',
         ),
     ),
 

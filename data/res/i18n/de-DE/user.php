@@ -262,6 +262,8 @@ return array(
     'Bill' => 'Rechnung',
     'Booking-Bill' => 'Buchungs-Rechnung',
 
+    'I am a club member' => 'Ich bin Vereinsmitglied',
+
     'I agree to %s' => 'Ich habe das Dokument %s gelesen und akzeptiere es',
     'Please agree to this' => 'Bitte akzeptieren Sie das',
 

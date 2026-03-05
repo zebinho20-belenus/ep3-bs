@@ -133,6 +133,13 @@ header("Content-Security-Policy: ".
                     </div>
 
                     <?= $this->formRowDefault($form, 'rf-phone') ?>
+
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <?= $this->formElement($form->get('rf-member')) ?>
+                            <label class="form-check-label" for="rf-member"><?= $this->t('I am a club member') ?></label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

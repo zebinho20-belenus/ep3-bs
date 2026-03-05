@@ -240,6 +240,21 @@ class RegistrationForm extends Form
             ));
         }
 
+        /* Member checkbox (#17) */
+
+        $this->add(array(
+            'name' => 'rf-member',
+            'type' => 'Checkbox',
+            'attributes' => array(
+                'id' => 'rf-member',
+            ),
+            'options' => array(
+                'label' => 'I am a club member',
+                'checked_value' => 'true',
+                'unchecked_value' => 'false',
+            ),
+        ));
+
         /* Add fake nickname to fool spam bots */
 
         $this->add(array(
@@ -598,6 +613,9 @@ class RegistrationForm extends Form
                 ),
             ),
             */
+            'rf-member' => array(
+                'required' => false,
+            ),
             'rf-terms' => array(
                 'required' => false,
                 'validators' => array(

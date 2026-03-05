@@ -308,4 +308,86 @@ class ConfigController extends AbstractActionController
         );
     }
 
+    public function memberEmailsAction()
+    {
+        $this->authorize('admin.config');
+
+        $serviceManager = @$this->getServiceLocator();
+        $memberEmailManager = $serviceManager->get('Backend\Manager\MemberEmailManager');
+
+        /* Delete single entry */
+        $delete = $this->params()->fromQuery('delete');
+
+        if ($delete && is_numeric($delete)) {
+            $memberEmailManager->delete($delete);
+            $this->flashMessenger()->addSuccessMessage('Member email has been deleted');
+            return $this->redirect()->toRoute('backend/config/member-emails');
+        }
+
+        /* Delete all entries */
+        $deleteAll = $this->params()->fromQuery('delete-all');
+
+        if ($deleteAll === '1') {
+            $memberEmailManager->deleteAll();
+            $this->flashMessenger()->addSuccessMessage('All member emails have been deleted');
+            return $this->redirect()->toRoute('backend/config/member-emails');
+        }
+
+        if ($this->getRequest()->isPost()) {
+
+            /* CSV upload */
+            $files = $this->getRequest()->getFiles();
+
+            if (isset($files['csv-file']) && $files['csv-file']['error'] === UPLOAD_ERR_OK) {
+                $content = file_get_contents($files['csv-file']['tmp_name']);
+
+                if ($content) {
+                    $imported = $memberEmailManager->importFromCsv($content);
+                    $this->flashMessenger()->addSuccessMessage(
+                        sprintf($this->t('%d member email(s) have been imported'), $imported)
+                    );
+                } else {
+                    $this->flashMessenger()->addErrorMessage('CSV file is empty');
+                }
+
+                return $this->redirect()->toRoute('backend/config/member-emails');
+            }
+
+            /* Add single entry */
+            $email = trim(strip_tags($this->params()->fromPost('me-email', '')));
+            $firstname = trim(strip_tags($this->params()->fromPost('me-firstname', '')));
+            $lastname = trim(strip_tags($this->params()->fromPost('me-lastname', '')));
+
+            if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $existing = $memberEmailManager->getByEmail($email);
+
+                if ($existing) {
+                    $this->flashMessenger()->addErrorMessage('This email address already exists in the list');
+                } else {
+                    $memberEmail = new \Backend\Entity\MemberEmail(array(
+                        'email' => strtolower($email),
+                        'firstname' => $firstname ?: null,
+                        'lastname' => $lastname ?: null,
+                    ));
+
+                    $memberEmailManager->save($memberEmail);
+                    $this->flashMessenger()->addSuccessMessage('Member email has been added');
+                }
+
+                return $this->redirect()->toRoute('backend/config/member-emails');
+            } elseif ($email) {
+                $this->flashMessenger()->addErrorMessage('Invalid email address');
+                return $this->redirect()->toRoute('backend/config/member-emails');
+            }
+        }
+
+        $memberEmails = $memberEmailManager->getAll('lastname ASC, firstname ASC, email ASC');
+        $count = $memberEmailManager->getCount();
+
+        return array(
+            'memberEmails' => $memberEmails,
+            'count' => $count,
+        );
+    }
+
 }

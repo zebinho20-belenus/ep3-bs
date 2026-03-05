@@ -1,0 +1,100 @@
+<?php
+
+$this->setup(array(
+    'title' => 'Member email list',
+    'panel' => 'centered-panel large-sized',
+    'back' => array('Configuration' => $this->url('backend/config')),
+));
+
+?>
+
+<div>
+    <h1><?= $this->t('Member email list') ?></h1>
+
+    <div class="separator-small"></div>
+
+    <p><?= $this->t('Manage the list of member email addresses. Members are automatically recognized and activated during registration.') ?></p>
+
+    <div class="separator separator-line"></div>
+
+    <!-- CSV Upload -->
+    <div class="card card-body bg-light mb-4">
+        <h5 class="mb-3"><?= $this->t('Import from CSV') ?></h5>
+        <form method="post" enctype="multipart/form-data">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <input type="file" name="csv-file" accept=".csv,.txt" class="form-control form-control-sm" style="max-width: 300px;">
+                <button type="submit" class="btn btn-primary btn-sm"><?= $this->t('Import') ?></button>
+            </div>
+            <div class="form-text mt-1"><?= $this->t('CSV format: email,firstname,lastname (first row as header is optional)') ?></div>
+        </form>
+    </div>
+
+    <!-- Add single entry -->
+    <div class="card card-body bg-light mb-4">
+        <h5 class="mb-3"><?= $this->t('Add member') ?></h5>
+        <form method="post">
+            <div class="d-flex flex-wrap align-items-end gap-2">
+                <div>
+                    <label class="form-label form-label-sm"><?= $this->t('Email address') ?></label>
+                    <input type="email" name="me-email" class="form-control form-control-sm" style="width: 250px;" required placeholder="max@example.com">
+                </div>
+                <div>
+                    <label class="form-label form-label-sm"><?= $this->t('First name') ?></label>
+                    <input type="text" name="me-firstname" class="form-control form-control-sm" style="width: 150px;" placeholder="Max">
+                </div>
+                <div>
+                    <label class="form-label form-label-sm"><?= $this->t('Last name') ?></label>
+                    <input type="text" name="me-lastname" class="form-control form-control-sm" style="width: 150px;" placeholder="Mustermann">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><?= $this->t('Add') ?></button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Member list -->
+    <?php if ($this->count > 0): ?>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted"><?= sprintf($this->t('%d member(s) in list'), $this->count) ?></span>
+        <a href="<?= $this->url('backend/config/member-emails', [], ['query' => ['delete-all' => 1]]) ?>"
+           class="btn btn-outline-danger btn-sm"
+           onclick="return confirm('<?= $this->t('Are you sure you want to delete all entries?') ?>')">
+            <?= $this->t('Delete all') ?>
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead>
+                <tr>
+                    <th style="width: 3rem;"><?= $this->t('No.') ?></th>
+                    <th><?= $this->t('Email address') ?></th>
+                    <th><?= $this->t('First name') ?></th>
+                    <th><?= $this->t('Last name') ?></th>
+                    <th style="width: 3rem;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $i = 1; foreach ($this->memberEmails as $memberEmail): ?>
+                <tr>
+                    <td class="text-muted"><?= $i++ ?></td>
+                    <td><?= $this->escapeHtml($memberEmail->need('email')) ?></td>
+                    <td><?= $this->escapeHtml($memberEmail->get('firstname', '')) ?></td>
+                    <td><?= $this->escapeHtml($memberEmail->get('lastname', '')) ?></td>
+                    <td>
+                        <a href="<?= $this->url('backend/config/member-emails', [], ['query' => ['delete' => $memberEmail->need('meid')]]) ?>"
+                           class="btn btn-outline-danger btn-sm" title="<?= $this->t('Delete') ?>">
+                            <span class="fa fa-times"></span>
+                        </a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php else: ?>
+        <p class="text-muted text-center"><?= $this->t('No member emails in list yet.') ?></p>
+    <?php endif; ?>
+
+</div>

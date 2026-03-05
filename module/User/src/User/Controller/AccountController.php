@@ -183,7 +183,23 @@ class AccountController extends AbstractActionController
 
                 $meta['locale'] = $this->config('i18n.locale');
 
-                if ($this->option('service.user.activation') == 'immediate') {
+                /* Member self-declaration and auto-activation (#17) */
+                $claimsMember = (isset($registrationData['rf-member']) && $registrationData['rf-member'] === 'true');
+                $emailVerified = false;
+
+                if ($claimsMember) {
+                    $meta['member'] = '1';
+                    $status = 'enabled';
+
+                    // Check email against member list
+                    try {
+                        $memberEmailManager = $serviceManager->get('Backend\Manager\MemberEmailManager');
+                        $memberMatch = $memberEmailManager->getByEmail($registrationData['rf-email1']);
+                        $emailVerified = ($memberMatch !== null);
+                    } catch (\Exception $e) {
+                        // Member email table may not exist yet
+                    }
+                } elseif ($this->option('service.user.activation') == 'immediate') {
                     $status = 'enabled';
                 } else {
                     $status = 'disabled';
@@ -208,7 +224,7 @@ class AccountController extends AbstractActionController
                 
                 /* Immer Benachrichtigung an Admin senden, unabhängig von Aktivierungsmethode */
                 $backendMailService = $serviceManager->get('Backend\Service\MailService');
-                
+
                 // Detaillierte Benutzerinformationen zusammenstellen
                 $userDetails = sprintf(
                     "Neue Benutzerregistrierung:\n\n" .
@@ -223,30 +239,42 @@ class AccountController extends AbstractActionController
                     date('d.m.Y H:i:s'),
                     $_SERVER['REMOTE_ADDR']
                 );
-                
+
                 // Metadaten hinzufügen, falls vorhanden
                 if (isset($meta['firstname']) && isset($meta['lastname'])) {
                     $userDetails .= sprintf("Vorname: %s\nNachname: %s\n", $meta['firstname'], $meta['lastname']);
                 } elseif (isset($meta['name'])) {
                     $userDetails .= sprintf("Name: %s\n", $meta['name']);
                 }
-                
+
                 if (isset($meta['phone'])) {
                     $userDetails .= sprintf("Telefon: %s\n", $meta['phone']);
                 }
-                
+
                 if (isset($meta['street'])) {
-                    $userDetails .= sprintf("Adresse: %s, %s %s\n", 
-                        $meta['street'], 
-                        $meta['zip'], 
+                    $userDetails .= sprintf("Adresse: %s, %s %s\n",
+                        $meta['street'],
+                        $meta['zip'],
                         $meta['city']
                     );
                 }
-                
+
+                // Member info (#17)
+                if ($claimsMember) {
+                    $userDetails .= "\n" . str_repeat('=', 40) . "\n";
+                    $userDetails .= "MITGLIED: Ja (vom Benutzer angegeben)\n";
+                    $userDetails .= "Status: Automatisch aktiviert\n";
+                    if ($emailVerified) {
+                        $userDetails .= "E-Mail-Prüfung: In Mitgliederliste bestätigt\n";
+                    } else {
+                        $userDetails .= "E-Mail-Prüfung: NICHT in Mitgliederliste - bitte prüfen!\n";
+                    }
+                    $userDetails .= str_repeat('=', 40) . "\n";
+                }
+
                 // Benutzereinstellungen und Zugriffslink für Admin hinzufügen
                 $adminLink = $this->url()->fromRoute('backend/user', ['uid' => $user->need('uid')], ['force_canonical' => true]);
-                $userDetails .= sprintf("\nZum Bearbeiten des Benutzers: %s\n\n", $adminLink);
-                $userDetails .= "Bitte überprüfen Sie, ob dieser Benutzer ein Mitglied ist und setzen Sie ggf. das 'membership'-Flag im System.";
+                $userDetails .= sprintf("\nZum Bearbeiten des Benutzers: %s\n", $adminLink);
                 
                 // E-Mail an Admin senden
                 $contactEmail = $this->option('client.website.contact', '');

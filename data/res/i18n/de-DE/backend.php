@@ -484,4 +484,30 @@ return array(
     'Existing booking' => 'Bestehende Buchung',
     'Existing event' => 'Bestehende Veranstaltung',
     'Type' => 'Typ',
+
+    'Member email list' => 'Mitglieder E-Mail-Liste',
+    'Manage the list of member email addresses. Members are automatically recognized and activated during registration.'
+        => 'Verwalten Sie die Liste der Vereinsmitglieder E-Mail-Adressen. Mitglieder werden bei der Registrierung automatisch erkannt und aktiviert.',
+    'Manage member emails for automatic registration recognition'
+        => 'E-Mail-Adressen für automatische Mitglieder-Erkennung bei der Registrierung',
+    'Import from CSV' => 'CSV-Import',
+    'Import' => 'Importieren',
+    'CSV format: email,firstname,lastname (first row as header is optional)'
+        => 'CSV-Format: email,vorname,nachname (erste Zeile als Kopfzeile ist optional)',
+    'Add member' => 'Mitglied hinzufügen',
+    'Email address' => 'E-Mail-Adresse',
+    'First name' => 'Vorname',
+    'Last name' => 'Nachname',
+    'Add' => 'Hinzufügen',
+    '%d member(s) in list' => '%d Mitglied(er) in der Liste',
+    '%d member email(s) have been imported' => '%d Mitglieder-E-Mail(s) wurden importiert',
+    'Member email has been added' => 'Mitglieder-E-Mail wurde hinzugefügt',
+    'Member email has been deleted' => 'Mitglieder-E-Mail wurde gelöscht',
+    'All member emails have been deleted' => 'Alle Mitglieder-E-Mails wurden gelöscht',
+    'This email address already exists in the list' => 'Diese E-Mail-Adresse existiert bereits in der Liste',
+    'Invalid email address' => 'Ungültige E-Mail-Adresse',
+    'CSV file is empty' => 'CSV-Datei ist leer',
+    'Delete all' => 'Alle löschen',
+    'Are you sure you want to delete all entries?' => 'Sind Sie sicher, dass Sie alle Einträge löschen möchten?',
+    'No member emails in list yet.' => 'Noch keine Mitglieder-E-Mails in der Liste.',
 );
