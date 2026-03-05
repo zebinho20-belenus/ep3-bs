@@ -404,6 +404,25 @@ function updateCalendarEvents() {
 - Separator lines (`str_repeat('-', 40)`) around bill and payment sections for visual block structure
 - Translation key `'Billing status'` added to `data/res/i18n/de-DE/booking.php`
 
+### Auto-Registration with Member Recognition (Mar 2026, #17)
+
+**Feature:** New "I am a club member" checkbox on registration form. When checked:
+- User is auto-activated (`status=enabled`, `member=1`) regardless of activation mode setting
+- Email checked against `bs_member_emails` table for verification
+- Admin notification includes member status and whether email was found in member list
+
+**Backend UI:** `/backend/config/member-emails` — manage member email list with CSV import (`email,firstname,lastname`) and single add/delete. Accessible from Configuration page.
+
+**Key files:**
+- `module/User/src/User/Form/RegistrationForm.php` — `rf-member` checkbox
+- `module/User/src/User/Controller/AccountController.php` — auto-activation logic
+- `module/Backend/src/Backend/Controller/ConfigController.php` — `memberEmailsAction()`
+- `module/Backend/src/Backend/Manager/MemberEmailManager.php` — CRUD + CSV import
+- `module/Backend/src/Backend/Entity/MemberEmail.php` — Entity (meid, email, firstname, lastname)
+- `data/db/migrations/002-member-emails.sql` — table creation
+
+**Migration required:** Run `002-member-emails.sql` to create `bs_member_emails` table.
+
 ### PHP 8.1 Deprecation Fixes (Feb 2026)
 
 Several PHP 8.1 deprecations were patched directly in forked/vendored code:
