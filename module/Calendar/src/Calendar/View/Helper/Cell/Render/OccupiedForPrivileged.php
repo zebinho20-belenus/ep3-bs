@@ -39,7 +39,7 @@ class OccupiedForPrivileged extends AbstractHelper
 
             $style = 'cc-single';
 
-            if ($booking->getMeta('directpay') == 'true' and $booking->get('status_billing')!= 'paid') {
+            if ($booking->get('status_billing') == 'pending') {
                 if (! $cellLabel) {
                     $cellLabel = $view->t('temp blocked');
                 }

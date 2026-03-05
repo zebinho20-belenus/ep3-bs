@@ -21,12 +21,14 @@ class Reserved extends AbstractHelper
 
                 $cellLabel = $view->t('Your Booking');
                 $cellGroup = ' cc-group-' . $userBooking->need('bid');
+                $style = 'cc-own';
 
-                if ($userBooking->getMeta('directpay') == 'true' and $userBooking->get('status_billing')!= 'paid') {
-                    $cellLabel = $view->t('Your Booking TRY');
+                if ($userBooking->get('status_billing') == 'pending') {
+                    $cellLabel = $view->t('Your Booking') . ' *';
+                    $style = 'cc-try';
                 }
 
-                return $view->calendarCellLink($cellLabel, $view->url('square', [], $cellLinkParams), 'cc-own' . $cellGroup);
+                return $view->calendarCellLink($cellLabel, $view->url('square', [], $cellLinkParams), $style . $cellGroup);
             } else {
                 return $view->calendarCellLink($labelReserved, $view->url('square', [], $cellLinkParams), 'cc-reserved');
             }

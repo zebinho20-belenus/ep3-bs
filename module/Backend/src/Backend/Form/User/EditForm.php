@@ -484,6 +484,7 @@ class EditForm extends Form
             ),
             */
             'euf-budget' => array(
+                'required' => false,
                 'filters' => array(
                     array('name' => 'StringTrim'),
                 ),
@@ -491,7 +492,7 @@ class EditForm extends Form
                     array(
                         'name' => 'Regex',
                         'options' => array(
-                            'pattern' => '/^[0-9\,\. ]+$/u',
+                            'pattern' => '/^[0-9\,\. ]*$/u',
                             'message' => 'Please type a number here',
                         ),
                     ),

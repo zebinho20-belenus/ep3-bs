@@ -166,7 +166,7 @@ class UserController extends AbstractActionController
                 $user->setMeta('phone', $eud['euf-phone']);
                 // $user->setMeta('birthdate', $eud['euf-birthdate']);
                 $user->setMeta('member', $eud['euf-member']);
-                $user->setMeta('budget', $eud['euf-budget']);
+                $user->setMeta('budget', $eud['euf-budget'] !== '' ? $eud['euf-budget'] : '0');
                 $user->setMeta('notes', $eud['euf-notes']);
 
                 $userManager->save($user);

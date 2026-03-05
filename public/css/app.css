@@ -722,8 +722,8 @@ a.cc-conflict:hover { background-color: #045cb4; }
 a.cc-conflict { position: relative; z-index: 256; }
 
 a.cc-try:link,
-a.cc-try:visited { opacity: 1.0; background-color: #e5e68b; }
-a.cc-try:hover { background-color: #e5e68b; }
+a.cc-try:visited { opacity: 1.0; color: #664d03; background-color: #ffda6a; }
+a.cc-try:hover { background-color: #ffcd39; }
 
 /* Squarebox */
 /* BS5 .form-select is display:block — override so text-align:center can center it */

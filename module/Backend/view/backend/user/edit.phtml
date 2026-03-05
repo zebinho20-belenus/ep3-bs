@@ -55,6 +55,12 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/user/edit
 
         <?= $this->form()->openTag($form) ?>
 
+        <?php if ($form->getMessages()): ?>
+            <div class="alert alert-danger" role="alert">
+                <strong><?= $this->t('Please check your input') ?></strong>
+            </div>
+        <?php endif; ?>
+
         <div class="row">
             <div class="col-lg-6 mb-4">
                 <div class="text-center mb-3">

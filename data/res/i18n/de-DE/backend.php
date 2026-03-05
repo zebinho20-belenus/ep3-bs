@@ -45,6 +45,7 @@ return array(
     'New booking' => 'Neue Buchung',
     'New event' => 'Neue Veranstaltung',
     'User has been saved' => 'Benutzer wurde gespeichert',
+    'Please check your input' => 'Bitte überprüfen Sie Ihre Eingaben',
     'User has been deleted' => 'Benutzer wurde gelöscht',
     'Booking has been saved' => 'Buchung wurde gespeichert',
     'Booking has been deleted' => 'Buchung wurde gelöscht',
