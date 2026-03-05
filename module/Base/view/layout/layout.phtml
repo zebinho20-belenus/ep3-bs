@@ -141,16 +141,23 @@
     <?= $this->headScript() ?>
     <script type="text/javascript" src="<?= $this->basePath('js-client/tennis-tcnkail.min.js') ?>"></script>
 
-    <!-- swipe calendar with hammer.js -->
+    <!-- swipe calendar with hammer.js (touch devices only, #12) -->
     <script type="text/javascript" src="<?= $this->basePath('js/controller/frontend/hammer.min.js') ?>"></script>
     <script type="text/javascript">
     var nextdateelement = document.getElementById('nextdatearrow');
-    if (typeof(nextdateelement) != 'undefined' && nextdateelement != null) {
+    if (typeof(nextdateelement) != 'undefined' && nextdateelement != null
+        && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
         var mc = new Hammer.Manager(document.body, { touchAction: "pan-y" });
         var Swipe = new Hammer.Swipe();
         mc.add(Swipe);
-        mc.on('swiperight', function () { document.getElementById('prevdatearrow').click(); });
-        mc.on('swipeleft', function () { document.getElementById('nextdatearrow').click(); });
+        mc.on('swiperight', function () {
+            if (document.querySelector('.squarebox')) return;
+            document.getElementById('prevdatearrow').click();
+        });
+        mc.on('swipeleft', function () {
+            if (document.querySelector('.squarebox')) return;
+            document.getElementById('nextdatearrow').click();
+        });
     }
     </script>
 

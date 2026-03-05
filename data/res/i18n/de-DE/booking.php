@@ -76,6 +76,7 @@ return array(
     'Budget' => 'Budget',
     'Invoice' => 'Rechnung',
     'Budget: %s → new budget: %s' => 'Budget: %s → neues Budget: %s',
+    'Billing status' => 'Rechnungsstatus',
     'Notes:' => 'Anmerkungen:',
     'The amount of %s € has been deducted from your budget. Remaining budget: %s €'
         => 'Der Betrag von %s € wurde von Ihrem Guthaben abgezogen. Restguthaben: %s €',

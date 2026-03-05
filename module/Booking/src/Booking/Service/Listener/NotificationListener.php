@@ -130,7 +130,8 @@ class NotificationListener extends AbstractListenerAggregate
         }
 	    
         # price notice
-        $message .= "\n\n" . $this->t('Bill'). ":\n";
+        $message .= "\n\n" . str_repeat('-', 40);
+        $message .= "\n" . $this->t('Bill'). ":\n";
 
         $total = 0;
         $bills = $this->bookingBillManager->getBy(array('bid' => $booking->get('bid')), 'bbid ASC');
@@ -145,23 +146,26 @@ class NotificationListener extends AbstractListenerAggregate
                 } else {
                     $squareUnit = $this->optionManager->get('subject.square.unit.plural');
                 }
- 
-                if ($bill->get('time')) {
-                    $items = $squareUnit;   
-                }    
 
-                $message .= "\n"; 
+                if ($bill->get('time')) {
+                    $items = $squareUnit;
+                }
+
+                $message .= "\n- ";
                 $message .= $bill->get('description') . " (" . $bill->get('quantity') . " " . $items . ")";
-                $message .= " -> ";
+                $message .= " → ";
                 $message .= $priceFormatHelper($bill->get('price'), $bill->get('rate'), $bill->get('gross'));
         }
         $message .= "\n\n";
         $message .= $this->t('Total');
-        $message .= " -> ";
+        $message .= ": ";
         $message .= $priceFormatHelper($total);
+        $message .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
+        $message .= "\n" . str_repeat('-', 40);
 
         if ($booking->get('status_billing') == 'pending' && $booking->getMeta('gp') == '1' && $booking->getMeta('directpay') != 'true' && $booking->getMeta('budgetpayment') != 'true') {
-            $message .= "\n\n" . $this->t('Payment instructions:');
+            $message .= "\n\n" . str_repeat('-', 40);
+            $message .= "\n" . $this->t('Payment instructions:');
             $paypalEmail = $this->configManager->get('paypalEmail') ?: 'payment@your-domain.com';
             $message .= "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail);
             $message .= "\n" . $this->t('The booking is only valid after payment is completed.');

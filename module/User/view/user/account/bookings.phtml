@@ -77,6 +77,16 @@ $this->setup(array(
 
                 $square = $this->squareManager->get($booking->need('sid'));
 
+                $bills = $booking->getExtra('bills');
+                $statusBilling = $booking->get('status_billing');
+
+                $price = 0;
+                if ($bills) {
+                    foreach ($bills as $bill) {
+                        $price += $bill->need('price');
+                    }
+                }
+
                 if ($this->now > $bookingDateTimeStart) {
                     $rowClass = ' class="text-muted"';
 
@@ -92,18 +102,13 @@ $this->setup(array(
                     }
                 } else {
                     $cancellable = $this->squareValidator->isCancellable($booking);
+
+                    if ($statusBilling == 'pending' && $price > 0) {
+                        $rowClass = ' class="table-warning"';
+                    }
                 }
 
-                $bills = $booking->getExtra('bills');
-                $statusBilling = $booking->get('status_billing');
-
                 if ($bills) {
-                    $price = 0;
-
-                    foreach ($bills as $bill) {
-                        $price += $bill->need('price');
-                    }
-
                     $pricing = '<a href="' . $this->url('user/bookings/bills', ['bid' => $bid]) . '" class="btn btn-outline-primary btn-sm">';
                     $pricing .= $this->priceFormat($price);
                     $pricing .= '</a>';

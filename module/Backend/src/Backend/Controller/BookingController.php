@@ -2426,6 +2426,8 @@ class BookingController extends AbstractActionController
                         break;
                     case 'status_billing':
                         $label = $this->t('Billing status');
+                        $oldFormatted = $this->t(ucfirst($change['old']));
+                        $newFormatted = $this->t(ucfirst($change['new']));
                         break;
                     case 'notes':
                         $label = $this->t('Notes');
@@ -2491,6 +2493,7 @@ class BookingController extends AbstractActionController
                         $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
                     }
                     $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
+                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
                 }
 
                 // Budget deduction info
