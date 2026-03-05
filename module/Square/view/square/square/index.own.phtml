@@ -6,6 +6,11 @@ foreach ($this->bookingsFromUser as $bid => $booking) {
     echo sprintf('<p><span class="green">' . $this->t('This %s has been %sbooked to you%s.') . '</span></p>',
         $squareType, '<b>', '</b>');
 
+    if ($booking->get('status_billing') == 'pending') {
+        echo sprintf('<p><a href="%s" class="default-button default-button-warning"><span class="fa fa-credit-card"></span> %s</a></p>',
+            $this->url('user/bookings/bills', ['bid' => $bid]), $this->t('Pay now'));
+    }
+
     if ($this->validator->isCancellable($booking)) {
         echo sprintf('<p><a href="%s" class="default-button squarebox-internal-link"><span class="symbolic symbolic-cross">%s</span></a></p>',
             $this->url('square/booking/cancellation', [], ['query' => ['bid' => $bid]]), $this->t('Cancel this booking'));

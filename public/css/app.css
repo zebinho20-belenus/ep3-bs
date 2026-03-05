@@ -442,6 +442,20 @@ a.default-button-danger:hover {
     border-color: #b91c1c;
 }
 
+.default-button-warning,
+a.default-button-warning:link,
+a.default-button-warning:visited {
+    background-color: #ffda6a;
+    border-color: #ffda6a;
+    color: #664d03;
+}
+.default-button-warning:hover,
+a.default-button-warning:hover {
+    background-color: #ffcd39;
+    border-color: #ffcd39;
+    color: #664d03;
+}
+
 .default-button-outline,
 a.default-button-outline:link,
 a.default-button-outline:visited {
