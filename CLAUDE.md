@@ -380,6 +380,30 @@ function updateCalendarEvents() {
 
 **File changed:** `module/Backend/src/Backend/Controller/BookingController.php` (lines 61-69)
 
+### Swipe Gesture on Desktop Closes Booking Modal (Fixed Mar 2026, #12)
+
+**Problem:** When editing a booking in the calendar squarebox, dragging the mouse outside the modal (e.g. while selecting text in the "Booked to" field) triggered Hammer.js swipe gestures, navigating to the previous/next day and closing the modal without saving.
+
+**Root Cause:** Hammer.js was initialized on `document.body` for ALL devices, including desktop with mouse. Mouse drag movements were interpreted as swipe gestures.
+
+**Solution:** Two guards added in `module/Base/view/layout/layout.phtml`:
+1. **Touch-only check**: `('ontouchstart' in window || navigator.maxTouchPoints > 0)` — Hammer.js swipe only activates on touch devices
+2. **Modal guard**: `document.querySelector('.squarebox')` check in swipe handlers — swipe is suppressed when a booking modal is open
+
+### Pending Bookings Color in My Bookings (Fixed Mar 2026, #79)
+
+**Solution:** Future bookings with `status_billing == 'pending'` and `price > 0` get Bootstrap's `table-warning` class (yellow row background) in `module/User/view/user/account/bookings.phtml`. Past bookings remain `text-muted`.
+
+### Email Formatting & Translated Billing Status (Fixed Mar 2026, #80)
+
+**Problem:** Booking change emails showed raw billing status slugs ("pending → paid" instead of "Ausstehend → Bezahlt"). No billing status shown under bill total. Email lacked visual structure.
+
+**Solution:**
+- `$this->t(ucfirst($change['old/new']))` translates status slugs in change emails (`BookingController.php`)
+- Billing status line added after Total in both `NotificationListener.php` and `BookingController.php` edit emails
+- Separator lines (`str_repeat('-', 40)`) around bill and payment sections for visual block structure
+- Translation key `'Billing status'` added to `data/res/i18n/de-DE/booking.php`
+
 ### PHP 8.1 Deprecation Fixes (Feb 2026)
 
 Several PHP 8.1 deprecations were patched directly in forked/vendored code:
