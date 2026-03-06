@@ -53,7 +53,7 @@ docker compose exec -T mariadb mariadb -u <user> -p<password> <database> < mycou
 
 ## Architecture
 
-**PHP 8.1 / Zend Framework 2 MVC** with a custom Entity-Manager-Service layered pattern:
+**PHP 8.4 / Zend Framework 2 MVC** with a custom Entity-Manager-Service layered pattern:
 
 ```
 Entity (data container, extends AbstractEntity)
@@ -310,7 +310,7 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 
 ## Docker Setup
 
-Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD. Three compose files:
+Single `Dockerfile` (PHP 8.4-apache) for both DEV and PROD. Three compose files:
 - `docker-compose.yml` — production-compatible base (court, mariadb, mailhog + Traefik labels, external `traefik_web` network)
 - `docker-compose.override.yml` — local dev additions (Traefik service, self-signed HTTPS, local `traefik_web` network)
 - `docker-compose.dev-server.yml` — DEV instance on server alongside production (separate service names, Traefik routers, DB port)
@@ -329,7 +329,7 @@ docker compose -f docker-compose.dev-server.yml up -d
 | Service | Default Port | Purpose |
 |---------|-------------|---------|
 | traefik | 80, 443, 8080 | Reverse proxy with HTTPS (self-signed locally, Let's Encrypt on prod), dashboard |
-| court | (via Traefik) | PHP 8.1 Apache app server (memory_limit 256M) |
+| court | (via Traefik) | PHP 8.4 Apache app server (memory_limit 256M) |
 | mariadb | 3306 | MariaDB 10.11 (pinned, with healthcheck) |
 | mailhog | 8025 (UI) | Email testing (SMTP 1025 internal) |
 
@@ -423,15 +423,29 @@ function updateCalendarEvents() {
 
 **Migration required:** Run `002-member-emails.sql` to create `bs_member_emails` table.
 
-### PHP 8.1 Deprecation Fixes (Feb 2026)
+### PHP 8.4 Migration (Mar 2026)
 
-Several PHP 8.1 deprecations were patched directly in forked/vendored code:
+Upgraded from PHP 8.1 to 8.4, Stripe SDK 6.9.0 to 7.128.0. Key changes:
 
-| File | Fix |
-|------|-----|
-| `module/Base/src/Base/Entity/AbstractEntity.php:165` | `strlen(null)` → `$value === null \|\| strlen((string) $value) == 0` in `setMeta()` |
-| `src/Zend/Uri/src/UriFactory.php:96` | `strtolower(null)` → `strtolower((string) ...)` |
-| `vendor/eluceo/ical/src/PropertyBag.php:69` | Added `#[\ReturnTypeWillChange]` to `getIterator()` |
+| Area | Changes |
+|------|---------|
+| `Dockerfile` | `php:8.1-apache` → `php:8.4-apache`, Xdebug 3.3.2 → 3.4.2 |
+| `composer.json` | `php: >=8.4`, `stripe/stripe-php: ^7.0`, audit config |
+| `src/Zend/**/*.php` | 317 implicit nullable fixes (`Type $param = null` → `?Type $param = null`) |
+| `src/Zend/Stdlib/SplPriorityQueue.php` | `#[\ReturnTypeWillChange]` on `insert()` |
+| `src/Zend/Mvc/Router/Http/Part.php` | Added `$priority` property declaration |
+| `vendor/stripe/stripe-php/` | Replaced with v7.128.0, `utf8_encode()` → `mb_convert_encoding()` |
+| `vendor/payum/stripe/Action/Api/*.php` | `Stripe\Error\Base` → `Stripe\Exception\ApiErrorException`, `__toArray(true)` → `toArray()` |
+| `vendor/guzzlehttp/guzzle/Handler/CurlMultiHandler.php` | `#[\AllowDynamicProperties]` (lazy `$_mh` via `__get`) |
+| `vendor/` (guzzle, payum, twig, eluceo, league, php-http) | Implicit nullable fixes |
+| `module/` (Base, Calendar, User) | Implicit nullable + dynamic property fixes |
+
+**Important — `composer update` is broken**: Due to `payum/payum-module` requiring the ZF2 metapackage while we use individual forked packages, `composer update` cannot resolve dependencies. Vendor changes must be managed manually. Always use `--ignore-platform-reqs` if running composer commands.
+
+Previous PHP 8.1 fixes (still in place):
+- `AbstractEntity.php:165`: `strlen(null)` guard in `setMeta()`
+- `UriFactory.php:96`: `strtolower((string) ...)`
+- `PropertyBag.php:69`: `#[\ReturnTypeWillChange]` on `getIterator()`
 
 ### Debugging Tips
 
