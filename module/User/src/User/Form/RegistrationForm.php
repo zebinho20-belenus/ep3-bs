@@ -477,7 +477,7 @@ class RegistrationForm extends Form
             'rf-street' => array(
                 'filters' => array(
                     array('name' => 'StringTrim'),
-                    array('name' => 'Callback', 'options' => array('callback' => function($name) { return ucfirst($name); })),
+                    array('name' => 'Callback', 'options' => array('callback' => function($name) { return ucfirst((string) $name); })),
                 ),
                 'validators' => array(
                     array(
@@ -548,7 +548,7 @@ class RegistrationForm extends Form
             'rf-city' => array(
                 'filters' => array(
                     array('name' => 'StringTrim'),
-                    array('name' => 'Callback', 'options' => array('callback' => function($name) { return ucfirst($name); })),
+                    array('name' => 'Callback', 'options' => array('callback' => function($name) { return ucfirst((string) $name); })),
                 ),
                 'validators' => array(
                     array(
