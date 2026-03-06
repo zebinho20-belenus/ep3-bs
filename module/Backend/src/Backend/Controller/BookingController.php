@@ -1630,16 +1630,39 @@ class BookingController extends AbstractActionController
             if ($booking->get('status_billing') === 'paid') {
                 $paypalInfo = $this->t('Die gezahlten PayPal-Beträge wurden als Budget Ihrem Konto gutgeschrieben.');
             }
-            
+
+            // Bill block for cancellation email
+            $rechnungsInfo = '';
+            try {
+                $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
+                $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
+                $billTotal = 0;
+                if ($bills) {
+                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
+                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
+                    foreach ($bills as $bill) {
+                        $billTotal += $bill->get('price');
+                        $rechnungsInfo .= "\n- " . $bill->get('description');
+                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
+                    }
+                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
+                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
+                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
+                }
+            } catch (\Exception $e) {
+                // Bill info not available
+            }
+
             // Backend MailService verwenden, falls verfügbar
             try {
                 // Prüfen, ob der Backend\Service\MailService verfügbar ist
                 if ($this->serviceLocator->has('Backend\Service\MailService')) {
                     // Vollständigen Text für die E-Mail erstellen
                     $emailText = sprintf(
-                        "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s",
+                        "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s%s%s",
                         $anrede,
                         $buchungsDetails,
+                        $rechnungsInfo,
                         !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
                     );
                     
@@ -1781,11 +1804,11 @@ class BookingController extends AbstractActionController
                     return true;
                 } else {
                     // Fallback auf die alte Methode, wenn Backend\Service\MailService nicht verfügbar ist
-                    $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede);
+                    $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede, $rechnungsInfo);
                 }
             } catch (\Exception $e) {
                 // Fallback auf die alte Methode
-                $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede);
+                $this->sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede, $rechnungsInfo);
             }
             
             return true;
@@ -1797,19 +1820,19 @@ class BookingController extends AbstractActionController
     /**
      * Fallback-Methode zum Senden der Stornierungsemail, wenn Backend\Service\MailService nicht verfügbar ist
      */
-    protected function sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede)
+    protected function sendAdminCancellationEmailFallback($booking, $user, $subject, $buchungsDetails, $stornierungsBedingungen, $paypalInfo, $contactInfo, $clientName, $anrede, $rechnungsInfo = '')
     {
         try {
             // Versuche den Mail-Service zu erhalten, mit robuster Fehlerbehandlung
             if (!$this->serviceLocator->has('Base\Service\MailService')) {
                 throw new \Exception("MailService ist nicht als Service registriert");
             }
-            
+
             $mailService = $this->serviceLocator->get('Base\Service\MailService');
             if (!$mailService) {
                 throw new \Exception("MailService konnte nicht initialisiert werden");
             }
-            
+
             // Verwende Konfigurationswerte aus den Client-Einstellungen
             $fromAddress = $this->option('client.website.contact', 'noreply@example.com');
             if (strpos($fromAddress, 'mailto:') === 0) {
@@ -1823,9 +1846,10 @@ class BookingController extends AbstractActionController
 
             // Vollständigen E-Mail-Text zusammenbauen
             $body = sprintf(
-                "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s\n\n%s",
+                "%s,\n\nwir haben Ihre Platz-Buchung storniert.\n\n%s%s%s",
                 $anrede,
                 $buchungsDetails,
+                $rechnungsInfo,
                 !empty($paypalInfo) ? "\n\n" . $paypalInfo : ""
             );
 
@@ -2485,7 +2509,8 @@ class BookingController extends AbstractActionController
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
                 $billTotal = 0;
                 if ($bills) {
-                    $rechnungsInfo .= "\n\n" . $this->t('Bill') . ":\n";
+                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
+                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
                     foreach ($bills as $bill) {
                         $billTotal += $bill->get('price');
                         $rechnungsInfo .= "\n- " . $bill->get('description');
@@ -2493,6 +2518,7 @@ class BookingController extends AbstractActionController
                     }
                     $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
                     $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
+                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
                 }
 
                 // Budget deduction info
