@@ -109,7 +109,9 @@ Defined in each module's `config/module.config.php`. Key routes:
 - **Bootstrap 5.3.3** loaded locally from `public/vendor/bootstrap/css/bootstrap.min.css` + JS bundle
 - **Custom CSS** in `public/css/app.css` — design tokens, BS5 overrides, legacy compatibility; copied to `app.min.css`
 - CSS load order: `bootstrap.min.css` → `jquery-ui.min.css` → `app.css` → `font-awesome` → `tennis-tcnkail.min.css`
-- `public/js/` — jQuery, jQuery UI, TinyMCE, controller-specific scripts in `js/controller/`
+- **jQuery 3.7.1** + **jQuery UI 1.14.1** (local: `public/js/jquery/`, `public/js/jquery-ui/`)
+- **TinyMCE 6.8.5** (local: `public/js/tinymce/`, skin: oxide, theme: silver)
+- `public/js/` — controller-specific scripts in `js/controller/`
 - `public/js/sw.js` + `manifest.json` — PWA service worker
 
 **View helpers** (Base module, registered in `module/Base/config/module.config.php`):
@@ -422,6 +424,31 @@ function updateCalendarEvents() {
 - `data/db/migrations/002-member-emails.sql` — table creation
 
 **Migration required:** Run `002-member-emails.sql` to create `bs_member_emails` table.
+
+### Security Hardening (Mar 2026)
+
+Comprehensive OWASP Top 10 security audit and hardening. Key changes:
+
+| Category | Changes |
+|----------|---------|
+| **Server** | `expose_php = Off`, `ServerTokens Prod`, `ServerSignature Off`, `mod_headers` enabled |
+| **HTTP Headers** | HSTS, X-Frame-Options SAMEORIGIN, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy (in `public/.htaccess`) |
+| **Session** | `SameSite=Lax` (was `None`) in `project.php.dist` |
+| **SQL Injection** | Prepared statements in Backend BookingController (UPDATE/DELETE), `Zend\Db\Sql\Where` predicates in ReservationManager |
+| **XSS** | `htmlspecialchars()` for Stripe errors in flash messages, `json_encode()` for JS context in confirmation.phtml, `escapeHtml()` for email in players.phtml |
+| **CSRF** | Session-based `random_bytes(32)` in BookingController (was `sha1(time())`), HMAC in RegistrationForm (was deprecated `Bcrypt::setSalt()`) |
+| **Auth Tokens** | HMAC-based password reset tokens (was bcrypt-substring), HMAC activation codes (was `sha1(created)`), `hash_equals()` for timing-safe comparison |
+| **Bcrypt** | Cost factor 10 (was 6) in Backend UserController |
+| **Hardening** | `unserialize(['allowed_classes' => false])` everywhere, removed `@` error suppression, `$_SERVER` guard for `HTTP_STRIPE_SIGNATURE` |
+| **Libraries** | jQuery 1.12.4 → 3.7.1, jQuery UI 1.10.4 → 1.14.1, TinyMCE 4.0.26 → 6.8.5 |
+| **Service Worker** | Cache version bumped to `ep3bs_v3.1:static` |
+
+**TinyMCE 6 migration notes:**
+- Skin: `lightgray` → `oxide`, Theme: `modern` → `silver`
+- API: `file_browser_callback` → `file_picker_callback`, `styleselect` → `styles`
+- Language codes: `de-DE` → `de`, `fr-FR` → `fr`, `hu-HU` → `hu`
+- `tinyMCE.activeEditor.windowManager.open()` → `tinymce.activeEditor.windowManager.openUrl()`
+- Setup files updated: `tinymce.setup.js`, `tinymce.setup.light.js`, `tinymce.setup.medium.js`
 
 ### PHP 8.4 Migration (Mar 2026)
 
