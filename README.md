@@ -4,7 +4,7 @@
 
 ![Status](https://img.shields.io/badge/Current-ZF2_Production-green)
 ![Migration](https://img.shields.io/badge/Migration-Laravel_11_Planned-blue)
-![PHP](https://img.shields.io/badge/PHP-8.1→8.3-purple)
+![PHP](https://img.shields.io/badge/PHP-8.4-purple)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
 
 **Professional Online Booking System for Tennis Courts (and other sports facilities)**
@@ -68,7 +68,7 @@ EP3-BS is a comprehensive online booking system designed specifically for sports
 ## 💻 Current System (ZF2)
 
 **Technology Stack:**
-- PHP 8.1 (Apache)
+- PHP 8.4 (Apache)
 - Zend Framework 2 (custom Entity-Manager-Service pattern)
 - Bootstrap 5.3.3 + jQuery
 - Payum (payment framework)
@@ -642,8 +642,8 @@ Inline editing for admins to adjust booking billing:
 
 ### Architecture
 
-Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD:
-- **DEV:** Xdebug 3, error reporting enabled
+Single `Dockerfile` (PHP 8.4-apache) for both DEV and PROD:
+- **DEV:** Xdebug 3.4, error reporting enabled
 - **PROD:** No debug tools, error logging only
 
 **Three Compose Files:**
@@ -665,7 +665,7 @@ Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD:
 | Service | Port | Purpose |
 |---------|------|---------|
 | **traefik** | 80, 443, 8080 | Reverse proxy with HTTPS (Let's Encrypt on prod, self-signed locally) |
-| **court** | via Traefik | PHP 8.1 Apache, app server |
+| **court** | via Traefik | PHP 8.4 Apache, app server |
 | **mariadb** | 3306 | MariaDB 10.11 database |
 | **mailhog** | 8025 (UI), 1025 (SMTP) | Email testing, catches all outgoing mail |
 
@@ -693,8 +693,12 @@ Single `Dockerfile` (PHP 8.1-apache) for both DEV and PROD:
 - Volume mount `./:/var/www/html` provides `vendor/` at runtime
 
 **Updating Dependencies:**
+
+⚠️ `composer update` is currently broken due to `payum/payum-module` requiring the ZF2 metapackage (`zendframework/zendframework ~2.2`) which conflicts with the individually forked Zend packages in `src/Zend/`. Vendor changes must be managed manually.
+
 ```bash
-docker compose exec court composer update
+# If needed, use --ignore-platform-reqs:
+docker compose exec court composer update --ignore-platform-reqs
 git add vendor/
 git commit -m "Update composer dependencies"
 ```
@@ -754,10 +758,10 @@ docker compose restart court
 - Traefik requires `DOCKER_API_VERSION=1.44` env var on container
 - Set in `docker-compose.override.yml`
 
-**PECL Install Fails on PHP 8.1:**
-- `pecl install xdebug` fails during build
+**PECL Install Fails:**
+- `pecl install xdebug` may fail during build
 - Solution: Download Xdebug source tarball via `wget`, compile manually
-- Implemented in `Dockerfile`
+- Implemented in `Dockerfile` (Xdebug 3.4.2 for PHP 8.4)
 
 ---
 
@@ -916,7 +920,7 @@ A comprehensive migration to Laravel 11 is planned in the `dev_sh_laravel_migrat
 | Component | Current (ZF2) | Target (Laravel) |
 |-----------|---------------|------------------|
 | Framework | Zend Framework 2 | Laravel 11 |
-| PHP | 8.1 | 8.3 |
+| PHP | 8.4 | 8.4 |
 | Frontend | jQuery + Bootstrap 5 | Vue 3 + PrimeVue 4 |
 | CSS | Custom CSS | Tailwind CSS 3 |
 | Build | Manual minification | Vite |
@@ -1140,10 +1144,15 @@ npm run cypress:open
 - **Cause:** `getByBookings()` fetches ALL reservations for matched bookings, not just in-range ones
 - **Fix:** Added `array_filter()` after `getByBookings()` in `Backend\BookingController::indexAction()`
 
-**PHP 8.1 Deprecation Warnings (Fixed Feb 2026):**
-- `strlen(null)` in `AbstractEntity::setMeta()` → cast to `(string)` before `strlen()`
-- `strtolower(null)` in `src/Zend/Uri/src/UriFactory.php` → cast to `(string)`
-- `getIterator()` return type in `vendor/eluceo/ical/src/PropertyBag.php` → added `#[\ReturnTypeWillChange]`
+**PHP 8.4 Migration (Mar 2026):**
+- Upgraded from PHP 8.1 to 8.4, Stripe SDK 6.9.0 to 7.128.0
+- 317 implicit nullable parameter fixes in `src/Zend/` (`Type $param = null` → `?Type $param = null`)
+- ~20 implicit nullable fixes in `vendor/` (guzzle, payum, twig, eluceo, league, php-http)
+- Stripe error namespace: `\Stripe\Error\Base` → `\Stripe\Exception\ApiErrorException`
+- Stripe API: `__toArray(true)` → `toArray()`
+- `utf8_encode()` → `mb_convert_encoding()` in Stripe SDK
+- Dynamic property fixes: `#[\AllowDynamicProperties]` on `CurlMultiHandler`, property declarations in module code
+- Previous PHP 8.1 fixes (strlen/strtolower null guards, ReturnTypeWillChange) still in place
 
 ---
 
