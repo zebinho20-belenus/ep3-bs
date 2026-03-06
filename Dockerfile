@@ -66,10 +66,12 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Enable mod_remoteip to log real client IPs behind Traefik reverse proxy
+# Uses X-Forwarded-For header; trusts all RFC1918 + Docker ranges as internal proxies
 RUN echo "RemoteIPHeader X-Forwarded-For" >> /etc/apache2/conf-available/remoteip.conf \
     && echo "RemoteIPInternalProxy 172.16.0.0/12" >> /etc/apache2/conf-available/remoteip.conf \
     && echo "RemoteIPInternalProxy 10.0.0.0/8" >> /etc/apache2/conf-available/remoteip.conf \
     && echo "RemoteIPInternalProxy 192.168.0.0/16" >> /etc/apache2/conf-available/remoteip.conf \
+    && echo "RemoteIPInternalProxy 127.0.0.0/8" >> /etc/apache2/conf-available/remoteip.conf \
     && a2enconf remoteip
 
 RUN a2enmod rewrite headers remoteip
