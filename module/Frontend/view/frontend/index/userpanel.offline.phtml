@@ -1,19 +1,21 @@
-<div class="d-flex flex-wrap align-items-center justify-content-center gap-2">
-    <span>
+<div class="text-center">
+    <div class="mb-2">
         <?php
         echo sprintf($this->t('To book %s, %splease register first%s'),
             $this->option('subject.square.type.plural'),
             '<a href="' . $this->url('user/registration') . '" class="btn btn-sm btn-primary">', '</a>');
         ?>
-    </span>
+    </div>
 
-    <a href="<?= $this->url('user/login') ?>" class="btn btn-outline-primary btn-sm d-lg-none">
-        <span class="fa fa-sign-in"></span> <?= $this->t('Login') ?>
-    </a>
+    <div class="d-inline-flex flex-wrap justify-content-center gap-2">
+        <a href="<?= $this->url('user/login') ?>" class="btn btn-outline-primary btn-sm d-lg-none">
+            <span class="fa fa-sign-in"></span> <?= $this->t('Login') ?>
+        </a>
 
-    <a href="<?= $this->url('service/help') ?>" class="btn btn-outline-secondary btn-sm" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>">
-        <b>?</b>
-    </a>
+        <a href="<?= $this->url('service/help') ?>" class="btn btn-outline-secondary btn-sm" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>">
+            <b>?</b>
+        </a>
+    </div>
 </div>
 
 <form method="post" action="<?= $this->url('user/login') ?>" class="d-none d-lg-block mt-2">

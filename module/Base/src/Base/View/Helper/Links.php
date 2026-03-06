@@ -16,28 +16,24 @@ class Links extends AbstractHelper
         $backTitle = $view->placeholder('back-title')->getValue();
 
         if ($backHref && $backTitle) {
-            $html .= sprintf('<a href="%s" class="btn btn-outline-secondary btn-sm me-3 mb-2"><span class="fa fa-chevron-left"></span> %s: %s</a>',
+            $html .= sprintf('<a href="%s" class="btn btn-outline-secondary btn-sm"><span class="fa fa-chevron-left"></span> %s: %s</a>',
                 $backHref, $view->translate('Back to'), $backTitle);
         }
 
         $links = $view->placeholder('links')->getValue();
 
         if ($links) {
-            $html .= '<span class="d-inline-flex flex-wrap gap-2">';
-
             foreach ($links as $title => $href) {
-                $html .= sprintf('<a href="%s" class="btn btn-outline-primary btn-sm mb-2">%s</a>',
+                $html .= sprintf('<a href="%s" class="btn btn-outline-primary btn-sm">%s</a>',
                     $href, $view->translate($title));
             }
-
-            $html .= '</span>';
         }
 
         if ($html) {
             if ($position === 'top') {
-                $html = '<nav class="links-nav mb-3 pb-3 border-bottom border-secondary-subtle text-center no-print">' . $html . '</nav>';
+                $html = '<nav class="links-nav mb-3 pb-3 border-bottom border-secondary-subtle text-center no-print"><div class="d-inline-flex flex-wrap justify-content-center align-items-center gap-2">' . $html . '</div></nav>';
             } else {
-                $html = '<nav class="links-nav mt-4 pt-3 border-top border-secondary-subtle text-center no-print">' . $html . '</nav>';
+                $html = '<nav class="links-nav mt-4 pt-3 border-top border-secondary-subtle text-center no-print"><div class="d-inline-flex flex-wrap justify-content-center align-items-center gap-2">' . $html . '</div></nav>';
             }
         }
 
