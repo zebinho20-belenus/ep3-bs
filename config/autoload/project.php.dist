@@ -29,7 +29,7 @@ return array(
         'use_only_cookies' => true,
         'cookie_httponly' => true,
         'cookie_secure' => true,
-        'cookie_samesite' => 'None',
+        'cookie_samesite' => 'Lax',
         'gc_maxlifetime' => 86400,
         'cookie_lifetime' => 86400,
         'cookie_domain' => '',

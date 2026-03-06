@@ -325,7 +325,7 @@ class PaymentController extends AbstractActionController
         {
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {
-                    $this->flashMessenger()->addErrorMessage($payment['error']['message']);
+                    $this->flashMessenger()->addErrorMessage(htmlspecialchars($payment['error']['message'], ENT_QUOTES, 'UTF-8'));
                 }
                 $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sPayment failed. Please try again.%s'),
                     '<b>', '</b>'));
@@ -335,8 +335,7 @@ class PaymentController extends AbstractActionController
             } else {
                 if ($booking->getMeta('directpay_pending') != 'true') {
                     if(isset($payment['error']['message'])) {
-                        $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
-                                                '<b>', '</b>'));
+                        $this->flashMessenger()->addErrorMessage(htmlspecialchars($payment['error']['message'], ENT_QUOTES, 'UTF-8'));
                     }
                     $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sError during payment: Your booking has been cancelled.%s'),
                         '<b>', '</b>'));
@@ -354,18 +353,16 @@ class PaymentController extends AbstractActionController
         // $this->authorize('admin.booking');
         // authorize is done via stripe webhook secret
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
 
-        // $bookingService = $serviceManager->get('Booking\Service\BookingService');
-
         $squareControlService->removeInactiveDoorCodes();
 
-        $payload = @file_get_contents('php://input');
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+        $payload = file_get_contents('php://input');
+        $sig_header = isset($_SERVER['HTTP_STRIPE_SIGNATURE']) ? $_SERVER['HTTP_STRIPE_SIGNATURE'] : '';
         $event = null;
 
         try {

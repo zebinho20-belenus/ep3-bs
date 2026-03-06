@@ -141,7 +141,7 @@ class UserController extends AbstractActionController
 
                 if ($pw) {
                     $bcrypt = new Bcrypt();
-                    $bcrypt->setCost(6);
+                    $bcrypt->setCost(10);
 
                     $user->set('pw', $bcrypt->create($pw));
                 }

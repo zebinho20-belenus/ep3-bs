@@ -117,7 +117,7 @@ class NotificationListener extends AbstractListenerAggregate
         $playerNames = $booking->getMeta('player-names');
 
         if ($playerNames) {
-            $playerNamesUnserialized = json_decode($playerNames, true) ?: @unserialize($playerNames);
+            $playerNamesUnserialized = json_decode($playerNames, true) ?: @unserialize($playerNames, ['allowed_classes' => false]);
 
             if (is_iterable($playerNamesUnserialized)) {
                 $message .= "\n\nAngegebene Mitspieler:";

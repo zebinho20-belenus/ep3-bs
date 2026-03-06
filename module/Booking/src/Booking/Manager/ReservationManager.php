@@ -513,14 +513,16 @@ class ReservationManager extends AbstractManager
             throw new InvalidArgumentException('Invalid end date passed for getting reservations by range');
         }
 
-        $where = array('date >= "' . $dateStart . '"', 'date <= "' . $dateEnd . '"');
+        $where = new \Zend\Db\Sql\Where();
+        $where->greaterThanOrEqualTo('date', $dateStart);
+        $where->lessThanOrEqualTo('date', $dateEnd);
 
         if ($timeStart && preg_match('/^(00|0?[1-9]|1[0-9]|2[0-4])\:(00|0[0-9]|[1-5][0-9])(\:(00|0[0-9]|[1-5][0-9]))?$/', $timeStart)) {
-            $where[] = 'time_start < "' . $timeEnd . '"';
+            $where->lessThan('time_start', $timeEnd);
         }
 
         if ($timeEnd && preg_match('/^(00|0?[1-9]|1[0-9]|2[0-4])\:(00|0[0-9]|[1-5][0-9])(\:(00|0[0-9]|[1-5][0-9]))?$/', $timeEnd)) {
-            $where[] = 'time_end > "' . $timeStart . '"';
+            $where->greaterThan('time_end', $timeStart);
         }
 
         return $this->getBy($where, 'date, time_start ASC', $limit, $offset, $loadMeta);

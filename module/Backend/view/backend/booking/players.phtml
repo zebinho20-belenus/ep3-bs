@@ -37,7 +37,7 @@ $this->setup(array(
                     <td><?= isset($player['name']) ? $this->escapeHtml($player['name']) : '' ?></td>
                     <td>
                         <?php if (isset($player['email'])): ?>
-                            <a href="mailto:<?= $player['email'] ?>"><?= $player['email'] ?></a>
+                            <a href="mailto:<?= $this->escapeHtml($player['email']) ?>"><?= $this->escapeHtml($player['email']) ?></a>
                         <?php endif; ?>
                     </td>
                     <td><?= isset($player['phone']) ? $this->escapeHtml($player['phone']) : '' ?></td>

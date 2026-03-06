@@ -274,7 +274,7 @@ class BookingController extends AbstractActionController
                         /* Update player names: add/remove "Gastspieler" suffix */
                         $storedNames = $savedBooking->getMeta('player-names');
                         if ($storedNames) {
-                            $namesList = json_decode($storedNames, true) ?: @unserialize($storedNames);
+                            $namesList = json_decode($storedNames, true) ?: @unserialize($storedNames, ['allowed_classes' => false]);
                             if (is_array($namesList)) {
                                 foreach ($namesList as &$entry) {
                                     if (isset($entry['value'])) {
@@ -596,7 +596,7 @@ class BookingController extends AbstractActionController
             $playerNames = $booking->getMeta('player-names');
 
             if ($playerNames) {
-                $playerNamesUnserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'));
+                $playerNamesUnserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'), ['allowed_classes' => false]);
 
                 if ($playerNamesUnserialized && is_array($playerNamesUnserialized)) {
                     foreach ($playerNamesUnserialized as $i => $playerName) {
@@ -612,7 +612,7 @@ class BookingController extends AbstractActionController
         /* Extract player names for view */
         $playerNamesForView = [];
         if ($booking && $booking->getMeta('player-names')) {
-            $unserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'));
+            $unserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'), ['allowed_classes' => false]);
             if (is_array($unserialized)) {
                 foreach ($unserialized as $i => $entry) {
                     $playerNamesForView[$i + 2] = $entry['value'];
@@ -703,11 +703,11 @@ class BookingController extends AbstractActionController
                 if ($editTimeRangeForm->isValid()) {
                     $data = $editTimeRangeForm->getData();
 
-                    $res = $db->query(
-                        sprintf('UPDATE %s SET time_start = "%s", time_end = "%s" WHERE bid = %s AND time_start = "%s" AND time_end = "%s"',
-                            ReservationTable::NAME,
-                            $data['bf-time-start'], $data['bf-time-end'], $bid, $booking->needMeta('time_start'), $booking->needMeta('time_end')),
-                        Adapter::QUERY_MODE_EXECUTE);
+                    $stmt = $db->query(
+                        sprintf('UPDATE %s SET time_start = ?, time_end = ? WHERE bid = ? AND time_start = ? AND time_end = ?',
+                            ReservationTable::NAME),
+                        Adapter::QUERY_MODE_PREPARE);
+                    $res = $stmt->execute([$data['bf-time-start'], $data['bf-time-end'], $bid, $booking->needMeta('time_start'), $booking->needMeta('time_end')]);
 
                     if ($res->getAffectedRows() > 0) {
                         $booking->setMeta('time_start', $data['bf-time-start']);
@@ -734,10 +734,11 @@ class BookingController extends AbstractActionController
                     $dateEnd = new \DateTime($data['bf-date-end']);
                     $repeat = $data['bf-repeat'];
 
-                    $res = $db->query(
-                        sprintf('DELETE FROM %s WHERE bid = %s',
-                            ReservationTable::NAME, $bid),
-                        Adapter::QUERY_MODE_EXECUTE);
+                    $stmt = $db->query(
+                        sprintf('DELETE FROM %s WHERE bid = ?',
+                            ReservationTable::NAME),
+                        Adapter::QUERY_MODE_PREPARE);
+                    $res = $stmt->execute([$bid]);
 
                     if ($res->getAffectedRows() > 0) {
                         $reservationManager->createByRange($booking, $dateStart, $dateEnd,
@@ -1344,7 +1345,7 @@ class BookingController extends AbstractActionController
             throw new \RuntimeException('This booking has no additional player names');
         }
 
-        $playerNames = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'));
+        $playerNames = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'), ['allowed_classes' => false]);
 
         if (! $playerNames) {
             throw new \RuntimeException('Invalid player names data stored in database');
@@ -1396,18 +1397,16 @@ class BookingController extends AbstractActionController
         // $this->authorize('admin.booking'); 
         // authorize is done via stripe webhook secret
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
         $squareManager = $serviceManager->get('Square\Manager\SquareManager');
         $squareControlService = $serviceManager->get('SquareControl\Service\SquareControlService');
 
-        // $bookingService = $serviceManager->get('Booking\Service\BookingService');
+        $squareControlService->removeInactiveDoorCodes();
 
-        $squareControlService->removeInactiveDoorCodes(); 
-
-        $payload = @file_get_contents('php://input');
-        $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+        $payload = file_get_contents('php://input');
+        $sig_header = isset($_SERVER['HTTP_STRIPE_SIGNATURE']) ? $_SERVER['HTTP_STRIPE_SIGNATURE'] : '';
         $event = null;
 
         try {

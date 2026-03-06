@@ -5,7 +5,6 @@ namespace User\Form;
 use Base\Manager\OptionManager;
 use User\Entity\User;
 use User\Manager\UserManager;
-use Zend\Crypt\Password\Bcrypt;
 use Zend\Form\Form;
 use Zend\InputFilter\Factory;
 
@@ -274,19 +273,17 @@ class RegistrationForm extends Form
             ),
         ));
 
-        /* Add weak CSRF protection */
+        /* CSRF protection with HMAC */
 
         $time = time();
-
-        $bcrypt = new Bcrypt();
-        $bcrypt->setCost(6);
-        $bcrypt->setSalt(str_pad(php_uname(), 16, '!'));
+        $csrfSecret = php_uname() . __FILE__;
+        $csrfToken = $time . '.' . hash_hmac('sha256', (string) $time, $csrfSecret);
 
         $this->add(array(
             'name' => 'rf-csrf',
             'type' => 'Hidden',
             'attributes' => array(
-                'value' => $time . $bcrypt->create($time),
+                'value' => $csrfToken,
             ),
         ));
 
@@ -742,18 +739,21 @@ class RegistrationForm extends Form
                     array(
                         'name' => 'Callback',
                         'options' => array(
-                            'callback' => function($value) use ($bcrypt) {
-                                $time = time();
+                            'callback' => function($value) use ($csrfSecret) {
+                                $parts = explode('.', $value, 2);
+                                if (count($parts) !== 2) {
+                                    return false;
+                                }
 
-                                $formTime = substr($value, 0, strlen($time));
-                                $formTimeHash = substr($value, strlen($time));
+                                $formTime = $parts[0];
+                                $formHash = $parts[1];
 
-                                if ($formTimeHash != $bcrypt->create($formTime)) {
+                                if (!hash_equals(hash_hmac('sha256', $formTime, $csrfSecret), $formHash)) {
                                     return false;
                                 }
 
                                 // Allow form submission after five seconds and until one hour
-                                if (time() - $formTime < 5 || time() - $formTime > 60 * 60) {
+                                if (time() - (int) $formTime < 5 || time() - (int) $formTime > 60 * 60) {
                                     return false;
                                 } else {
                                     return true;

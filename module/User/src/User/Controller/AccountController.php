@@ -12,7 +12,7 @@ class AccountController extends AbstractActionController
 
     public function passwordAction()
     {
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
         $formElementManager = $serviceManager->get('FormElementManager');
 
         $passwordForm = $formElementManager->get('User\Form\PasswordForm');
@@ -43,7 +43,7 @@ class AccountController extends AbstractActionController
 
                             break;
                         case 'enabled':
-                            $resetCode = base64_encode( substr($user->need('pw'), 16, 8) );
+                            $resetCode = base64_encode(hash_hmac('sha256', $user->need('uid') . $user->need('pw'), $user->need('created'), true));
 
                             $mailMessage .= $this->t('Simply visit the following website to type your new password:') . "\r\n\r\n";
                             $mailMessage .= $this->url()->fromRoute('user/password-reset', [], ['query' => ['id' => $user->need('uid'), 'code' => $resetCode], 'force_canonical' => true]);
@@ -85,7 +85,7 @@ class AccountController extends AbstractActionController
             throw new RuntimeException('Your token to reset your password is invalid or expired. Please request a new email.');
         }
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $userManager = $serviceManager->get('User\Manager\UserManager');
         $user = $userManager->get($resetUid, false);
@@ -94,9 +94,9 @@ class AccountController extends AbstractActionController
             throw new RuntimeException('Your token to reset your password is invalid or expired. Please request a new email.');
         }
 
-        $actualResetCode = base64_encode( substr($user->need('pw'), 16, 8) );
+        $actualResetCode = base64_encode(hash_hmac('sha256', $user->need('uid') . $user->need('pw'), $user->need('created'), true));
 
-        if ($resetCode != $actualResetCode) {
+        if (!hash_equals($actualResetCode, $resetCode)) {
             throw new RuntimeException('Your token to reset your password is invalid or expired. Please request a new email.');
         }
 
@@ -135,7 +135,7 @@ class AccountController extends AbstractActionController
 
     public function registrationAction()
     {
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $formElementManager = $serviceManager->get('FormElementManager');
 
@@ -314,7 +314,7 @@ class AccountController extends AbstractActionController
 
                     /* Activation code is "created" hash */
 
-                    $activationCode = urlencode( sha1($user->need('created')) );
+                    $activationCode = urlencode(hash_hmac('sha256', $user->need('uid') . $user->need('created'), $user->need('email')));
                     $activationLink = $this->url()->fromRoute('user/activation', [], ['query' => ['id' => $user->need('uid'), 'code' => $activationCode], 'force_canonical' => true]);
 
                     $subject = sprintf($this->t('Your registration to the %s %s'),
@@ -357,16 +357,16 @@ class AccountController extends AbstractActionController
             throw new RuntimeException('Your activation code seems invalid. Please try again.');
         }
 
-        $userManager = @$this->getServiceLocator()->get('User\Manager\UserManager');
+        $userManager = $this->getServiceLocator()->get('User\Manager\UserManager');
         $user = $userManager->get($activationUid, false);
 
         if (! $user) {
             throw new RuntimeException('Your activation code seems invalid. Please try again.');
         }
 
-        $actualActivationCode = sha1($user->need('created'));
+        $actualActivationCode = hash_hmac('sha256', $user->need('uid') . $user->need('created'), $user->need('email'));
 
-        if ($activationCode != $actualActivationCode) {
+        if (!hash_equals($actualActivationCode, $activationCode)) {
             throw new RuntimeException('Your activation code seems invalid. Please try again.');
         }
 
@@ -383,7 +383,7 @@ class AccountController extends AbstractActionController
             throw new RuntimeException('You cannot manually activate your account currently');
         }
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $formElementManager = $serviceManager->get('FormElementManager');
 
@@ -413,7 +413,7 @@ class AccountController extends AbstractActionController
 
                             /* Activation code is "created" hash */
 
-                            $activationCode = urlencode( sha1($user->need('created')) );
+                            $activationCode = urlencode(hash_hmac('sha256', $user->need('uid') . $user->need('created'), $user->need('email')));
                             $activationLink = $this->url()->fromRoute('user/activation', [], ['query' => ['id' => $user->need('uid'), 'code' => $activationCode], 'force_canonical' => true]);
 
                             $mailMessage .= sprintf($this->t("Before you can completely use your new user account to book spare %s online, you have to activate it by simply clicking the following link. That's all!\r\n\r\n%s"),
@@ -450,7 +450,7 @@ class AccountController extends AbstractActionController
 
     public function bookingsAction()
     {
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
         $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
@@ -502,7 +502,7 @@ class AccountController extends AbstractActionController
     {
         $bid = $this->params()->fromRoute('bid');
 
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $userSessionManager = $serviceManager->get('User\Manager\UserSessionManager');
         $user = $userSessionManager->getSessionUser();
@@ -549,7 +549,7 @@ class AccountController extends AbstractActionController
 
     public function settingsAction()
     {
-        $serviceManager = @$this->getServiceLocator();
+        $serviceManager = $this->getServiceLocator();
 
         $userManager = $serviceManager->get('User\Manager\UserManager');
         $configManager = $serviceManager->get('Base\Manager\ConfigManager');
@@ -637,7 +637,7 @@ class AccountController extends AbstractActionController
 
                     /* Activation code is "created" hash */
 
-                    $activationCode = urlencode( sha1($user->need('created')) );
+                    $activationCode = urlencode(hash_hmac('sha256', $user->need('uid') . $user->need('created'), $user->need('email')));
                     $activationLink = $this->url()->fromRoute('user/activation', [], ['query' => ['id' => $user->need('uid'), 'code' => $activationCode], 'force_canonical' => true]);
 
                     $subject = sprintf($this->t('New email address at %s %s'),

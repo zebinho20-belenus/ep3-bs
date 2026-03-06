@@ -54,9 +54,15 @@ RUN cd /var/www/html \
     && chmod -R u+w public/imgs-client/upload/
 
 RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
-    && sed -i -e "s/^ *memory_limit.*/memory_limit = 256M/g" /usr/local/etc/php/php.ini
+    && sed -i -e "s/^ *memory_limit.*/memory_limit = 256M/g" /usr/local/etc/php/php.ini \
+    && sed -i -e "s/^ *expose_php.*/expose_php = Off/g" /usr/local/etc/php/php.ini
+
+# Apache security: hide server version, enable mod_headers for security headers
+RUN echo "ServerTokens Prod" >> /etc/apache2/conf-available/security.conf \
+    && echo "ServerSignature Off" >> /etc/apache2/conf-available/security.conf \
+    && a2enconf security
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-RUN a2enmod rewrite
+RUN a2enmod rewrite headers

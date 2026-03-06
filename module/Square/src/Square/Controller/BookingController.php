@@ -375,7 +375,10 @@ class BookingController extends AbstractActionController
         $acceptRulesDocument = $this->params()->fromPost('bf-accept-rules-document');
         $acceptRulesText = $this->params()->fromPost('bf-accept-rules-text');
         $confirmationHash = $this->params()->fromPost('bf-confirm');
-        $confirmationHashOriginal = sha1('Quick and dirty' . floor(time() / 1800));
+
+        // CSRF token: validate against session-stored token
+        $session = new \Zend\Session\Container('csrf');
+        $confirmationHashOriginal = isset($session->token) ? $session->token : '';
 
         if ($confirmationHash) {
 
@@ -515,6 +518,11 @@ class BookingController extends AbstractActionController
             }                
           }               
         }
+
+       // Generate CSRF token and store in session
+       $session = new \Zend\Session\Container('csrf');
+       $session->token = bin2hex(random_bytes(32));
+       $byproducts['csrfToken'] = $session->token;
 
        return $this->ajaxViewModel($byproducts);
     }
@@ -1011,7 +1019,7 @@ class BookingController extends AbstractActionController
 
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {
-                    $this->flashMessenger()->addErrorMessage($payment['error']['message']);
+                    $this->flashMessenger()->addErrorMessage(htmlspecialchars($payment['error']['message'], ENT_QUOTES, 'UTF-8'));
                 }
                 $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sPayment failed. Please try again.%s'),
                     '<b>', '</b>'));
@@ -1021,8 +1029,7 @@ class BookingController extends AbstractActionController
             } else {
                 if ($booking->getMeta('directpay_pending') != 'true') {
                     if(isset($payment['error']['message'])) {
-                        $this->flashMessenger()->addErrorMessage(sprintf($payment['error']['message'],
-                                                '<b>', '</b>'));
+                        $this->flashMessenger()->addErrorMessage(htmlspecialchars($payment['error']['message'], ENT_QUOTES, 'UTF-8'));
                     }
                     $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sError during payment: Your booking has been cancelled.%s'),
                         '<b>', '</b>'));
