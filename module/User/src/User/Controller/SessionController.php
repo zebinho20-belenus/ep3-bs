@@ -49,45 +49,14 @@ class SessionController extends AbstractActionController
                         $loginDetent = $loginResult->getExtra('login_detent');
                         break;
 
-                    case Result::FAILURE_USER_STATUS:
-
-                        $user = $loginResult->getIdentity();
-
-                        switch ($user->need('status')) {
-                            case 'placeholder':
-                                $loginMessage = 'This account is considered a placeholder and thus cannot login';
-                                break;
-                            case 'deleted':
-                                $loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
-                                break;
-                            case 'blocked':
-                                $loginMessage = 'This account is currently blocked';
-                                break;
-                            case 'disabled':
-                                $loginMessage = 'This account has not yet been activated';
-                                break;
-                        }
-
-                        break;
-
-                    case Result::FAILURE_IDENTITY_NOT_FOUND:
-                        $loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
-                        break;
-                    case Result::FAILURE_IDENTITY_AMBIGUOUS:
-                    case Result::FAILURE_CREDENTIAL_INVALID:
-                        $loginMessage = 'Email address and/or password invalid';
-                        break;
-                    case Result::FAILURE_UNCATEGORIZED:
-                    case Result::FAILURE:
                     default:
+                        // Generic message for all failures to prevent user enumeration (OWASP A07)
                         $loginMessage = 'Email address and/or password invalid';
-                        //$loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
                         break;
                 }
             } else {
                 if ($this->params()->fromPost('lf-email') || $this->params()->fromPost('lf-pw')) {
-                    //$loginMessage = 'Email address and/or password invalid';
-                    $loginMessage = 'User not found Important! Guest players, even if they were registered last year, must register again.';
+                    $loginMessage = 'Email address and/or password invalid';
                 }
             }
 
