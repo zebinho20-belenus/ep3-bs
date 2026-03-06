@@ -11,9 +11,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.forwardedHeaders.insecure=true"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.forwardedHeaders.insecure=true"
     ports:
       - "${TRAEFIK_HTTP_PORT}:80"
       - "${TRAEFIK_HTTPS_PORT}:443"
