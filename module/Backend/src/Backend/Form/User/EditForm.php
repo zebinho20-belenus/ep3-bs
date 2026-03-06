@@ -13,6 +13,7 @@ class EditForm extends Form
 {
 
     protected $userManager;
+    protected $configManager;
 
     public function __construct(UserManager $userManager, ConfigManager $configManager)
     {
