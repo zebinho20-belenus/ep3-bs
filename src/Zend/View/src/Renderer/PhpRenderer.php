@@ -44,7 +44,7 @@ use Zend\View\Variables;
  * @method mixed escapeUrl($value, $recurse = \Zend\View\Helper\Escaper\AbstractHelper::RECURSE_NONE)
  * @method \Zend\View\Helper\FlashMessenger flashMessenger($namespace = null)
  * @method \Zend\View\Helper\Gravatar gravatar($email = "", $options = array(), $attribs = array())
- * @method \Zend\View\Helper\HeadLink headLink(array $attributes = null, $placement = \Zend\View\Helper\Placeholder\Container\AbstractContainer::APPEND)
+ * @method \Zend\View\Helper\HeadLink headLink(?array $attributes = null, $placement = \Zend\View\Helper\Placeholder\Container\AbstractContainer::APPEND)
  * @method \Zend\View\Helper\HeadMeta headMeta($content = null, $keyValue = null, $keyType = 'name', $modifiers = array(), $placement = \Zend\View\Helper\Placeholder\Container\AbstractContainer::APPEND)
  * @method \Zend\View\Helper\HeadScript headScript($mode = \Zend\View\Helper\HeadScript::FILE, $spec = null, $placement = 'APPEND', array $attrs = array(), $type = 'text/javascript')
  * @method \Zend\View\Helper\HeadStyle headStyle($content = null, $placement = 'APPEND', $attributes = array())
@@ -59,7 +59,7 @@ use Zend\View\Variables;
  * @method string|void json($data, array $jsonOptions = array())
  * @method \Zend\View\Helper\Layout layout($template = null)
  * @method \Zend\View\Helper\Navigation navigation($container = null)
- * @method string paginationControl(\Zend\Paginator\Paginator $paginator = null, $scrollingStyle = null, $partial = null, $params = null)
+ * @method string paginationControl(?\Zend\Paginator\Paginator $paginator = null, $scrollingStyle = null, $partial = null, $params = null)
  * @method string|\Zend\View\Helper\Partial partial($name = null, $values = null)
  * @method string partialLoop($name = null, $values = null)
  * @method \Zend\View\Helper\Placeholder\Container\AbstractContainer placeholder($name = null)
@@ -372,7 +372,7 @@ class PhpRenderer implements Renderer, TreeRendererInterface
      *
      * @return object
      */
-    public function plugin($name, array $options = null)
+    public function plugin($name, ?array $options = null)
     {
         return $this->getHelperPluginManager()->get($name, $options);
     }

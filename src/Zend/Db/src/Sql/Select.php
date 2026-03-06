@@ -507,8 +507,8 @@ class Select extends AbstractPreparableSql
 
     protected function processStatementStart(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->combine !== []) {
             return ['('];
@@ -517,8 +517,8 @@ class Select extends AbstractPreparableSql
 
     protected function processStatementEnd(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->combine !== []) {
             return [')'];
@@ -535,8 +535,8 @@ class Select extends AbstractPreparableSql
      */
     protected function processSelect(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         $expr = 1;
 
@@ -616,16 +616,16 @@ class Select extends AbstractPreparableSql
 
     protected function processJoins(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         return $this->processJoin($this->joins, $platform, $driver, $parameterContainer);
     }
 
     protected function processWhere(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->where->count() == 0) {
             return;
@@ -637,8 +637,8 @@ class Select extends AbstractPreparableSql
 
     protected function processGroup(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->group === null) {
             return;
@@ -662,8 +662,8 @@ class Select extends AbstractPreparableSql
 
     protected function processHaving(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->having->count() == 0) {
             return;
@@ -675,8 +675,8 @@ class Select extends AbstractPreparableSql
 
     protected function processOrder(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if (empty($this->order)) {
             return;
@@ -708,8 +708,8 @@ class Select extends AbstractPreparableSql
 
     protected function processLimit(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->limit === null) {
             return;
@@ -724,8 +724,8 @@ class Select extends AbstractPreparableSql
 
     protected function processOffset(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->offset === null) {
             return;
@@ -741,8 +741,8 @@ class Select extends AbstractPreparableSql
 
     protected function processCombine(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->combine == []) {
             return;
@@ -804,8 +804,8 @@ class Select extends AbstractPreparableSql
     protected function resolveTable(
         $table,
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         $alias = null;
 

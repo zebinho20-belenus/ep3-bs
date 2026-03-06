@@ -67,7 +67,7 @@ class AdapterAbstractServiceFactory implements AbstractFactoryInterface
      * @param  array $options
      * @return Adapter
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
         $config = $this->getConfig($container);
         return new Adapter($config[$requestedName]);

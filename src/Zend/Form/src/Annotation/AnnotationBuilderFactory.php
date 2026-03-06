@@ -24,7 +24,7 @@ class AnnotationBuilderFactory implements FactoryInterface
      * @return AnnotationBuilder
      * @throws ServiceNotCreatedException for invalid listener configuration.
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         //setup a form factory which can use custom form elements
         $annotationBuilder = new AnnotationBuilder();

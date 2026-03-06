@@ -25,7 +25,7 @@ class CompositeNamingStrategy implements NamingStrategyInterface
      * @param NamingStrategyInterface[]    $strategies            indexed by the name they translate
      * @param NamingStrategyInterface|null $defaultNamingStrategy
      */
-    public function __construct(array $strategies, NamingStrategyInterface $defaultNamingStrategy = null)
+    public function __construct(array $strategies, ?NamingStrategyInterface $defaultNamingStrategy = null)
     {
         $this->namingStrategies = array_map(
             function (NamingStrategyInterface $strategy) {

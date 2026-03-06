@@ -62,7 +62,7 @@ class SessionManagerFactory implements FactoryInterface
      * @param array $options
      * @return SessionManager
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
         $config        = null;
         $storage       = null;

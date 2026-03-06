@@ -65,9 +65,9 @@ class SessionManager extends AbstractManager
      * @throws Exception\RuntimeException
      */
     public function __construct(
-        Config\ConfigInterface $config = null,
-        Storage\StorageInterface $storage = null,
-        SaveHandler\SaveHandlerInterface $saveHandler = null,
+        ?Config\ConfigInterface $config = null,
+        ?Storage\StorageInterface $storage = null,
+        ?SaveHandler\SaveHandlerInterface $saveHandler = null,
         array $validators = [],
         array $options = []
     ) {
@@ -188,7 +188,7 @@ class SessionManager extends AbstractManager
      * @param  array $options See {@link $defaultDestroyOptions}
      * @return void
      */
-    public function destroy(array $options = null)
+    public function destroy(?array $options = null)
     {
         if (! $this->sessionExists()) {
             return;

@@ -27,7 +27,7 @@ class ResponseFactory implements FactoryInterface
      * @param  null|array $options
      * @return MessageInterface
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         if (Console::isConsole()) {
             return new ConsoleResponse();

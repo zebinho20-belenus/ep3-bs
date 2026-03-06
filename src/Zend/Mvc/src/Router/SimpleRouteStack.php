@@ -45,7 +45,7 @@ class SimpleRouteStack implements RouteStackInterface
      *
      * @param RoutePluginManager $routePluginManager
      */
-    public function __construct(RoutePluginManager $routePluginManager = null)
+    public function __construct(?RoutePluginManager $routePluginManager = null)
     {
         $this->routes = new PriorityList();
 

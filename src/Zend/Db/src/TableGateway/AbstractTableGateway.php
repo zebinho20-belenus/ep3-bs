@@ -328,7 +328,7 @@ abstract class AbstractTableGateway implements TableGatewayInterface
      * @param  null|array $joins
      * @return int
      */
-    public function update($set, $where = null, array $joins = null)
+    public function update($set, $where = null, ?array $joins = null)
     {
         if (! $this->isInitialized) {
             $this->initialize();

@@ -32,7 +32,7 @@ class HydratingResultSet extends AbstractResultSet
      * @param  null|HydratorInterface $hydrator
      * @param  null|object $objectPrototype
      */
-    public function __construct(HydratorInterface $hydrator = null, $objectPrototype = null)
+    public function __construct(?HydratorInterface $hydrator = null, $objectPrototype = null)
     {
         $defaultHydratorClass = class_exists(ArraySerializableHydrator::class)
             ? ArraySerializableHydrator::class

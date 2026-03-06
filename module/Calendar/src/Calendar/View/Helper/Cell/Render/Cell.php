@@ -7,6 +7,7 @@ use Base\Manager\OptionManager;
 
 class Cell extends AbstractHelper
 {
+    protected $optionManager;
 
     public function __construct(OptionManager $optionManager)
     {

@@ -49,16 +49,16 @@ class SelectDecorator extends Select implements PlatformDecoratorInterface
      */
     protected function processStatementStart(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         return '';
     }
 
     protected function processLimit(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->limit === null && $this->offset !== null) {
             return [''];
@@ -77,8 +77,8 @@ class SelectDecorator extends Select implements PlatformDecoratorInterface
 
     protected function processOffset(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->offset === null) {
             return;
@@ -97,8 +97,8 @@ class SelectDecorator extends Select implements PlatformDecoratorInterface
      */
     protected function processStatementEnd(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         return '';
     }

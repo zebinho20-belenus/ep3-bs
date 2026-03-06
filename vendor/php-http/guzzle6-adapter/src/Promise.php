@@ -75,7 +75,7 @@ final class Promise implements HttpPromise
     /**
      * {@inheritdoc}
      */
-    public function then(callable $onFulfilled = null, callable $onRejected = null)
+    public function then(?callable $onFulfilled = null, ?callable $onRejected = null)
     {
         return new static($this->promise->then($onFulfilled, $onRejected), $this->request);
     }

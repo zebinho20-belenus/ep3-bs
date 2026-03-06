@@ -30,7 +30,7 @@ class HttpRouterFactory implements FactoryInterface
      * @param  null|array $options
      * @return RouteStackInterface
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         $config       = $container->has('config') ? $container->get('config') : [];
 

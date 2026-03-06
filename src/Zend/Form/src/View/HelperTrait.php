@@ -81,7 +81,7 @@ use Zend\Form\View\Helper\FormWeek;
  * @method string|FormDateTime formDateTime(ElementInterface|null $element = null)
  * @method string|FormDateTimeLocal formDateTimeLocal(ElementInterface|null $element = null)
  * @method string|FormDateTimeSelect formDateTimeSelect(ElementInterface|null $element = null, int $dateType = IntlDateFormatter::LONG, int|null|string $timeType = IntlDateFormatter::LONG, string|null $locale = null)
- * @method string|FormDateSelect formDateSelect(ElementInterface $element = null, $dateType = IntlDateFormatter::LONG, $locale = null)
+ * @method string|FormDateSelect formDateSelect(?ElementInterface $element = null, $dateType = IntlDateFormatter::LONG, $locale = null)
  * @method string|FormElement formElement(ElementInterface|null $element = null)
  * @method string|FormElementErrors formElementErrors(ElementInterface|null $element = null, array $attributes = [])
  * @method string|FormEmail formEmail(ElementInterface|null $element = null)

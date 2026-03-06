@@ -26,7 +26,7 @@ class ConsoleViewManagerFactory implements FactoryInterface
      * @param  null|array $options
      * @return ConsoleViewManager
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         if (! Console::isConsole()) {
             throw new ServiceNotCreatedException(

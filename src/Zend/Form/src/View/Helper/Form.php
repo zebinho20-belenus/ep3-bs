@@ -40,7 +40,7 @@ class Form extends AbstractHelper
      * @param  null|FormInterface $form
      * @return Form|string
      */
-    public function __invoke(FormInterface $form = null)
+    public function __invoke(?FormInterface $form = null)
     {
         if (! $form) {
             return $this;
@@ -80,7 +80,7 @@ class Form extends AbstractHelper
      * @param  null|FormInterface $form
      * @return string
      */
-    public function openTag(FormInterface $form = null)
+    public function openTag(?FormInterface $form = null)
     {
         $doctype    = $this->getDoctype();
         $attributes = [];

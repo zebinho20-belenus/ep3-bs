@@ -296,7 +296,7 @@ class Translator implements TranslatorInterface
      * @param  CacheStorage $cache
      * @return Translator
      */
-    public function setCache(CacheStorage $cache = null)
+    public function setCache(?CacheStorage $cache = null)
     {
         $this->cache = $cache;
 

@@ -37,6 +37,11 @@ class Part extends TreeRouteStack implements RouteInterface
     protected $mayTerminate;
 
     /**
+     * @var int|null
+     */
+    public $priority;
+
+    /**
      * Child routes.
      *
      * @var mixed
@@ -53,7 +58,7 @@ class Part extends TreeRouteStack implements RouteInterface
      * @param  ArrayObject|null   $prototypes
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($route, $mayTerminate, RoutePluginManager $routePlugins, array $childRoutes = null, ArrayObject $prototypes = null)
+    public function __construct($route, $mayTerminate, RoutePluginManager $routePlugins, ?array $childRoutes = null, ?ArrayObject $prototypes = null)
     {
         $this->routePluginManager = $routePlugins;
 

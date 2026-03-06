@@ -57,8 +57,8 @@ class Oci8 implements DriverInterface, Profiler\ProfilerAwareInterface
      */
     public function __construct(
         $connection,
-        Statement $statementPrototype = null,
-        Result $resultPrototype = null,
+        ?Statement $statementPrototype = null,
+        ?Result $resultPrototype = null,
         array $options = [],
         $features = self::FEATURES_DEFAULT
     ) {

@@ -66,7 +66,7 @@ abstract class AbstractContainer extends ArrayObject
      * @param  Manager                            $manager
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($name = 'Default', Manager $manager = null)
+    public function __construct($name = 'Default', ?Manager $manager = null)
     {
         if (! preg_match('/^[a-z0-9][a-z0-9_\\\\]+$/i', $name)) {
             throw new Exception\InvalidArgumentException(
@@ -89,7 +89,7 @@ abstract class AbstractContainer extends ArrayObject
      * @param  Manager $manager
      * @return void
      */
-    public static function setDefaultManager(Manager $manager = null)
+    public static function setDefaultManager(?Manager $manager = null)
     {
         static::$defaultManager = $manager;
     }
@@ -134,7 +134,7 @@ abstract class AbstractContainer extends ArrayObject
      * @return Container
      * @throws Exception\InvalidArgumentException
      */
-    protected function setManager(Manager $manager = null)
+    protected function setManager(?Manager $manager = null)
     {
         if (null === $manager) {
             $manager = static::getDefaultManager();

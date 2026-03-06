@@ -93,7 +93,7 @@ class ValidatorChain implements
      *
      * @return object
      */
-    public function plugin($name, array $options = null)
+    public function plugin($name, ?array $options = null)
     {
         $plugins = $this->getPluginManager();
         return $plugins->get($name, $options);

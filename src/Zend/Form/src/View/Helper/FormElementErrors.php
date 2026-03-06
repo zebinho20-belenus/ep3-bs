@@ -42,7 +42,7 @@ class FormElementErrors extends AbstractHelper
      * @param  array            $attributes
      * @return string|FormElementErrors
      */
-    public function __invoke(ElementInterface $element = null, array $attributes = [])
+    public function __invoke(?ElementInterface $element = null, array $attributes = [])
     {
         if (! $element) {
             return $this;

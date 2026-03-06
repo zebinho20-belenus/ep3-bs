@@ -37,7 +37,7 @@ final class PrefixPathStackResolver implements ResolverInterface
     /**
      * {@inheritDoc}
      */
-    public function resolve($name, Renderer $renderer = null)
+    public function resolve($name, ?Renderer $renderer = null)
     {
         foreach ($this->prefixes as $prefix => & $resolver) {
             if (strpos($name, $prefix) !== 0) {

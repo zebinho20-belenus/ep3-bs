@@ -139,7 +139,7 @@ trait UriMiddlewareTrait
      *
      * @return Host
      */
-    protected function filterHost(string $label, Rules $resolver = null): Host
+    protected function filterHost(string $label, ?Rules $resolver = null): Host
     {
         return new Host($this->filterString($label), $resolver);
     }

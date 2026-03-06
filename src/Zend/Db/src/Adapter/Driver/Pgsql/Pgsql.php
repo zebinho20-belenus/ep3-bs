@@ -52,8 +52,8 @@ class Pgsql implements DriverInterface, Profiler\ProfilerAwareInterface
      */
     public function __construct(
         $connection,
-        Statement $statementPrototype = null,
-        Result $resultPrototype = null,
+        ?Statement $statementPrototype = null,
+        ?Result $resultPrototype = null,
         $options = null
     ) {
         if (! $connection instanceof Connection) {

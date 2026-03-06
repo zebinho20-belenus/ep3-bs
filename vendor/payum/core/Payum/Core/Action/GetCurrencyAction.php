@@ -15,7 +15,7 @@ class GetCurrencyAction implements ActionInterface
     /**
      * @param ISO4217 $iso4217
      */
-    public function __construct(ISO4217 $iso4217 = null)
+    public function __construct(?ISO4217 $iso4217 = null)
     {
         $this->iso4217 = $iso4217 ?: new ISO4217();
     }

@@ -172,7 +172,7 @@ class RouteNotFoundStrategy extends AbstractListenerAggregate
      * @param ConsoleAdapter         $console
      * @return string
      */
-    protected function getConsoleBanner(ConsoleAdapter $console, ModuleManagerInterface $moduleManager = null)
+    protected function getConsoleBanner(ConsoleAdapter $console, ?ModuleManagerInterface $moduleManager = null)
     {
         /*
          * Loop through all loaded modules and collect banners
@@ -224,7 +224,7 @@ class RouteNotFoundStrategy extends AbstractListenerAggregate
     protected function getConsoleUsage(
         ConsoleAdapter $console,
         $scriptName,
-        ModuleManagerInterface $moduleManager = null
+        ?ModuleManagerInterface $moduleManager = null
     ) {
         /*
          * Loop through all loaded modules and collect usage info

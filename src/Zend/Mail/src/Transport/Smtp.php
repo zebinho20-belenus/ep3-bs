@@ -58,7 +58,7 @@ class Smtp implements TransportInterface
      *
      * @param  SmtpOptions $options Optional
      */
-    public function __construct(SmtpOptions $options = null)
+    public function __construct(?SmtpOptions $options = null)
     {
         if (! $options instanceof SmtpOptions) {
             $options = new SmtpOptions();
@@ -163,7 +163,7 @@ class Smtp implements TransportInterface
      * @param  array|null $options
      * @return Protocol\Smtp
      */
-    public function plugin($name, array $options = null)
+    public function plugin($name, ?array $options = null)
     {
         return $this->getPluginManager()->get($name, $options);
     }

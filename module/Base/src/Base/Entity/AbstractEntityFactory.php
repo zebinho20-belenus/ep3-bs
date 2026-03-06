@@ -22,7 +22,7 @@ abstract class AbstractEntityFactory
      * @param Closure $closure
      * @return array
      */
-    public static function fromResultSet(Traversable $resultSet, Closure $closure = null)
+    public static function fromResultSet(Traversable $resultSet, ?Closure $closure = null)
     {
         $entities = array();
 

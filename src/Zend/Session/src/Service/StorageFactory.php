@@ -32,7 +32,7 @@ class StorageFactory implements FactoryInterface
      * @throws ServiceNotCreatedException if session_storage is missing, or the
      *         factory cannot create the storage instance.
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
         $config = $container->get('config');
         if (! isset($config['session_storage']) || ! is_array($config['session_storage'])) {

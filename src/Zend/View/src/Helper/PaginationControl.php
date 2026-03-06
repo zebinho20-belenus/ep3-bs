@@ -43,7 +43,7 @@ class PaginationControl extends AbstractHelper
      * @return string
      */
     public function __invoke(
-        Paginator\Paginator $paginator = null,
+        ?Paginator\Paginator $paginator = null,
         $scrollingStyle = null,
         $partial = null,
         $params = null

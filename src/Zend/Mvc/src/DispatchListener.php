@@ -183,7 +183,7 @@ class DispatchListener extends AbstractListenerAggregate
         $controllerName,
         MvcEvent $event,
         Application $application,
-        \Exception $exception = null
+        ?\Exception $exception = null
     ) {
         $event->setName(MvcEvent::EVENT_DISPATCH_ERROR);
         $event->setError($type);
@@ -218,7 +218,7 @@ class DispatchListener extends AbstractListenerAggregate
         $controllerName,
         MvcEvent $event,
         Application $application,
-        \Exception $exception = null
+        ?\Exception $exception = null
     ) {
         trigger_error(sprintf(
             '%s is deprecated; please use %s::marshalControllerNotFoundEvent instead',

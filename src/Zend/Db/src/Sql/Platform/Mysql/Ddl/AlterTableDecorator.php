@@ -85,7 +85,7 @@ class AlterTableDecorator extends AlterTable implements PlatformDecoratorInterfa
      * @param PlatformInterface $adapterPlatform
      * @return array
      */
-    protected function processAddColumns(PlatformInterface $adapterPlatform = null)
+    protected function processAddColumns(?PlatformInterface $adapterPlatform = null)
     {
         $sqls = [];
 
@@ -154,7 +154,7 @@ class AlterTableDecorator extends AlterTable implements PlatformDecoratorInterfa
      * @param PlatformInterface $adapterPlatform
      * @return array
      */
-    protected function processChangeColumns(PlatformInterface $adapterPlatform = null)
+    protected function processChangeColumns(?PlatformInterface $adapterPlatform = null)
     {
         $sqls = [];
         foreach ($this->changeColumns as $name => $column) {

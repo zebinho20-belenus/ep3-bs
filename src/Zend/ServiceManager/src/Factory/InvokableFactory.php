@@ -57,7 +57,7 @@ final class InvokableFactory implements FactoryInterface
      * @param null|array $options
      * @return object
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
         return (null === $options) ? new $requestedName : new $requestedName($options);
     }
@@ -98,7 +98,7 @@ final class InvokableFactory implements FactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function setCreationOptions(array $creationOptions = null)
+    public function setCreationOptions(?array $creationOptions = null)
     {
         $this->creationOptions = $creationOptions;
     }

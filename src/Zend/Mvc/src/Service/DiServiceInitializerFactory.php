@@ -32,7 +32,7 @@ class DiServiceInitializerFactory implements FactoryInterface
      * @param null|array $options
      * @return DiServiceInitializer
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
         if (! class_exists(DiServiceInitializer::class)) {
             throw new Exception\RuntimeException(sprintf(

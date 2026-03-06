@@ -38,7 +38,7 @@ class DiFactory implements FactoryInterface
      * @param null|array $options
      * @return Di
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         $di     = new Di();
         $config = $container->has('config') ? $container->get('config') : [];

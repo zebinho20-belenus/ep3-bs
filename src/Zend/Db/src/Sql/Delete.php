@@ -122,8 +122,8 @@ class Delete extends AbstractPreparableSql
      */
     protected function processDelete(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         return sprintf(
             $this->specifications[static::SPECIFICATION_DELETE],
@@ -140,8 +140,8 @@ class Delete extends AbstractPreparableSql
      */
     protected function processWhere(
         PlatformInterface $platform,
-        DriverInterface $driver = null,
-        ParameterContainer $parameterContainer = null
+        ?DriverInterface $driver = null,
+        ?ParameterContainer $parameterContainer = null
     ) {
         if ($this->where->count() == 0) {
             return;

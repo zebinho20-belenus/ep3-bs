@@ -84,7 +84,7 @@ class CreateTableDecorator extends CreateTable implements PlatformDecoratorInter
     /**
      * {@inheritDoc}
      */
-    protected function processColumns(PlatformInterface $platform = null)
+    protected function processColumns(?PlatformInterface $platform = null)
     {
         if (! $this->columns) {
             return;

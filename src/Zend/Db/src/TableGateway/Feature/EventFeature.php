@@ -39,8 +39,8 @@ class EventFeature extends AbstractFeature implements
      * @param EventFeature\TableGatewayEvent $tableGatewayEvent
      */
     public function __construct(
-        EventManagerInterface $eventManager = null,
-        EventFeature\TableGatewayEvent $tableGatewayEvent = null
+        ?EventManagerInterface $eventManager = null,
+        ?EventFeature\TableGatewayEvent $tableGatewayEvent = null
     ) {
         $this->eventManager = ($eventManager instanceof EventManagerInterface)
                             ? $eventManager

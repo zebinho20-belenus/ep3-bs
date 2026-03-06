@@ -192,7 +192,7 @@ class Query implements ComponentInterface, Countable, IteratorAggregate
      *
      * @param string $data
      */
-    public function __construct(string $data = null, string $separator = '&')
+    public function __construct(?string $data = null, string $separator = '&')
     {
         $this->separator = $this->filterSeparator($separator);
         $this->pairs = $this->validate($data);
@@ -222,7 +222,7 @@ class Query implements ComponentInterface, Countable, IteratorAggregate
      *
      *
      */
-    protected function validate(string $str = null): array
+    protected function validate(?string $str = null): array
     {
         if (null === $str) {
             return [];

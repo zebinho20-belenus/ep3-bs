@@ -79,7 +79,7 @@ class FormElement extends BaseAbstractHelper
      * @param  ElementInterface|null $element
      * @return string
      */
-    public function __invoke(ElementInterface $element = null)
+    public function __invoke(?ElementInterface $element = null)
     {
         if (! $element) {
             return $this;

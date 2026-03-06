@@ -77,7 +77,7 @@ class FormCollection extends AbstractHelper
      * @param  bool                  $wrap
      * @return string|FormCollection
      */
-    public function __invoke(ElementInterface $element = null, $wrap = true)
+    public function __invoke(?ElementInterface $element = null, $wrap = true)
     {
         if (! $element) {
             return $this;

@@ -37,7 +37,7 @@ class DiServiceInitializer extends Di implements InitializerInterface
      * @param \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator
      * @param null|DiInstanceManagerProxy $diImProxy
      */
-    public function __construct(Di $di, ServiceLocatorInterface $serviceLocator, DiInstanceManagerProxy $diImProxy = null)
+    public function __construct(Di $di, ServiceLocatorInterface $serviceLocator, ?DiInstanceManagerProxy $diImProxy = null)
     {
         $this->di = $di;
         $this->serviceLocator = $serviceLocator;

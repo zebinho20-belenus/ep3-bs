@@ -113,9 +113,9 @@ class Application implements
     public function __construct(
         $configuration,
         ServiceManager $serviceManager,
-        EventManagerInterface $events = null,
-        RequestInterface $request = null,
-        ResponseInterface $response = null
+        ?EventManagerInterface $events = null,
+        ?RequestInterface $request = null,
+        ?ResponseInterface $response = null
     ) {
         $this->configuration  = $configuration;
         $this->serviceManager = $serviceManager;

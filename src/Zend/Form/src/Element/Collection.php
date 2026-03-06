@@ -265,7 +265,7 @@ class Collection extends Fieldset
      *
      * @return array|mixed|void
      */
-    public function bindValues(array $values = [], array $validationGroup = null)
+    public function bindValues(array $values = [], ?array $validationGroup = null)
     {
         $collection = [];
         foreach ($values as $name => $value) {

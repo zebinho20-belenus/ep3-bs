@@ -87,7 +87,7 @@ class FormRow extends AbstractHelper
      * @return string|FormRow
      */
     public function __invoke(
-        ElementInterface $element = null,
+        ?ElementInterface $element = null,
         $labelPosition = null,
         $renderErrors = null,
         $partial = null

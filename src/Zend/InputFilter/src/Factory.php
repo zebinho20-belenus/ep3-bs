@@ -36,7 +36,7 @@ class Factory
     /**
      * @param InputFilterPluginManager $inputFilterManager
      */
-    public function __construct(InputFilterPluginManager $inputFilterManager = null)
+    public function __construct(?InputFilterPluginManager $inputFilterManager = null)
     {
         $this->defaultFilterChain    = new FilterChain();
         $this->defaultValidatorChain = new ValidatorChain();

@@ -33,7 +33,7 @@ class DiAbstractServiceFactoryFactory implements FactoryInterface
      * @return DiAbstractServiceFactory
      * @throws Exception\RuntimeException if zend-servicemanager v3 is in use.
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         if (! class_exists(DiAbstractServiceFactory::class)) {
             throw new Exception\RuntimeException(sprintf(

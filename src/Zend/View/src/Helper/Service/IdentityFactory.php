@@ -26,7 +26,7 @@ class IdentityFactory implements FactoryInterface
      * @param null|array $options
      * @return \Zend\View\Helper\Identity
      */
-    public function __invoke(ContainerInterface $container, $name, array $options = null)
+    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
     {
         // test if we are using Zend\ServiceManager v2 or v3
         if (! method_exists($container, 'configure')) {

@@ -5,7 +5,7 @@
     "homepage": "https://bs.hbsys.de/",
 
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.4",
         "ext-intl": "*",
 
         "zendframework/zend-authentication": "^2.7.0",
@@ -24,7 +24,7 @@
         "payum/payum": "*@stable",
         "php-http/guzzle6-adapter": "^2.0",
         "payum/paypal-express-checkout-nvp": "^1.5",
-        "stripe/stripe-php": "6.9.0",
+        "stripe/stripe-php": "^7.0",
         "payum/stripe": "^1.6",
         "payum/klarna-checkout": "^1.5",
         "eluceo/ical": "^0.16.0",
@@ -59,6 +59,12 @@
             "Zend\\Uri\\": "src/Zend/Uri/src/",
             "Zend\\Validator\\": "src/Zend/Validator/src/",
             "Zend\\View\\": "src/Zend/View/src/"
+        }
+    },
+
+    "config": {
+        "audit": {
+            "block-insecure": false
         }
     },
 

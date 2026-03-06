@@ -29,7 +29,7 @@ class Sql
      * @param null|string|array|TableIdentifier $table
      * @param null|Platform\AbstractPlatform    $sqlPlatform @deprecated since version 3.0
      */
-    public function __construct(AdapterInterface $adapter, $table = null, Platform\AbstractPlatform $sqlPlatform = null)
+    public function __construct(AdapterInterface $adapter, $table = null, ?Platform\AbstractPlatform $sqlPlatform = null)
     {
         $this->adapter = $adapter;
         if ($table) {
@@ -131,8 +131,8 @@ class Sql
      */
     public function prepareStatementForSqlObject(
         PreparableSqlInterface $sqlObject,
-        StatementInterface $statement = null,
-        AdapterInterface $adapter = null
+        ?StatementInterface $statement = null,
+        ?AdapterInterface $adapter = null
     ) {
         $adapter   = $adapter ?: $this->adapter;
         $statement = $statement ?: $adapter->getDriver()->createStatement();
@@ -150,7 +150,7 @@ class Sql
      *
      * @deprecated Deprecated in 2.4. Use buildSqlString() instead
      */
-    public function getSqlStringForSqlObject(SqlInterface $sqlObject, PlatformInterface $platform = null)
+    public function getSqlStringForSqlObject(SqlInterface $sqlObject, ?PlatformInterface $platform = null)
     {
         $platform = ($platform) ?: $this->adapter->getPlatform();
         return $this->sqlPlatform->setSubject($sqlObject)->getSqlString($platform);
@@ -164,7 +164,7 @@ class Sql
      *
      * @throws Exception\InvalidArgumentException
      */
-    public function buildSqlString(SqlInterface $sqlObject, AdapterInterface $adapter = null)
+    public function buildSqlString(SqlInterface $sqlObject, ?AdapterInterface $adapter = null)
     {
         return $this
             ->sqlPlatform

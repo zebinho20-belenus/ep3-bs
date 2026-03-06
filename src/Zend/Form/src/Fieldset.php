@@ -568,7 +568,7 @@ class Fieldset extends Element implements FieldsetInterface
      *
      * @return mixed|void
      */
-    public function bindValues(array $values = [], array $validationGroup = null)
+    public function bindValues(array $values = [], ?array $validationGroup = null)
     {
         $objectData = $this->extract();
         $hydrator = $this->getHydrator();

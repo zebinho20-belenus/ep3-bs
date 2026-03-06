@@ -81,7 +81,7 @@ class FormSelect extends AbstractHelper
      * @param  ElementInterface|null $element
      * @return string|FormSelect
      */
-    public function __invoke(ElementInterface $element = null)
+    public function __invoke(?ElementInterface $element = null)
     {
         if (! $element) {
             return $this;

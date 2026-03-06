@@ -53,8 +53,8 @@ class Mysqli implements DriverInterface, Profiler\ProfilerAwareInterface
      */
     public function __construct(
         $connection,
-        Statement $statementPrototype = null,
-        Result $resultPrototype = null,
+        ?Statement $statementPrototype = null,
+        ?Result $resultPrototype = null,
         array $options = []
     ) {
         if (! $connection instanceof Connection) {
