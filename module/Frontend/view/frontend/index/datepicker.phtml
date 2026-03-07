@@ -29,16 +29,17 @@ $todayUrl = $this->url('frontend', [], ['query' => $todayUrlQuery]);
 
 ?>
 
-<div class="d-flex align-items-center gap-2">
-    <a id="prevdatearrow" href="<?= $previousDayUrl ?>" class="btn btn-outline-secondary btn-sm" aria-label="<?= $this->t('Previous day') ?>">
+<div class="datepicker-nav">
+    <a id="prevdatearrow" href="<?= $previousDayUrl ?>" class="datepicker-nav-btn" aria-label="<?= $this->t('Previous day') ?>">
         <span class="fa fa-chevron-left" aria-hidden="true"></span>
     </a>
 
-    <a href="<?= $todayUrl ?>" class="btn btn-outline-primary btn-sm"><?= $this->t('Today') ?></a>
+    <a href="<?= $todayUrl ?>" class="datepicker-nav-today"><?= $this->t('Today') ?></a>
 
-    <form method="get" action="<?= $this->url('frontend') ?>" class="d-inline-flex align-items-center gap-1">
+    <form method="get" action="<?= $this->url('frontend') ?>" class="datepicker-nav-form">
+        <span class="fa fa-calendar datepicker-nav-icon"></span>
         <input type="text" name="date" id="c-date" value="<?= $currentDay ?>"
-            class="form-control form-control-sm datepicker datepicker-autosubmit" style="width: 130px;">
+            class="datepicker-nav-input datepicker datepicker-autosubmit" readonly>
 
         <?php if ($this->squaresFilter): ?>
             <input type="hidden" name="squares" value="<?= $this->squaresFilter ?>">
@@ -47,7 +48,7 @@ $todayUrl = $this->url('frontend', [], ['query' => $todayUrlQuery]);
         <input type="submit" value="<?= $this->t('Show') ?>" id="calendar-toolbar-datepicker-submit" class="btn btn-primary btn-sm">
     </form>
 
-    <a id="nextdatearrow" href="<?= $nextDayUrl ?>" class="btn btn-outline-secondary btn-sm" aria-label="<?= $this->t('Next day') ?>">
+    <a id="nextdatearrow" href="<?= $nextDayUrl ?>" class="datepicker-nav-btn" aria-label="<?= $this->t('Next day') ?>">
         <span class="fa fa-chevron-right" aria-hidden="true"></span>
     </a>
 </div>

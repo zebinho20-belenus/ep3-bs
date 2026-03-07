@@ -1,33 +1,33 @@
-<div class="text-center">
-    <div class="mb-2">
+<div class="userpanel-offline">
+    <div class="userpanel-offline-register">
+        <span class="fa fa-user-plus text-primary me-1"></span>
         <?php
         echo sprintf($this->t('To book %s, %splease register first%s'),
             $this->option('subject.square.type.plural'),
-            '<a href="' . $this->url('user/registration') . '" class="btn btn-sm btn-primary">', '</a>');
+            '<a href="' . $this->url('user/registration') . '" class="btn btn-primary btn-sm">', '</a>');
         ?>
-    </div>
-
-    <div class="d-inline-flex flex-wrap justify-content-center gap-2">
-        <a href="<?= $this->url('user/login') ?>" class="btn btn-outline-primary btn-sm d-lg-none">
-            <span class="fa fa-sign-in"></span> <?= $this->t('Login') ?>
-        </a>
-
-        <a href="<?= $this->url('service/help') ?>" class="btn btn-outline-secondary btn-sm" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>">
+        <a href="<?= $this->url('service/help') ?>" class="btn btn-outline-secondary btn-sm ms-2" data-tooltip="<?= sprintf($this->t('Get additional %shelp and information%s'), '<b>', '</b>') ?>">
             <b>?</b>
         </a>
     </div>
+
+    <a href="<?= $this->url('user/login') ?>" class="btn btn-outline-primary btn-sm d-lg-none">
+        <span class="fa fa-sign-in"></span> <?= $this->t('Login') ?>
+    </a>
+
+    <form method="post" action="<?= $this->url('user/login') ?>" class="userpanel-offline-login d-none d-lg-flex">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><span class="fa fa-envelope"></span></span>
+            <input type="text" name="lf-email" id="lf-email" value=""
+                class="form-control" placeholder="<?= $this->t('Email address') ?>">
+        </div>
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><span class="fa fa-lock"></span></span>
+            <input type="password" name="lf-pw" id="lf-pw" value=""
+                class="form-control" placeholder="<?= $this->t('Password') ?>">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm text-nowrap">
+            <span class="fa fa-sign-in"></span> <?= $this->t('Login') ?>
+        </button>
+    </form>
 </div>
-
-<form method="post" action="<?= $this->url('user/login') ?>" class="d-none d-lg-block mt-2">
-    <div class="d-flex align-items-center gap-2">
-        <span class="text-muted"><?= $this->t('or simply login here') ?></span>
-
-        <input type="text" name="lf-email" id="lf-email" value=""
-            class="form-control form-control-sm" style="max-width: 200px;" placeholder="<?= $this->t('Email address') ?>">
-
-        <input type="password" name="lf-pw" id="lf-pw" value=""
-            class="form-control form-control-sm" style="max-width: 160px;" placeholder="<?= $this->t('Password') ?>">
-
-        <input type="submit" value="<?= $this->t('Login') ?>" class="btn btn-primary btn-sm text-nowrap">
-    </div>
-</form>
