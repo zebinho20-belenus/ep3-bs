@@ -573,7 +573,9 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Backend Abo out-of-range rows (#47) | Fixed Feb 2026 | `array_filter()` after `getByBookings()` |
 | Desktop swipe closes modal (#12) | Fixed Mar 2026 | Touch-only check + squarebox guard |
 | Pending bookings not highlighted (#79) | Fixed Mar 2026 | `table-warning` class for pending rows |
+| "temporaer belegt" visible to visitors (#79) | Fixed Mar 2026 | Visitors see "Belegt" instead of "temporaer belegt" for pending bookings |
 | Email billing status raw slugs (#80) | Fixed Mar 2026 | `$this->t(ucfirst())` translation |
+| Email booking details double spacing (#80) | Fixed Mar 2026 | Single newlines between detail lines (Platz, Datum, Zeit, Nr) |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---

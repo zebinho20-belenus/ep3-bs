@@ -392,9 +392,11 @@ function updateCalendarEvents() {
 1. **Touch-only check**: `('ontouchstart' in window || navigator.maxTouchPoints > 0)` — Hammer.js swipe only activates on touch devices
 2. **Modal guard**: `document.querySelector('.squarebox')` check in swipe handlers — swipe is suppressed when a booking modal is open
 
-### Pending Bookings Color in My Bookings (Fixed Mar 2026, #79)
+### Pending Bookings Color & Calendar Display (Fixed Mar 2026, #79)
 
-**Solution:** Future bookings with `status_billing == 'pending'` and `price > 0` get Bootstrap's `table-warning` class (yellow row background) in `module/User/view/user/account/bookings.phtml`. Past bookings remain `text-muted`.
+**My Bookings:** Future bookings with `status_billing == 'pending'` and `price > 0` get Bootstrap's `table-warning` class (yellow row background) in `module/User/view/user/account/bookings.phtml`. Past bookings remain `text-muted`.
+
+**Calendar "temporär belegt":** Non-admin visitors no longer see "temporär belegt" for pending bookings. `OccupiedForVisitors.php` was changed to show pending bookings as regular "Belegt" (normal `cc-single` style, no `cc-try` orange). Admins/assistants still see "temporär belegt" via `OccupiedForPrivileged.php`.
 
 ### Email Formatting & Translated Billing Status (Fixed Mar 2026, #80)
 
@@ -405,6 +407,7 @@ function updateCalendarEvents() {
 - Billing status line added after Total in both `NotificationListener.php` and `BookingController.php` edit emails
 - Separator lines (`str_repeat('-', 40)`) around bill and payment sections for visual block structure
 - Translation key `'Billing status'` added to `data/res/i18n/de-DE/booking.php`
+- Booking detail lines (Platz, Datum, Zeit, Buchungs-Nr) use single `\n` instead of `\n\n` for compact formatting in Backend BookingController (cancel, reactivate, edit emails)
 
 ### Auto-Registration with Member Recognition (Mar 2026, #17)
 
