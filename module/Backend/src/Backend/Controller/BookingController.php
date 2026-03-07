@@ -1617,7 +1617,7 @@ class BookingController extends AbstractActionController
             
             // Strukturierte Darstellung der Buchungsdetails
             $buchungsDetails = sprintf(
-                $this->t("Stornierte Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s"),
+                $this->t("Stornierte Buchungsdetails:\n\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
@@ -1935,7 +1935,7 @@ class BookingController extends AbstractActionController
             $subject = sprintf($this->t('%s\'s Platz-Buchung wurde reaktiviert'), $user->need('alias'));
 
             $buchungsDetails = sprintf(
-                $this->t("Reaktivierte Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s"),
+                $this->t("Reaktivierte Buchungsdetails:\n\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,
@@ -2120,7 +2120,7 @@ class BookingController extends AbstractActionController
             
             // Strukturierte Darstellung der Buchungsdetails
             $buchungsDetails = sprintf(
-                $this->t("Buchungsdetails:\n\n- Platz: %s\n\n- Datum: %s\n\n- Zeit: %s - %s Uhr\n\n- Buchungs-Nr: %s"),
+                $this->t("Buchungsdetails:\n\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s"),
                 $squareName,
                 $formattedDate,
                 $formattedTime,

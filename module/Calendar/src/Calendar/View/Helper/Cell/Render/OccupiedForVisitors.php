@@ -32,13 +32,6 @@ class OccupiedForVisitors extends AbstractHelper
 
             $style = 'cc-single';
 
-            if ($booking->get('status_billing') == 'pending') {
-                if (! $cellLabel) {
-                    $cellLabel = $view->t('temp blocked');
-                }
-                $style = 'cc-try';
-            }
-
             switch ($booking->need('status')) {
                 case 'single':
                     if (! $cellLabel) {
