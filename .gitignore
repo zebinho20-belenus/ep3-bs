@@ -20,6 +20,9 @@ config/secrets.php
 *.tar.gz
 mycourt-pay.sql
 
+# Payum cache
+/data/payum/payum-model-*
+
 #kail data
 /data/kail
 /data/kail/info-page-2026.html
