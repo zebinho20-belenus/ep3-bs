@@ -31,6 +31,7 @@ $this->setup(array(
     ?>
 
     <?= $this->form()->openTag($form) ?>
+    <?= $this->csrfToken() ?>
 
     <?= $this->formElement($form->get('bf-rid')) ?>
 

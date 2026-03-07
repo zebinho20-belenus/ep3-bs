@@ -34,6 +34,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config/be
         ?>
 
         <?= $this->form()->openTag($form) ?>
+        <?= $this->csrfToken() ?>
 
         <?= $this->formRowDefault($form, 'cf-maintenance') ?>
         <?= $this->formRowDefault($form, 'cf-maintenance-message') ?>

@@ -138,7 +138,7 @@ class MemberEmailManager extends AbstractManager
 
     public function deleteAll()
     {
-        return $this->memberEmailTable->delete('1=1');
+        return $this->memberEmailTable->delete(new \Zend\Db\Sql\Predicate\Expression('1=1'));
     }
 
     public function importFromCsv($content)

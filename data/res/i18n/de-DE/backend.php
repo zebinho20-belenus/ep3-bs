@@ -511,4 +511,7 @@ return array(
     'Delete all' => 'Alle löschen',
     'Are you sure you want to delete all entries?' => 'Sind Sie sicher, dass Sie alle Einträge löschen möchten?',
     'No member emails in list yet.' => 'Noch keine Mitglieder-E-Mails in der Liste.',
+    'Invalid security token. Please try again.' => 'Ungültiges Sicherheitstoken. Bitte versuchen Sie es erneut.',
+    'CSV file is too large (max 1 MB)' => 'CSV-Datei ist zu groß (max. 1 MB)',
+    'Invalid file type' => 'Ungültiger Dateityp',
 );

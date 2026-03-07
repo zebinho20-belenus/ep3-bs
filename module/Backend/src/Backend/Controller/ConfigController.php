@@ -24,6 +24,11 @@ class ConfigController extends AbstractActionController
         $textForm = $formElementManager->get('Backend\Form\Config\TextForm');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/text');
+            }
+
             $textForm->setData($this->params()->fromPost());
 
             if ($textForm->isValid()) {
@@ -71,6 +76,11 @@ class ConfigController extends AbstractActionController
         $this->authorize('admin.config');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/info');
+            }
+
             $info = $this->params()->fromPost('cf-info');
 
             if ($info && strlen($info) > 32) {
@@ -91,6 +101,11 @@ class ConfigController extends AbstractActionController
         $this->authorize('admin.config');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/help');
+            }
+
             $help = $this->params()->fromPost('cf-help');
 
             if ($help && strlen($help) > 32) {
@@ -117,6 +132,11 @@ class ConfigController extends AbstractActionController
         $behaviourForm = $formElementManager->get('Backend\Form\Config\BehaviourForm');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/behaviour');
+            }
+
             $behaviourForm->setData($this->params()->fromPost());
 
             if ($behaviourForm->isValid()) {
@@ -179,25 +199,26 @@ class ConfigController extends AbstractActionController
 
         $locale = $this->config('i18n.locale');
 
-        if ($this->getRequest()->isGet()) {
-
-            switch ($this->params()->fromQuery('delete')) {
-                case 'terms':
-                    $optionManager->set('service.user.registration.terms.file', null, $locale);
-
-                    $this->flashMessenger()->addSuccessMessage('Configuration has been updated');
-
-                    return $this->redirect()->toRoute('backend/config/behaviour/rules');
-                case 'privacy':
-                    $optionManager->set('service.user.registration.privacy.file', null, $locale);
-
-                    $this->flashMessenger()->addSuccessMessage('Configuration has been updated');
-
-                    return $this->redirect()->toRoute('backend/config/behaviour/rules');
-            }
-        }
-
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/behaviour/rules');
+            }
+
+            $deleteFile = $this->params()->fromPost('delete-file');
+
+            if ($deleteFile === 'terms') {
+                $optionManager->set('service.user.registration.terms.file', null, $locale);
+                $this->flashMessenger()->addSuccessMessage('Configuration has been updated');
+                return $this->redirect()->toRoute('backend/config/behaviour/rules');
+            }
+
+            if ($deleteFile === 'privacy') {
+                $optionManager->set('service.user.registration.privacy.file', null, $locale);
+                $this->flashMessenger()->addSuccessMessage('Configuration has been updated');
+                return $this->redirect()->toRoute('backend/config/behaviour/rules');
+            }
+
             $post = array_merge_recursive(
                 $this->getRequest()->getPost()->toArray(),
                 $this->getRequest()->getFiles()->toArray()
@@ -280,6 +301,11 @@ class ConfigController extends AbstractActionController
         $bookingStatusService = $serviceManager->get('Booking\Service\BookingStatusService');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/behaviour/status-colors');
+            }
+
             $statusColorsForm->setData($this->params()->fromPost());
 
             if ($statusColorsForm->isValid()) {
@@ -315,30 +341,51 @@ class ConfigController extends AbstractActionController
         $serviceManager = @$this->getServiceLocator();
         $memberEmailManager = $serviceManager->get('Backend\Manager\MemberEmailManager');
 
-        /* Delete single entry */
-        $delete = $this->params()->fromQuery('delete');
-
-        if ($delete && is_numeric($delete)) {
-            $memberEmailManager->delete($delete);
-            $this->flashMessenger()->addSuccessMessage('Member email has been deleted');
-            return $this->redirect()->toRoute('backend/config/member-emails');
-        }
-
-        /* Delete all entries */
-        $deleteAll = $this->params()->fromQuery('delete-all');
-
-        if ($deleteAll === '1') {
-            $memberEmailManager->deleteAll();
-            $this->flashMessenger()->addSuccessMessage('All member emails have been deleted');
-            return $this->redirect()->toRoute('backend/config/member-emails');
-        }
-
         if ($this->getRequest()->isPost()) {
+
+            /* CSRF validation */
+            $csrfToken = $this->params()->fromPost('csrf_token');
+
+            if (! $this->CsrfProtection()->validate($csrfToken)) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/config/member-emails');
+            }
+
+            /* Delete single entry */
+            $delete = $this->params()->fromPost('delete');
+
+            if ($delete && is_numeric($delete)) {
+                $memberEmailManager->delete($delete);
+                $this->flashMessenger()->addSuccessMessage('Member email has been deleted');
+                return $this->redirect()->toRoute('backend/config/member-emails');
+            }
+
+            /* Delete all entries */
+            $deleteAll = $this->params()->fromPost('delete-all');
+
+            if ($deleteAll === '1') {
+                $memberEmailManager->deleteAll();
+                $this->flashMessenger()->addSuccessMessage('All member emails have been deleted');
+                return $this->redirect()->toRoute('backend/config/member-emails');
+            }
 
             /* CSV upload */
             $files = $this->getRequest()->getFiles();
 
             if (isset($files['csv-file']) && $files['csv-file']['error'] === UPLOAD_ERR_OK) {
+                if ($files['csv-file']['size'] > 1048576) {
+                    $this->flashMessenger()->addErrorMessage('CSV file is too large (max 1 MB)');
+                    return $this->redirect()->toRoute('backend/config/member-emails');
+                }
+
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mimeType = $finfo->file($files['csv-file']['tmp_name']);
+
+                if (! in_array($mimeType, ['text/plain', 'text/csv', 'application/csv', 'application/octet-stream'])) {
+                    $this->flashMessenger()->addErrorMessage('Invalid file type');
+                    return $this->redirect()->toRoute('backend/config/member-emails');
+                }
+
                 $content = file_get_contents($files['csv-file']['tmp_name']);
 
                 if ($content) {

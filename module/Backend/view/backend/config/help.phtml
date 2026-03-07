@@ -28,6 +28,7 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.js'));
     <div class="separator-small"></div>
 
     <form method="post" action="<?= $this->url('backend/config/help') ?>">
+        <?= $this->csrfToken() ?>
         <div>
             <textarea name="cf-help" id="cf-help" class="wysiwyg-editor" style="height: 600px;">
                 <?= $this->option('subject.help') ?>

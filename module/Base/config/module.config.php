@@ -4,6 +4,7 @@ return array(
     'controller_plugins' => array(
         'invokables' => array(
             'AjaxViewModel' => 'Base\Controller\Plugin\AjaxViewModel',
+            'CsrfProtection' => 'Base\Controller\Plugin\CsrfProtection',
             'DefaultViewModel' => 'Base\Controller\Plugin\DefaultViewModel',
             'JsonViewModel' => 'Base\Controller\Plugin\JsonViewModel',
         ),
@@ -55,6 +56,7 @@ return array(
     'view_helpers' => array(
         'invokables' => array(
             'AjaxAwareScript' => 'Base\View\Helper\AjaxAwareScript',
+            'CsrfToken' => 'Base\View\Helper\CsrfToken',
             'DateRange' => 'Base\View\Helper\DateRange',
 
             'FormDefault' => 'Base\View\Helper\FormDefault',

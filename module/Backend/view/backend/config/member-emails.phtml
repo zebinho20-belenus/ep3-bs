@@ -21,6 +21,7 @@ $this->setup(array(
     <div class="card card-body bg-light mb-4">
         <h5 class="mb-3"><?= $this->t('Import from CSV') ?></h5>
         <form method="post" enctype="multipart/form-data">
+            <?= $this->csrfToken() ?>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <input type="file" name="csv-file" accept=".csv,.txt" class="form-control form-control-sm" style="max-width: 300px;">
                 <button type="submit" class="btn btn-primary btn-sm"><?= $this->t('Import') ?></button>
@@ -33,6 +34,7 @@ $this->setup(array(
     <div class="card card-body bg-light mb-4">
         <h5 class="mb-3"><?= $this->t('Add member') ?></h5>
         <form method="post">
+            <?= $this->csrfToken() ?>
             <div class="d-flex flex-wrap align-items-end gap-2">
                 <div>
                     <label class="form-label form-label-sm"><?= $this->t('Email address') ?></label>
@@ -56,11 +58,11 @@ $this->setup(array(
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <span class="text-muted"><?= sprintf($this->t('%d member(s) in list'), $this->count) ?></span>
-        <a href="<?= $this->url('backend/config/member-emails', [], ['query' => ['delete-all' => 1]]) ?>"
-           class="btn btn-outline-danger btn-sm"
-           onclick="return confirm('<?= $this->t('Are you sure you want to delete all entries?') ?>')">
-            <?= $this->t('Delete all') ?>
-        </a>
+        <form method="post" style="display: inline;" onsubmit="return confirm('<?= $this->escapeHtmlAttr($this->t('Are you sure you want to delete all entries?')) ?>')">
+            <?= $this->csrfToken() ?>
+            <input type="hidden" name="delete-all" value="1">
+            <button type="submit" class="btn btn-outline-danger btn-sm"><?= $this->t('Delete all') ?></button>
+        </form>
     </div>
 
     <div class="table-responsive">
@@ -82,10 +84,13 @@ $this->setup(array(
                     <td><?= $this->escapeHtml($memberEmail->get('firstname', '')) ?></td>
                     <td><?= $this->escapeHtml($memberEmail->get('lastname', '')) ?></td>
                     <td>
-                        <a href="<?= $this->url('backend/config/member-emails', [], ['query' => ['delete' => $memberEmail->need('meid')]]) ?>"
-                           class="btn btn-outline-danger btn-sm" title="<?= $this->t('Delete') ?>">
-                            <span class="fa fa-times"></span>
-                        </a>
+                        <form method="post" style="display: inline;">
+                            <?= $this->csrfToken() ?>
+                            <input type="hidden" name="delete" value="<?= $memberEmail->need('meid') ?>">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="<?= $this->t('Delete') ?>">
+                                <span class="fa fa-times"></span>
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 <?php endforeach; ?>

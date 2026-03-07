@@ -72,6 +72,11 @@ class EventController extends AbstractActionController
         $editForm = $formElementManager->get('Backend\Form\Event\EditForm');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirectBack()->toOrigin();
+            }
+
             $editForm->setData($this->params()->fromPost());
 
             if ($editForm->isValid()) {
@@ -416,9 +421,15 @@ class EventController extends AbstractActionController
 
         $groupId = $event->getMeta('group');
 
-        if ($this->params()->fromQuery('confirmed') == 'true') {
+        $confirmed = $this->params()->fromPost('confirmed');
 
-            if ($this->params()->fromQuery('group') == 'true' && $groupId) {
+        if ($confirmed == 'true') {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirectBack()->toOrigin();
+            }
+
+            if ($this->params()->fromPost('group') == 'true' && $groupId) {
                 /* Delete entire series */
                 $eventMetaTable = $serviceManager->get('Event\Table\EventMetaTable');
 

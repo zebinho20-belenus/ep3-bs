@@ -31,6 +31,7 @@ $this->setup(array(
         <?php if ($this->reservations): ?>
 
             <form method="post" action="<?= $this->url('backend/booking/bulk') ?>" id="bulk-form">
+                <?= $this->csrfToken() ?>
 
                 <?= $this->backendBookingsFormat($this->reservations, $this->dateStart, $this->dateEnd, $this->search) ?>
 

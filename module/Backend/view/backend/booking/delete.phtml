@@ -14,6 +14,7 @@ $this->setup(array(
     <div class="edit-actions">
         <?php if ($this->sessionUser->can('admin.all')): ?>
             <form method="post" action="<?= $this->url('backend/booking/delete', ['rid' => $this->rid]) ?>" style="display:inline">
+                <?= $this->csrfToken() ?>
                 <input type="hidden" name="confirmed" value="true">
                 <button type="submit" class="default-button default-button-danger">
                     <span class="symbolic symbolic-cross"><?= $this->t('Yes, delete this booking') ?></span>
@@ -22,6 +23,7 @@ $this->setup(array(
         <?php endif; ?>
 
         <form method="post" action="<?= $this->url('backend/booking/delete', ['rid' => $this->rid]) ?>" style="display:inline">
+            <?= $this->csrfToken() ?>
             <input type="hidden" name="confirmed" value="true">
             <input type="hidden" name="cancel" value="true">
             <button type="submit" class="default-button default-button-danger">

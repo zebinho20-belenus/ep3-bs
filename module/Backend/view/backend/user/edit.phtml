@@ -54,6 +54,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/user/edit
         ?>
 
         <?= $this->form()->openTag($form) ?>
+        <?= $this->csrfToken() ?>
 
         <?php if ($form->getMessages()): ?>
             <div class="alert alert-danger" role="alert">

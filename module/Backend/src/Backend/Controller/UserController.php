@@ -84,6 +84,11 @@ class UserController extends AbstractActionController
         $editUserForm = $formElementManager->get('Backend\Form\User\EditForm');
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/user/edit', ['uid' => $uid]);
+            }
+
             $editUserForm->setData($this->params()->fromPost());
 
             if ($editUserForm->isValid()) {
@@ -231,7 +236,13 @@ class UserController extends AbstractActionController
         $user = $userManager->get($uid);
         $bookings = $bookingManager->getBy(['uid' => $uid]);
 
-        if ($this->params()->fromQuery('confirmed') == 'true') {
+        $confirmed = $this->params()->fromPost('confirmed');
+
+        if ($confirmed == 'true') {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/user/edit', ['uid' => $uid]);
+            }
 
             if ($bookings) {
 

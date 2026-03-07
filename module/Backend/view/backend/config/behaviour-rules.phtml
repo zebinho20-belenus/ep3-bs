@@ -30,6 +30,7 @@ $this->setup(array(
         ?>
 
         <?= $this->form()->openTag($form) ?>
+        <?= $this->csrfToken() ?>
 
         <?= $this->formRowDefault($form, 'cf-terms-file') ?>
 
@@ -41,10 +42,12 @@ $this->setup(array(
                     $this->t('Current file:'),
                     $this->basePath($termsFile),
                     basename($termsFile));
-                echo sprintf(' <a href="%s" class="ms-2 text-danger" title="%s">(x)</a>',
-                    $this->url('backend/config/behaviour/rules', [], ['query' => ['delete' => 'terms']]),
-                    $this->t('Delete'));
                 ?>
+                <form method="post" action="<?= $this->url('backend/config/behaviour/rules') ?>" style="display: inline;">
+                    <?= $this->csrfToken() ?>
+                    <input type="hidden" name="delete-file" value="terms">
+                    <button type="submit" class="btn btn-link p-0 ms-2 text-danger" title="<?= $this->t('Delete') ?>">(x)</button>
+                </form>
             </div>
         <?php endif; ?>
 
@@ -55,15 +58,17 @@ $this->setup(array(
         <?php if ($this->option('service.user.registration.privacy.file')): ?>
             <div class="small text-muted mb-3">
                 <?php
-                $termsFile = $this->option('service.user.registration.privacy.file');
+                $privacyFile = $this->option('service.user.registration.privacy.file');
                 echo sprintf('%s <a href="%s" target="_blank">%s</a>',
                     $this->t('Current file:'),
-                    $this->basePath($termsFile),
-                    basename($termsFile));
-                echo sprintf(' <a href="%s" class="ms-2 text-danger" title="%s">(x)</a>',
-                    $this->url('backend/config/behaviour/rules', [], ['query' => ['delete' => 'privacy']]),
-                    $this->t('Delete'));
+                    $this->basePath($privacyFile),
+                    basename($privacyFile));
                 ?>
+                <form method="post" action="<?= $this->url('backend/config/behaviour/rules') ?>" style="display: inline;">
+                    <?= $this->csrfToken() ?>
+                    <input type="hidden" name="delete-file" value="privacy">
+                    <button type="submit" class="btn btn-link p-0 ms-2 text-danger" title="<?= $this->t('Delete') ?>">(x)</button>
+                </form>
             </div>
         <?php endif; ?>
 

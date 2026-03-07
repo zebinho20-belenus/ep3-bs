@@ -161,6 +161,11 @@ class BookingController extends AbstractActionController
 
 
         if ($this->getRequest()->isPost()) {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/booking');
+            }
+
             $editForm->setData($this->params()->fromPost());
 
             if ($editForm->isValid()) {
@@ -810,11 +815,15 @@ class BookingController extends AbstractActionController
                 break;
         }
 
-        $confirmed = $this->params()->fromPost('confirmed', $this->params()->fromQuery('confirmed'));
-        $reactivateParam = $this->params()->fromPost('reactivate', $this->params()->fromQuery('reactivate'));
-        $cancelParam = $this->params()->fromPost('cancel', $this->params()->fromQuery('cancel'));
+        $confirmed = $this->params()->fromPost('confirmed');
+        $reactivateParam = $this->params()->fromPost('reactivate');
+        $cancelParam = $this->params()->fromPost('cancel');
 
         if ($confirmed == 'true') {
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/booking');
+            }
 
             /* Reactivate cancelled booking directly from booking list */
             if ($reactivateParam == 'true') {
@@ -986,6 +995,11 @@ class BookingController extends AbstractActionController
         $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
         $userManager = $serviceManager->get('User\Manager\UserManager');
         $bookingService = $serviceManager->get('Booking\Service\BookingService');
+
+        if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+            $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+            return $this->redirect()->toRoute('backend/booking');
+        }
 
         $rids = $this->params()->fromPost('bulk-rids', []);
         $action = $this->params()->fromPost('bulk-action');

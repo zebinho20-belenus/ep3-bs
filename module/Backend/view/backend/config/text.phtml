@@ -32,6 +32,7 @@ $this->setup(array(
         ?>
 
         <?= $this->form()->openTag($form) ?>
+        <?= $this->csrfToken() ?>
 
         <?php foreach (\Backend\Form\Config\TextForm::$definitions as $key => $value): $key = str_replace('.', '_', $key); ?>
             <?php

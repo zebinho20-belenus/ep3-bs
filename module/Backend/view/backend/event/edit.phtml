@@ -74,6 +74,7 @@ $this->headScript()->appendFile($this->basePath('js/tinymce/tinymce.setup.medium
         ?>
 
         <?= $this->form()->openTag($form) ?>
+        <?= $this->csrfToken() ?>
 
         <?= $this->formRowDefault($form, 'ef-name') ?>
         <?= $this->formRowDefault($form, 'ef-description') ?>
