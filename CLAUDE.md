@@ -37,7 +37,7 @@ Docker environment variables are in `.env` (from `.env.example`). Additionally, 
 
 The `.dist` files contain Docker-friendly defaults (DB hostname `mariadb`, MailHog SMTP on port 1025).
 
-Database schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` (run manually).
+Database schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` with registry in `data/db/migrations.php`. Migrations run automatically on app startup via `MigrationManager` (checks `bs_options` key `schema.version`).
 
 ### Loading a Production DB Dump
 
@@ -308,6 +308,8 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 | User table rows | `module/Backend/src/Backend/View/Helper/User/UserFormat.php` |
 | Translations (German) | `data/res/i18n/de-DE/booking.php`, `square.php`, `backend.php` |
 | Backend pricing config view | `module/Backend/view/backend/config-square/pricing.phtml` |
+| Migration registry | `data/db/migrations.php` |
+| Migration manager | `module/Base/src/Base/Manager/MigrationManager.php` |
 | SQL index migration | `data/db/migrations/001-add-indexes.sql` |
 
 ## Docker Setup

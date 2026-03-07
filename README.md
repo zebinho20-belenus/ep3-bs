@@ -401,10 +401,17 @@ docker compose exec court bash
 
 ### Database Migrations
 
-Run manually after deployment:
-- `data/db/ep3-bs.sql` -- Base schema
-- `data/db/migrations/001-add-indexes.sql` -- Performance indexes
-- `data/db/migrations/002-member-emails.sql` -- Member email verification table
+Base schema must be imported manually: `data/db/ep3-bs.sql`
+
+All subsequent migrations run **automatically on app startup**. The `MigrationManager` checks which migrations are needed (via idempotent SQL checks) and only executes missing ones. Schema version tracked in `bs_options`.
+
+| Migration | Purpose | Auto |
+|-----------|---------|------|
+| `data/db/ep3-bs.sql` | Base schema | Manual |
+| `001-add-indexes.sql` | Performance indexes | Auto |
+| `002-member-emails.sql` | Member email verification | Auto |
+
+Registry: `data/db/migrations.php`
 
 ### Translations
 

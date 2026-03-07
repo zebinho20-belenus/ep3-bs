@@ -44,9 +44,7 @@ docker compose exec court composer update --ignore-platform-reqs
 # 5. Import database schema
 docker compose exec -T mariadb mariadb -u root -p<password> <database> < data/db/ep3-bs.sql
 
-# 6. Run migrations
-docker compose exec -T mariadb mariadb -u root -p<password> <database> < data/db/migrations/001-add-indexes.sql
-docker compose exec -T mariadb mariadb -u root -p<password> <database> < data/db/migrations/002-member-emails.sql
+# Migrations run automatically on first request!
 ```
 
 **Access Points:**
@@ -114,9 +112,7 @@ docker compose exec -T mariadb mariadb -u <user> -p<password> <database> < mycou
 
 3. Import database: `data/db/ep3-bs.sql`
 
-4. Run migrations:
-   - `data/db/migrations/001-add-indexes.sql`
-   - `data/db/migrations/002-member-emails.sql`
+4. Migrations run automatically on first request (indexes, member emails table, etc.)
 
 5. Optionally customize public files:
    - `css-client/default.css` for custom CSS
@@ -138,13 +134,21 @@ docker compose exec -T mariadb mariadb -u <user> -p<password> <database> < mycou
 
 ## Database Migrations
 
-Run manually after initial setup or deployment:
+Base schema must be imported manually: `data/db/ep3-bs.sql`
 
-| Migration | Purpose |
-|-----------|---------|
-| `data/db/ep3-bs.sql` | Base schema |
-| `data/db/migrations/001-add-indexes.sql` | Performance indexes |
-| `data/db/migrations/002-member-emails.sql` | Member email verification table |
+All subsequent migrations run **automatically** on app startup. The system checks which migrations are needed and only executes missing ones. Schema version is tracked in `bs_options` (key: `schema.version`).
+
+| Migration | Purpose | Auto |
+|-----------|---------|------|
+| `data/db/ep3-bs.sql` | Base schema | Manual |
+| `data/db/migrations/001-add-indexes.sql` | Performance indexes | Auto |
+| `data/db/migrations/002-member-emails.sql` | Member email verification table | Auto |
+
+Migration registry: `data/db/migrations.php`
+
+To add a new migration:
+1. Create SQL file in `data/db/migrations/`
+2. Add entry to `data/db/migrations.php` with a check query and file path
 
 ---
 

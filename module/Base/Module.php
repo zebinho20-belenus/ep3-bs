@@ -39,6 +39,15 @@ class Module implements AutoloaderProviderInterface, BootstrapListenerInterface,
             Charon::carry('application', 'configuration', 1);
         }
 
+        /* Run pending database migrations */
+
+        try {
+            $migrationManager = new Manager\MigrationManager($dbAdapter, getcwd());
+            $migrationManager->runPendingMigrations();
+        } catch (\Exception $e) {
+            error_log('MigrationManager bootstrap error: ' . $e->getMessage());
+        }
+
         /* Set global validator translator */
 
         $translator = $serviceManager->get('Translator');
