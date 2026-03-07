@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Disallow: /square
+Disallow: /backend
+Disallow: /user
+Disallow: /payment
+
+User-agent: SemrushBot
+Disallow: /
