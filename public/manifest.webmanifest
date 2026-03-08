@@ -2,24 +2,45 @@
     "name": "TCN-Kail court booking",
     "short_name": "TCN-Kail Booking",
     "start_url": "./",
-    "display": "fullscreen",
-    "theme_color": "#4a3827",
-    "background_color": "#4a3827",
+    "display": "standalone",
+    "theme_color": "#0d6236",
+    "background_color": "#ffffff",
     "description": "book indoor Tennis court at TC Neuperlach-Kail",
     "icons": [
         {
+            "src": "imgs-client/layout/logo_16.png",
+            "sizes": "16x16",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
             "src": "imgs-client/layout/logo_48.png",
             "sizes": "48x48",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "imgs-client/layout/logo_96.png",
             "sizes": "96x96",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "imgs-client/layout/logo_192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "imgs-client/layout/logo_512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "imgs-client/icons/fav.ico",
-            "sizes": "16x16"
+            "sizes": "16x16 32x32",
+            "type": "image/x-icon"
         }
     ]
 }

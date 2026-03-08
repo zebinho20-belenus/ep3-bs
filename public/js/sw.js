@@ -1,5 +1,5 @@
 // Use a cacheName for cache versioning
-var cacheName = 'ep3bs_v3.1:static';
+var cacheName = 'ep3bs_v3.2:static';
 
 // During the installation phase, cache static assets
 self.addEventListener('install', function(e) {
@@ -25,7 +25,9 @@ self.addEventListener('install', function(e) {
                 '../imgs/icons/plus.png',
                 '../imgs/icons/warning.png',
                 '../imgs/icons/tag.png',
-                '../imgs/icons/attachment.png'
+                '../imgs/icons/attachment.png',
+                '../imgs-client/layout/logo.png',
+                '../imgs-client/icons/fav.ico'
             ]).then(function() {
                 self.skipWaiting();
             });
