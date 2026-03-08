@@ -1578,11 +1578,11 @@ class BookingController extends AbstractActionController
                     }
 
                     if ($reservation->get('time_start')) {
-                        $formattedTime = $reservation->get('time_start');
+                        $formattedTime = substr($reservation->get('time_start'), 0, 5);
                     }
 
                     if ($reservation->get('time_end')) {
-                        $formattedEndTime = $reservation->get('time_end');
+                        $formattedEndTime = substr($reservation->get('time_end'), 0, 5);
                     }
                 }
             } catch (\Exception $e) {
@@ -1922,10 +1922,10 @@ class BookingController extends AbstractActionController
                         $formattedDate = $date->format('d.m.Y');
                     }
                     if ($reservation->get('time_start')) {
-                        $formattedTime = $reservation->get('time_start');
+                        $formattedTime = substr($reservation->get('time_start'), 0, 5);
                     }
                     if ($reservation->get('time_end')) {
-                        $formattedEndTime = $reservation->get('time_end');
+                        $formattedEndTime = substr($reservation->get('time_end'), 0, 5);
                     }
                 }
             } catch (\Exception $e) {
@@ -2081,11 +2081,11 @@ class BookingController extends AbstractActionController
                     }
 
                     if ($reservation->get('time_start')) {
-                        $formattedTime = $reservation->get('time_start');
+                        $formattedTime = substr($reservation->get('time_start'), 0, 5);
                     }
 
                     if ($reservation->get('time_end')) {
-                        $formattedEndTime = $reservation->get('time_end');
+                        $formattedEndTime = substr($reservation->get('time_end'), 0, 5);
                     }
                 }
             } catch (\Exception $e) {
@@ -2149,13 +2149,16 @@ class BookingController extends AbstractActionController
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(array('bid' => $booking->need('bid')), 'bbid ASC');
                 if ($bills) {
+                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
                     $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
                     foreach ($bills as $bill) {
                         $total += $bill->get('price');
-                        $rechnungsInfo .= "\n" . $bill->get('description');
-                        $rechnungsInfo .= " -> " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
+                        $rechnungsInfo .= "\n- " . $bill->get('description');
+                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
                     }
                     $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($total / 100, 2, ',', '.') . " €";
+                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
+                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
                 }
             } catch (\Exception $e) {
                 // Continue despite errors
@@ -2485,7 +2488,7 @@ class BookingController extends AbstractActionController
             }
 
             $buchungsDetails = sprintf(
-                $this->t("Current booking details") . ":\n\n- %s: %s\n\n- %s: %s\n\n- %s: %s - %s %s\n\n- %s: %s",
+                $this->t("Current booking details") . ":\n\n- %s: %s\n- %s: %s\n- %s: %s - %s %s\n- %s: %s",
                 $this->t('Square'), $squareName,
                 $this->t('Date'), $formattedDate,
                 $this->t('Time'), $formattedTime, $formattedEndTime, $this->t('Clock'),
