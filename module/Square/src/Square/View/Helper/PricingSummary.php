@@ -45,10 +45,8 @@ class PricingSummary extends AbstractHelper
         }
 
         $total = 0;
-        // Check for guest player parameter
-        if ($guestPlayer === null) {
-            $guestPlayer = isset($_GET['gp']) && $_GET['gp'] == '1';
-        }
+        // Use controller-provided guest player parameter only
+        $guestPlayer = (bool) $guestPlayer;
 
         // Member with guest: half of non-member price
         if ($member && $guestPlayer && $finalPricing['price'] == 0) {

@@ -234,19 +234,28 @@ class ConfigController extends AbstractActionController
                 $termsFile = $rulesData['cf-terms-file'];
 
                 if (isset($termsFile['name']) && $termsFile['name'] && isset($termsFile['tmp_name']) && $termsFile['tmp_name']) {
-                    $rulesFileName = $termsFile['name'];
-                    $rulesFileName = str_replace('.pdf', '', $rulesFileName);
-                    $rulesFileName = trim($rulesFileName);
-                    $rulesFileName = preg_replace('/[^a-zA-Z0-9 -]/', '', $rulesFileName);
-                    $rulesFileName = str_replace(' ', '-', $rulesFileName);
-                    $rulesFileName = strtolower($rulesFileName);
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->file($termsFile['tmp_name']);
 
-                    $destination = sprintf('docs-client/upload/%s.pdf',
-                        $rulesFileName);
+                    if ($mimeType !== 'application/pdf') {
+                        $this->flashMessenger()->addErrorMessage('Invalid file type. Only PDF files are allowed.');
+                    } elseif ($termsFile['size'] > 10 * 1024 * 1024) {
+                        $this->flashMessenger()->addErrorMessage('File too large. Maximum file size is 10 MB.');
+                    } else {
+                        $rulesFileName = $termsFile['name'];
+                        $rulesFileName = str_replace('.pdf', '', $rulesFileName);
+                        $rulesFileName = trim($rulesFileName);
+                        $rulesFileName = preg_replace('/[^a-zA-Z0-9 -]/', '', $rulesFileName);
+                        $rulesFileName = str_replace(' ', '-', $rulesFileName);
+                        $rulesFileName = strtolower($rulesFileName);
 
-                    move_uploaded_file($termsFile['tmp_name'], sprintf('%s/public/%s', getcwd(), $destination));
+                        $destination = sprintf('docs-client/upload/%s.pdf',
+                            $rulesFileName);
 
-                    $optionManager->set('service.user.registration.terms.file', $destination, $locale);
+                        move_uploaded_file($termsFile['tmp_name'], sprintf('%s/public/%s', getcwd(), $destination));
+
+                        $optionManager->set('service.user.registration.terms.file', $destination, $locale);
+                    }
                 }
 
                 $optionManager->set('service.user.registration.terms.name', $rulesData['cf-terms-name'], $locale);
@@ -256,19 +265,28 @@ class ConfigController extends AbstractActionController
                 $privacyFile = $rulesData['cf-privacy-file'];
 
                 if (isset($privacyFile['name']) && $privacyFile['name'] && isset($privacyFile['tmp_name']) && $privacyFile['tmp_name']) {
-                    $privacyFileName = $privacyFile['name'];
-                    $privacyFileName = str_replace('.pdf', '', $privacyFileName);
-                    $privacyFileName = trim($privacyFileName);
-                    $privacyFileName = preg_replace('/[^a-zA-Z0-9 -]/', '', $privacyFileName);
-                    $privacyFileName = str_replace(' ', '-', $privacyFileName);
-                    $privacyFileName = strtolower($privacyFileName);
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->file($privacyFile['tmp_name']);
 
-                    $destination = sprintf('docs-client/upload/%s.pdf',
-                        $privacyFileName);
+                    if ($mimeType !== 'application/pdf') {
+                        $this->flashMessenger()->addErrorMessage('Invalid file type. Only PDF files are allowed.');
+                    } elseif ($privacyFile['size'] > 10 * 1024 * 1024) {
+                        $this->flashMessenger()->addErrorMessage('File too large. Maximum file size is 10 MB.');
+                    } else {
+                        $privacyFileName = $privacyFile['name'];
+                        $privacyFileName = str_replace('.pdf', '', $privacyFileName);
+                        $privacyFileName = trim($privacyFileName);
+                        $privacyFileName = preg_replace('/[^a-zA-Z0-9 -]/', '', $privacyFileName);
+                        $privacyFileName = str_replace(' ', '-', $privacyFileName);
+                        $privacyFileName = strtolower($privacyFileName);
 
-                    move_uploaded_file($privacyFile['tmp_name'], sprintf('%s/public/%s', getcwd(), $destination));
+                        $destination = sprintf('docs-client/upload/%s.pdf',
+                            $privacyFileName);
 
-                    $optionManager->set('service.user.registration.privacy.file', $destination, $locale);
+                        move_uploaded_file($privacyFile['tmp_name'], sprintf('%s/public/%s', getcwd(), $destination));
+
+                        $optionManager->set('service.user.registration.privacy.file', $destination, $locale);
+                    }
                 }
 
                 $optionManager->set('service.user.registration.privacy.name', $rulesData['cf-privacy-name'], $locale);

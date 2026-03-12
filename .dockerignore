@@ -1,0 +1,14 @@
+.env
+.git/
+tmp/
+data/session/*
+data/log/*
+data/payum/payum-model-*
+*.sql
+*.tar.gz
+.idea/
+.DS_Store
+docker-compose*.yml
+.env.example
+CLAUDE.md
+.claude/

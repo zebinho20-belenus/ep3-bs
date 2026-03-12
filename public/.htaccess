@@ -1,3 +1,5 @@
+Options -Indexes
+
 # Security headers
 <IfModule mod_headers.c>
     Header always set X-Frame-Options "SAMEORIGIN"
@@ -6,6 +8,7 @@
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
     Header always unset X-Powered-By
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://js.stripe.com https://hooks.stripe.com; connect-src 'self' https://api.stripe.com; font-src 'self'"
 </IfModule>
 
 <IfModule mod_rewrite.c>
@@ -22,14 +25,15 @@
     RewriteRule ^robots\.txt$ misc/robots.txt
     RewriteRule ^favicon\.ico$ imgs-client/icons/fav.ico
 
+    SetEnvIf X-Forwarded-Proto https HTTPS=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     RewriteCond %{REQUEST_FILENAME} -s [OR]
     RewriteCond %{REQUEST_FILENAME} -l [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^.*$ - [L]
     RewriteRule ^.*$ index.php [L]
-    SetEnvIf X-Forwarded-Proto https HTTPS=on
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 
 </IfModule>

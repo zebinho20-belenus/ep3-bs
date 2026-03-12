@@ -1196,6 +1196,11 @@ class BookingController extends AbstractActionController
 
         if ($this->getRequest()->isPost()) {
 
+            if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
+                $this->flashMessenger()->addErrorMessage('Invalid security token. Please try again.');
+                return $this->redirect()->toRoute('backend/booking');
+            }
+
             /* Check and save billing status */
 
             $billingStatus = $this->params()->fromPost('ebf-status');
@@ -2445,11 +2450,15 @@ class BookingController extends AbstractActionController
                         try {
                             $oldDate = new \DateTime($change['old']);
                             $oldFormatted = $oldDate->format('d.m.Y');
-                        } catch (\Exception $e) {}
+                        } catch (\Exception $e) {
+                            error_log('Date format error in booking edit email: ' . $e->getMessage());
+                        }
                         try {
                             $newDate = new \DateTime($change['new']);
                             $newFormatted = $newDate->format('d.m.Y');
-                        } catch (\Exception $e) {}
+                        } catch (\Exception $e) {
+                            error_log('Date format error in booking edit email: ' . $e->getMessage());
+                        }
                         break;
                     case 'time_start':
                         $label = $this->t('Time (Start)');

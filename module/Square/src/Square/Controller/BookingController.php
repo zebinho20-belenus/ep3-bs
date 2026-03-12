@@ -392,7 +392,7 @@ class BookingController extends AbstractActionController
                     '<b>', '</b>');
             }
 
-            if ($confirmationHash != $confirmationHashOriginal) {
+            if (!hash_equals($confirmationHashOriginal, $confirmationHash)) {
                 $byproducts['message'] = sprintf($this->t('%We are sorry:%s This did not work somehow. Please try again.'),
                     '<b>', '</b>');
             }
@@ -554,7 +554,7 @@ class BookingController extends AbstractActionController
 
         /* Check cancellation confirmation */
 
-        $confirmed = $this->params()->fromPost('confirmed', $this->params()->fromQuery('confirmed'));
+        $confirmed = $this->params()->fromPost('confirmed');
 
         if ($confirmed == 'true') {
 

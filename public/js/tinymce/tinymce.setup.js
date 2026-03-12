@@ -21,6 +21,7 @@
             "statusbar": false,
             "relative_urls": false,
             "promotion": false,
+            "invalid_elements": "script,iframe,object,embed,form",
 
             file_picker_callback : function(callback, value, meta) {
 

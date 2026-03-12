@@ -18,8 +18,6 @@ services:
   mariadb-dev:
     image: mariadb:10.11
     restart: always
-    ports:
-      - ${MYSQL_PORT}:3306
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -58,7 +56,10 @@ services:
 
       # Secure Header Middleware
       - "traefik.http.middlewares.secure-headers-dev.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.court-dev.middlewares=secure-headers-dev"
+      - "traefik.http.routers.court-dev.middlewares=secure-headers-dev,dev-auth"
+
+      # Basic Auth for DEV instance (set DEV_BASIC_AUTH in .env, generate with: htpasswd -nb user password)
+      - "traefik.http.middlewares.dev-auth.basicauth.users=${DEV_BASIC_AUTH}"
 
       # HTTP -> HTTPS Redirect
       - "traefik.http.routers.court-dev-redirect.entrypoints=web"

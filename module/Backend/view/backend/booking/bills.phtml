@@ -19,6 +19,7 @@ $last_vat_rate = 19;
     <div class="separator-small"></div>
 
     <form method="post">
+        <?= $this->csrfToken() ?>
         <div class="mb-3">
             <?= $this->t(sprintf('Status: %s',
                 '<select name="ebf-status" class="form-select form-select-sm d-inline-block" style="width: auto;">' . $this->formSelect()->renderOptions(
@@ -40,7 +41,7 @@ $last_vat_rate = 19;
                     <tbody>
                         <?php foreach ($this->bills as $bill): ?>
                             <tr>
-                                <td><input type="text" name="ebf-<?= $bill->need('bbid') ?>-description" value="<?= $bill->get('description') ?>" class="form-control form-control-sm" style="width: 220px;"></td>
+                                <td><input type="text" name="ebf-<?= $bill->need('bbid') ?>-description" value="<?= $this->escapeHtml($bill->get('description')) ?>" class="form-control form-control-sm" style="width: 220px;"></td>
 
                                 <td class="right-text"><input type="text" name="ebf-<?= $bill->need('bbid') ?>-time" value="<?= ($bill->get('time') ? ($bill->get('time') / 60) : '') ?>" class="form-control form-control-sm" style="width: 64px; text-align: right;"></td>
 

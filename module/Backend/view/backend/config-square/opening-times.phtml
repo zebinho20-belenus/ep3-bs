@@ -91,7 +91,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
                         echo '<select class="opening-times-sid form-select form-select-sm" style="width: auto;">';
                         echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
                         foreach ($this->squares as $square) {
-                            echo '<option value="' . $square->get('sid') . '">' . $this->option('subject.square.type') . ' ' . $square->get('name') . '</option>';
+                            echo '<option value="' . $square->get('sid') . '">' . $this->option('subject.square.type') . ' ' . htmlspecialchars($square->get('name')) . '</option>';
                         }
                         echo '</select>';
                         ?>

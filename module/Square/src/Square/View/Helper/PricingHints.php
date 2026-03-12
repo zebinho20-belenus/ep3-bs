@@ -38,12 +38,8 @@ class PricingHints extends AbstractHelper
 
             $pricing = $this->squarePricingManager->getFinalPricingInRange($dateStart, $dateEnd, $square, 1, $member);
 
-            // Check guest player checkbox
-            if ($guestPlayer === null) {
-                $guestPlayerCheckbox = isset($_GET['gp']) && $_GET['gp'] == '1';
-            } else {
-                $guestPlayerCheckbox = (bool) $guestPlayer;
-            }
+            // Use controller-provided guest player parameter only
+            $guestPlayerCheckbox = (bool) $guestPlayer;
 
             if ($pricing) {
                 if ($guestPlayerCheckbox) {

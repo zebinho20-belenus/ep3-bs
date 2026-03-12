@@ -3,8 +3,9 @@ FROM php:8.4-apache
 ARG INSTALL_XDEBUG=false
 
 RUN apt update && apt install -y \
-    libicu-dev libsodium-dev git unzip libzip-dev libxml2-dev zlib1g-dev wget \
-    ca-certificates && update-ca-certificates
+    libicu-dev libsodium-dev git unzip libzip-dev libxml2-dev zlib1g-dev \
+    ca-certificates && update-ca-certificates \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql \
     && docker-php-ext-configure intl && docker-php-ext-install intl \
@@ -14,7 +15,7 @@ RUN docker-php-ext-install mysqli pdo pdo_mysql \
 # Xdebug only when INSTALL_XDEBUG=true (dev) — installed from source tarball (PECL SSL broken on older images)
 RUN if [ "$INSTALL_XDEBUG" = "true" ]; then \
     cd /tmp \
-    && wget --no-check-certificate https://xdebug.org/files/xdebug-3.4.2.tgz \
+    && curl -fsSL -o xdebug-3.4.2.tgz https://xdebug.org/files/xdebug-3.4.2.tgz \
     && tar -xzf xdebug-3.4.2.tgz \
     && cd xdebug-3.4.2 \
     && phpize && ./configure && make && make install \
@@ -78,3 +79,5 @@ RUN a2enmod rewrite headers remoteip
 
 # Use %a (mod_remoteip resolved IP) instead of %h (connection IP) in Apache log format
 RUN sed -i 's/%h/%a/g' /etc/apache2/apache2.conf
+
+USER www-data

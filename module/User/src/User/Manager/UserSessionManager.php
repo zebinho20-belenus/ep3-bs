@@ -141,7 +141,7 @@ class UserSessionManager extends AbstractManager
         if ($user->getMeta('legacy-pw')) {
             $legacyPw = $user->getMeta('legacy-pw');
 
-            if ($legacyPw == md5($pw)) {
+            if (hash_equals($legacyPw, md5($pw))) {
                 $user->set('pw', $bcrypt->create($pw));
                 $user->setMeta('legacy-pw', null);
             }

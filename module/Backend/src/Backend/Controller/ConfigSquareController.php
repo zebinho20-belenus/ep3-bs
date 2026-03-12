@@ -216,19 +216,28 @@ class ConfigSquareController extends AbstractActionController
                 $documentFile = $editData['cf-rules-document-file'];
 
                 if (isset($documentFile['name']) && $documentFile['name'] && isset($documentFile['tmp_name']) && $documentFile['tmp_name']) {
-                    $documentFileName = $documentFile['name'];
-                    $documentFileName = str_replace('.pdf', '', $documentFileName);
-                    $documentFileName = trim($documentFileName);
-                    $documentFileName = preg_replace('/[^a-zA-Z0-9 -]/', '', $documentFileName);
-                    $documentFileName = str_replace(' ', '-', $documentFileName);
-                    $documentFileName = strtolower($documentFileName);
+                    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->file($documentFile['tmp_name']);
 
-                    $destination = sprintf('docs-client/upload/%s.pdf',
-                        $documentFileName);
+                    if ($mimeType !== 'application/pdf') {
+                        $this->flashMessenger()->addErrorMessage('Invalid file type. Only PDF files are allowed.');
+                    } elseif ($documentFile['size'] > 10 * 1024 * 1024) {
+                        $this->flashMessenger()->addErrorMessage('File too large. Maximum file size is 10 MB.');
+                    } else {
+                        $documentFileName = $documentFile['name'];
+                        $documentFileName = str_replace('.pdf', '', $documentFileName);
+                        $documentFileName = trim($documentFileName);
+                        $documentFileName = preg_replace('/[^a-zA-Z0-9 -]/', '', $documentFileName);
+                        $documentFileName = str_replace(' ', '-', $documentFileName);
+                        $documentFileName = strtolower($documentFileName);
 
-                    move_uploaded_file($documentFile['tmp_name'], sprintf('%s/public/%s', getcwd(), $destination));
+                        $destination = sprintf('docs-client/upload/%s.pdf',
+                            $documentFileName);
 
-                    $square->setMeta('rules.document.file', $destination, $locale);
+                        move_uploaded_file($documentFile['tmp_name'], sprintf('%s/public/%s', getcwd(), $destination));
+
+                        $square->setMeta('rules.document.file', $destination, $locale);
+                    }
                 }
 
                 $square->setMeta('rules.document.name', $editData['cf-rules-document-name'], $locale);

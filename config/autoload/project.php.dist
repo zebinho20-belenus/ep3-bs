@@ -30,8 +30,9 @@ return array(
         'cookie_httponly' => true,
         'cookie_secure' => true,
         'cookie_samesite' => 'Lax',
-        'gc_maxlifetime' => 86400,
-        'cookie_lifetime' => 86400,
+        // 4 hours (14400s) — shorter sessions reduce risk of session hijacking
+        'gc_maxlifetime' => 14400,
+        'cookie_lifetime' => 14400,
         'cookie_domain' => '',
         'cookie_path' => '/',
     ),

@@ -51,11 +51,11 @@ $this->setup(array(
                         <?php endif; ?>
 
                         <?php if ($user->get('email')): ?>
-                            <div><?= $this->t('Email') ?>: <?= $user->get('email') ?></div>
+                            <div><?= $this->t('Email') ?>: <?= $this->escapeHtml($user->get('email')) ?></div>
                         <?php endif; ?>
 
                         <?php if ($user->getMeta('phone')): ?>
-                            <div><?= $this->t('Phone') ?>: <?= $user->getMeta('phone') ?></div>
+                            <div><?= $this->t('Phone') ?>: <?= $this->escapeHtml($user->getMeta('phone')) ?></div>
                         <?php endif; ?>
 
                         <?php if ($this->sessionUser->can('admin.user')): ?>

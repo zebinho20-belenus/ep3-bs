@@ -45,6 +45,9 @@ class AccountController extends AbstractActionController
                         case 'enabled':
                             $resetCode = base64_encode(hash_hmac('sha256', $user->need('uid') . $user->need('pw'), $user->need('created'), true));
 
+                            $user->setMeta('password_reset_time', time());
+                            $userManager->save($user);
+
                             $mailMessage .= $this->t('Simply visit the following website to type your new password:') . "\r\n\r\n";
                             $mailMessage .= $this->url()->fromRoute('user/password-reset', [], ['query' => ['id' => $user->need('uid'), 'code' => $resetCode], 'force_canonical' => true]);
 
@@ -97,6 +100,11 @@ class AccountController extends AbstractActionController
         $actualResetCode = base64_encode(hash_hmac('sha256', $user->need('uid') . $user->need('pw'), $user->need('created'), true));
 
         if (!hash_equals($actualResetCode, $resetCode)) {
+            throw new RuntimeException('Your token to reset your password is invalid or expired. Please request a new email.');
+        }
+
+        $passwordResetTime = (int) $user->getMeta('password_reset_time', 0);
+        if ($passwordResetTime === 0 || (time() - $passwordResetTime) > 86400) {
             throw new RuntimeException('Your token to reset your password is invalid or expired. Please request a new email.');
         }
 

@@ -10,7 +10,7 @@ $this->setup(array(
 <div class="padded centered-text">
 
     <h2><?= $this->t('Oops ... something went wrong here') ?></h2>
-    <h1><?= $this->t($this->exception->getMessage()) ?></h1>
+    <h1><?= $this->escapeHtml($this->t($this->exception->getMessage())) ?></h1>
 
     <div class="separator"></div>
 

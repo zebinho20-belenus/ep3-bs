@@ -119,7 +119,7 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config-sq
                                     echo '<select class="pricing-sid form-select form-select-sm pricing-select-sid">';
                                     echo '<option value="null">' . sprintf($this->t('All %s'), $this->option('subject.square.type.plural')) . '</option>';
                                     foreach ($this->squares as $square) {
-                                        echo '<option value="' . $square->get('sid') . '">' . $square->get('name') . '</option>';
+                                        echo '<option value="' . $square->get('sid') . '">' . htmlspecialchars($square->get('name')) . '</option>';
                                     }
                                     echo '</select>';
                                     ?>
