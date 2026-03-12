@@ -1335,6 +1335,9 @@ class BookingController extends AbstractActionController
             } else if ($saveAndBack) {
                 return $this->redirect()->toRoute('user/bookings/bills', ['bid' => $bid], ['query' => []]);
             }
+
+            // Reload bills after POST to exclude the temporary new Bill object
+            $bills = $bookingBillManager->getBy(array('bid' => $bid), 'bbid ASC');
         }
 
         return array(
