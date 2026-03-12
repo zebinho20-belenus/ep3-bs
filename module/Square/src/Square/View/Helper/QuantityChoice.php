@@ -61,7 +61,7 @@ class QuantityChoice extends AbstractHelper
                 . '<label for="guest-player" class="form-check-label">' . $view->t('Guest player') . '</label>'
                 . '</div>';
 
-            $paymentNotice = '<div id="payment-notice" class="guest-payment-notice" style="display: none;">
+            $paymentNotice = '<div id="payment-notice" class="guest-payment-notice">
                                   <b>ℹ ' . $view->t('Guest booking info') . '</b><br>
                                   ' . $view->t('As a member with a guest, you pay half the court fee. You can pay directly via PayPal Friends & Family or use the money letterbox at the office.') . '
                               </div>';
@@ -164,7 +164,12 @@ class QuantityChoice extends AbstractHelper
             function togglePaymentNotice(checkbox) {
                 var paymentNotice = document.getElementById("payment-notice");
                 if (paymentNotice) {
-                    paymentNotice.style.display = checkbox.checked ? "block" : "none";
+                    if (checkbox.checked) {
+                        paymentNotice.classList.add("open");
+                    } else {
+                        paymentNotice.classList.remove("open");
+                    }
+                    setTimeout(function() { $(window).trigger("squarebox.update"); }, 350);
                 }
             }
 

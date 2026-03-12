@@ -898,6 +898,9 @@ a.squarebox-primary-close-link:hover {
     background: #DC2626;
 }
 
+/* Squarebox desktop — smooth re-centering on content change */
+.squarebox-desktop { transition: top 0.3s ease, left 0.3s ease; }
+
 /* Squarebox desktop — sticky close button (scrollable modal) */
 .squarebox-desktop a.squarebox-primary-close-link { position: sticky; float: right; top: 0; right: 0; z-index: 10; }
 
@@ -1242,14 +1245,24 @@ a.squarebox-primary-close-link:hover {
 }
 
 .guest-payment-notice {
-    margin-top: 0.625rem;
-    padding: 0.75rem 1rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 1rem;
+    margin-top: 0;
     background-color: #eff6ff;
     border: 2px solid #046bd2;
     border-radius: 0.5rem;
     font-size: 0.875rem;
     color: #046bd2;
     line-height: 1.5;
+    transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin-top 0.3s ease;
+}
+.guest-payment-notice.open {
+    max-height: 200px;
+    opacity: 1;
+    padding: 0.75rem 1rem;
+    margin-top: 0.625rem;
 }
 
 /* ---------- Billing Status Badges ---------- */
