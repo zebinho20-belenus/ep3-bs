@@ -22,4 +22,9 @@ return [
         'check' => "SHOW TABLES LIKE 'bs_member_emails'",
         'file' => 'data/db/migrations/002-member-emails.sql',
     ],
+    3 => [
+        'name' => 'cleanup-interval',
+        'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'remove_unpaid_bookings' AND INTERVAL_VALUE = '1' AND EVENT_SCHEMA = DATABASE()",
+        'file' => 'data/db/migrations/003-cleanup-interval.sql',
+    ],
 ];

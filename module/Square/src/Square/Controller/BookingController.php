@@ -725,7 +725,7 @@ class BookingController extends AbstractActionController
                 []
             );
         } catch (\Exception $e) {
-            // Silently continue — email failure should not break the payment error flow
+            error_log('sendPaymentFailedEmail error: ' . $e->getMessage());
         }
     }
 
@@ -1017,7 +1017,25 @@ class BookingController extends AbstractActionController
 
         $paymentStatus = isset($payment['status']) ? $payment['status'] : '';
 
-        if ($status->isCaptured() || $status->isAuthorized() || $status->isPending() || ($status->isUnknown() && $paymentStatus == 'processing') || $status->getValue() === "success" || $paymentStatus === "succeeded" ) {
+        // For PayPal: isPending() alone is not reliable — sandbox returns "Pending" even on abort.
+        // Only treat PayPal pending as success if PAYMENTREQUEST_0_PAYMENTSTATUS confirms "Completed".
+        $paypalCompleted = ($token->getGatewayName() == 'paypal_ec'
+            && isset($payment['PAYMENTREQUEST_0_PAYMENTSTATUS'])
+            && $payment['PAYMENTREQUEST_0_PAYMENTSTATUS'] == 'Completed');
+
+        $isPaypalPending = ($status->isPending() && $token->getGatewayName() == 'paypal_ec');
+        $isNonPaypalPending = ($status->isPending() && $token->getGatewayName() != 'paypal_ec');
+
+        // PayPal pending only counts as success if PAYMENTREQUEST_0_PAYMENTSTATUS == 'Completed'
+        $isSuccess = $status->isCaptured()
+            || $status->isAuthorized()
+            || $isNonPaypalPending
+            || ($isPaypalPending && $paypalCompleted)
+            || ($status->isUnknown() && $paymentStatus == 'processing')
+            || $status->getValue() === "success"
+            || $paymentStatus === "succeeded";
+
+        if ($isSuccess) {
 
             // syslog(LOG_EMERG, 'doneAction - success');
 
@@ -1041,12 +1059,6 @@ class BookingController extends AbstractActionController
                         '<b>', '</b>',$this->option('subject.square.type')));
                 }
             }
-
-            // PayPal sandbox may report PAYMENTINFO_0_PAYMENTSTATUS as "Pending" (paymentreview)
-            // while PAYMENTREQUEST_0_PAYMENTSTATUS is "Completed" — treat as paid in that case
-            $paypalCompleted = ($token->getGatewayName() == 'paypal_ec'
-                && isset($payment['PAYMENTREQUEST_0_PAYMENTSTATUS'])
-                && $payment['PAYMENTREQUEST_0_PAYMENTSTATUS'] == 'Completed');
 
             if(!$paypalCompleted && ($status->isPending() || ($status->isUnknown() && $paymentStatus == 'processing'))) {
                 $booking->set('status_billing', 'pending');
