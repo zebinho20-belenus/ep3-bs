@@ -898,6 +898,9 @@ a.squarebox-primary-close-link:hover {
     background: #DC2626;
 }
 
+/* Squarebox desktop — sticky close button (scrollable modal) */
+.squarebox-desktop a.squarebox-primary-close-link { position: sticky; float: right; top: 0; right: 0; z-index: 10; }
+
 /* Squarebox desktop — 2-column grid for the 4-section booking form */
 .squarebox-desktop table.middle-table,
 .squarebox-desktop table.middle-table > tbody {
@@ -979,6 +982,41 @@ a.squarebox-primary-close-link:hover {
 /* Player name inputs within squarebox */
 .sb-player-names .form-control { margin-bottom: 0.25rem; }
 .squarebox-mobile .sb-player-names .form-control { width: 100% !important; display: block !important; }
+
+/* Squarebox — visual hierarchy: rules/warnings less dominant */
+.squarebox-desktop .alert-warning,
+.squarebox-mobile .alert-warning {
+    font-size: 0.8125rem;
+    border-left: 3px solid #b45309;
+    border-radius: 0;
+    background-color: #fffbeb;
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+.squarebox-desktop .alert-warning strong,
+.squarebox-desktop .alert-warning b,
+.squarebox-mobile .alert-warning strong,
+.squarebox-mobile .alert-warning b {
+    font-weight: 600;
+    color: #92400e;
+}
+
+/* Squarebox — booking summary card as primary element */
+.squarebox-desktop .card.bg-light,
+.squarebox-mobile .card.bg-light {
+    border: 1px solid #d1d5db;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Squarebox — sticky submit button at bottom on desktop */
+.squarebox-desktop #confirmform > .text-center:last-child {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    padding: 0.75rem 0;
+    border-top: 1px solid #e5e7eb;
+    z-index: 5;
+}
 
 /* ---------- Admin Menu Popup ---------- */
 

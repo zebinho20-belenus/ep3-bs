@@ -176,6 +176,8 @@
                     "position": "absolute",
                     "z-index": 1536,
                     "max-width": "720px",
+                    "max-height": "90vh",
+                    "overflow-y": "auto",
                     "transition": "top 0.3s ease, left 0.3s ease"
                 });
             } else {
@@ -217,18 +219,11 @@
                 return;
             }
 
-            var orientation;
-
-            if ($("body").height() > $(window).height()) {
-                orientation = window;
-            } else {
-                orientation = calendar;
-            }
-
             squarebox.position({
                 "my": "center",
                 "at": "center",
-                "of": orientation
+                "of": window,
+                "collision": "fit"
             });
         }
     }
