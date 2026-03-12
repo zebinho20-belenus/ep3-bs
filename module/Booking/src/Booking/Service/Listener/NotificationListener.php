@@ -172,7 +172,7 @@ class NotificationListener extends AbstractListenerAggregate
             $message .= "\n\n" . str_repeat('-', 40);
             $message .= "\n" . $this->t('Payment instructions:');
             $paypalEmail = $this->configManager->get('paypalEmail') ?: 'payment@your-domain.com';
-            $message .= "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail);
+            $message .= "\n" . sprintf($this->t('Please transfer the amount before the game via PayPal Friends & Family to %s or use the money letterbox at the office. Another option is instant bank transfer to our bank account.'), $paypalEmail);
             $message .= "\n" . $this->t('The booking is only valid after payment is completed.');
         }
 

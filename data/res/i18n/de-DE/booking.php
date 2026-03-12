@@ -56,17 +56,17 @@ return array(
     '%sSorry online booking not possible at the moment!%s' => '%sEntschuldigung im Augenblick ist keine online Buchung möglich!%s',
     'Please transfer the amount as a PayPal friends payment to %s or use the Money letterbox at the office' => 'Bitte transferieren Sie den Betrag als PayPal Friends & Family Zahlung an %s oder nutzen Sie den Geldbriefkasten beim Büro',
     'Please pay the price of the booking via PayPal Friends & Family to %s or use the Money letterbox at the office' => 'Bitte bezahlen Sie den Preis der Buchung per PayPal Friends & Family an %s oder nutzen Sie den Geldbriefkasten beim Büro',
-    'Guest booking: You can pay now via PayPal or choose to pay later.' => 'Gastbuchung: Sie können jetzt per PayPal bezahlen oder später zahlen.',
+    'Guest booking: You can pay now via PayPal Friends & Family or choose to pay later.' => 'Gastbuchung: Sie können jetzt per PayPal Friends & Family oder später zahlen.',
     'Pay later' => 'Später zahlen',
 
     'Guest booking info' => 'Gastbuchung Info',
-    'As a member with a guest, you pay half the court fee. You can pay directly via PayPal or later at the office.'
-        => 'Als Mitglied mit Gast zahlen Sie den halben Platzpreis. Sie können direkt per PayPal bezahlen oder später im Büro.',
-    'Please pay the booking amount via PayPal Friends & Family to %s or use the money letterbox at the office.'
-        => 'Bitte bezahlen Sie den Buchungsbetrag per PayPal Friends & Family an %s oder nutzen Sie den Geldbriefkasten beim Büro.',
+    'As a member with a guest, you pay half the court fee. You can pay directly via PayPal Friends & Family or use the money letterbox at the office.'
+        => 'Als Mitglied mit Gast zahlen Sie den halben Platzpreis. Sie können direkt per PayPal Friends & Family bezahlen oder über den Geldbriefkasten beim Büro.',
+    'Please pay the booking amount before the game via PayPal Friends & Family to %s or use the money letterbox at the office. Another option is instant bank transfer to our bank account.'
+        => 'Bitte bezahlen Sie den Buchungsbetrag vor dem Spiel per PayPal Friends & Family an %s oder nutzen Sie den Geldbriefkasten beim Büro. Eine weitere Möglichkeit ist Sofortüberweisung auf unser Girokonto.',
     'Payment instructions:' => 'Zahlungshinweise:',
-    'Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'
-        => 'Bitte überweisen Sie den Betrag per PayPal Friends & Family an %s oder nutzen Sie den Geldbriefkasten beim Büro.',
+    'Please transfer the amount before the game via PayPal Friends & Family to %s or use the money letterbox at the office. Another option is instant bank transfer to our bank account.'
+        => 'Bitte überweisen Sie den Betrag vor dem Spiel per PayPal Friends & Family an %s oder nutzen Sie den Geldbriefkasten beim Büro. Eine weitere Möglichkeit ist Sofortüberweisung auf unser Girokonto.',
     'The booking is only valid after payment is completed.'
         => 'Die Buchung ist erst nach vollständiger Bezahlung gültig.',
     'Payment status:' => 'Zahlungsstatus:',

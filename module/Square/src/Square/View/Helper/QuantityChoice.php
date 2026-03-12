@@ -63,7 +63,7 @@ class QuantityChoice extends AbstractHelper
 
             $paymentNotice = '<div id="payment-notice" class="guest-payment-notice" style="display: none;">
                                   <b>ℹ ' . $view->t('Guest booking info') . '</b><br>
-                                  ' . $view->t('As a member with a guest, you pay half the court fee. You can pay directly via PayPal or later at the office.') . '
+                                  ' . $view->t('As a member with a guest, you pay half the court fee. You can pay directly via PayPal Friends & Family or use the money letterbox at the office.') . '
                               </div>';
         } else {
             $guestPlayerCheckbox = '';

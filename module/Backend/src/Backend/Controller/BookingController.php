@@ -2169,7 +2169,7 @@ class BookingController extends AbstractActionController
             if ($total > 0 && $booking->get('status_billing') !== 'paid' && $booking->get('status_billing') !== 'member') {
                 $zahlungshinweis .= "\n\n" . $this->t('Payment instructions:');
                 $paypalEmail = $this->config('paypalEmail') ?: 'payment@your-domain.com';
-                $zahlungshinweis .= "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail);
+                $zahlungshinweis .= "\n" . sprintf($this->t('Please transfer the amount before the game via PayPal Friends & Family to %s or use the money letterbox at the office. Another option is instant bank transfer to our bank account.'), $paypalEmail);
                 $zahlungshinweis .= "\n" . $this->t('The booking is only valid after payment is completed.');
             }
 
@@ -2560,7 +2560,7 @@ class BookingController extends AbstractActionController
                 if ($billTotal > 0 && $booking->get('status_billing') === 'pending') {
                     $paypalEmail = $this->config('paypalEmail') ?: 'payment@your-domain.com';
                     $zahlungshinweis = "\n\n" . $this->t('Payment instructions:')
-                        . "\n" . sprintf($this->t('Please transfer the amount via PayPal Friends & Family to %s or use the money letterbox at the office.'), $paypalEmail)
+                        . "\n" . sprintf($this->t('Please transfer the amount before the game via PayPal Friends & Family to %s or use the money letterbox at the office. Another option is instant bank transfer to our bank account.'), $paypalEmail)
                         . "\n" . $this->t('The booking is only valid after payment is completed.');
                 }
             } catch (\Exception $e) {
