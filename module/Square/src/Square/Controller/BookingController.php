@@ -638,23 +638,25 @@ class BookingController extends AbstractActionController
                 $this->option('client.name')
             );
             
-            // Get email settings from config
-            $fromAddress = $this->option('client.mail');
-            $fromName = $this->option('client.name');
+            // Get email settings — From uses mail.address (SMTP sender), ReplyTo uses client.contact.email
+            $fromAddress = $this->config('mail.address');
+            $fromName = $this->option('client.name.short') . ' ' . $this->option('service.name.full');
+            $replyToAddress = $this->option('client.contact.email');
+            $replyToName = $this->option('client.name.full');
             $toAddress = $user->need('email');
             $toName = $user->need('alias');
-            
+
             // Send the email using MailService
             $mailService->sendPlain(
-                $fromAddress,    // fromAddress
-                $fromName,       // fromName
-                $fromAddress,    // replyToAddress
-                $fromName,       // replyToName
-                $toAddress,      // toAddress
-                $toName,         // toName
-                $subject,        // subject
-                $body,           // text
-                []               // attachments (empty array)
+                $fromAddress,
+                $fromName,
+                $replyToAddress,
+                $replyToName,
+                $toAddress,
+                $toName,
+                $subject,
+                $body,
+                []
             );
             
             // Record that we sent a notification
@@ -710,14 +712,16 @@ class BookingController extends AbstractActionController
                 return;
             }
 
-            $fromAddress = $this->option('client.mail');
-            $fromName = $this->option('client.name');
+            $fromAddress = $this->config('mail.address');
+            $fromName = $this->option('client.name.short') . ' ' . $this->option('service.name.full');
+            $replyToAddress = $this->option('client.contact.email');
+            $replyToName = $this->option('client.name.full');
 
             $mailService->sendPlain(
                 $fromAddress,
                 $fromName,
-                $fromAddress,
-                $fromName,
+                $replyToAddress,
+                $replyToName,
                 $user->need('email'),
                 $user->need('alias'),
                 $subject,
