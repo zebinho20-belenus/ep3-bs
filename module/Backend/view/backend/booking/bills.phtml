@@ -34,7 +34,7 @@ $last_vat_rate = 19;
                             <th class="right-text"><?= $this->t('Time (in minutes)') ?></th>
                             <th class="right-text"><?= $this->option('subject.square.unit.plural') ?></th>
                             <th><?= $this->t('Price (in cent)') ?></th>
-                            <th></th>
+                            <th class="text-center"><?= $this->t('Delete') ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -69,8 +69,8 @@ $last_vat_rate = 19;
                                     </div>
                                 </td>
 
-                                <td>
-                                    <a href="?delete=<?= $bill->need('bbid') ?>" class="text-danger" title="<?= $this->t('Delete') ?>"><span class="fa fa-times"></span></a>
+                                <td class="text-center">
+                                    <input type="checkbox" name="ebf-<?= $bill->need('bbid') ?>-delete" value="1" class="form-check-input" title="<?= $this->t('Delete') ?>">
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -107,7 +107,7 @@ $last_vat_rate = 19;
 
                         <tr>
                             <td colspan="5">
-                                <a href="?create=default-bill" class="symbolic symbolic-plus-link"><?= $this->t('New position by using the pricing rules for this booking') ?></a>
+                                <button type="submit" name="ebf-create-default" value="1" class="btn btn-link symbolic symbolic-plus-link p-0"><?= $this->t('New position by using the pricing rules for this booking') ?></button>
                             </td>
                         </tr>
                     </tbody>

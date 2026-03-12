@@ -1194,10 +1194,35 @@ class BookingController extends AbstractActionController
         $bills = $bookingBillManager->getBy(array('bid' => $bid), 'bbid ASC');
         $user = $userManager->get($booking->need('uid'));
 
-        if ($this->getRequest()->isGet()) {
-            $create = $this->params()->fromQuery('create');
+        if ($this->getRequest()->isPost()) {
 
-            if ($create == 'default-bill') {
+            /* Check and save billing status */
+
+            $billingStatus = $this->params()->fromPost('ebf-status');
+
+            if ($bookingStatusService->checkStatus($billingStatus)) {
+                $booking->set('status_billing', $billingStatus);
+                $bookingManager->save($booking);
+            } else {
+                $this->flashMessenger()->addErrorMessage('Invalid billing status selected');
+            }
+
+            /* Delete marked bill positions */
+
+            foreach ($bills as $bbid => $bill) {
+                $deleteFlag = $this->params()->fromPost('ebf-' . $bbid . '-delete');
+
+                if ($deleteFlag) {
+                    $bookingBillManager->delete($bbid);
+                    unset($bills[$bbid]);
+                }
+            }
+
+            /* Create default bill positions if requested */
+
+            $createDefault = $this->params()->fromPost('ebf-create-default');
+
+            if ($createDefault) {
                 $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
                 $squareManager = $serviceManager->get('Square\Manager\SquareManager');
                 $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
@@ -1247,31 +1272,6 @@ class BookingController extends AbstractActionController
                 } else {
                     $this->flashMessenger()->addErrorMessage('No Booking-Bill position has been created');
                 }
-
-                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
-            }
-
-            $delete = $this->params()->fromQuery('delete');
-
-            if ($delete && is_numeric($delete) && isset($bills[$delete])) {
-                $bookingBillManager->delete($delete);
-
-                $this->flashMessenger()->addSuccessMessage('Booking-Bill position has been deleted');
-                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
-            }
-        }
-
-        if ($this->getRequest()->isPost()) {
-
-            /* Check and save billing status */
-
-            $billingStatus = $this->params()->fromPost('ebf-status');
-
-            if ($bookingStatusService->checkStatus($billingStatus)) {
-                $booking->set('status_billing', $billingStatus);
-                $bookingManager->save($booking);
-            } else {
-                $this->flashMessenger()->addErrorMessage('Invalid billing status selected');
             }
 
             /* Check and save known (and new) bills */
