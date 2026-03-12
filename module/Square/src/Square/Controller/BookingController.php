@@ -423,6 +423,8 @@ class BookingController extends AbstractActionController
 
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
                    $meta['directpay'] = 'true';
+                   $meta['status_billing'] = 'pending';
+                   $meta['suppressEmail'] = 'true';
             }
 
             // Add payment and budget info to meta (needed for email notification)
@@ -660,6 +662,70 @@ class BookingController extends AbstractActionController
             
         } catch (\Exception $e) {
             // Silently continue — email failure should not break cancellation
+        }
+    }
+
+    public function sendPaymentFailedEmail($booking, $user)
+    {
+        try {
+            $serviceManager = $this->getServiceLocator();
+            $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+            $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+            $square = $squareManager->get($booking->need('sid'));
+
+            $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+            $reservation = current($reservations);
+
+            if (!$reservation) {
+                return;
+            }
+
+            $reservationTimeStart = explode(':', $reservation->need('time_start'));
+            $reservationTimeEnd = explode(':', $reservation->need('time_end'));
+
+            $reservationStart = new \DateTime($reservation->need('date'));
+            $reservationStart->setTime($reservationTimeStart[0], $reservationTimeStart[1]);
+
+            $reservationEnd = new \DateTime($reservation->need('date'));
+            $reservationEnd->setTime($reservationTimeEnd[0], $reservationTimeEnd[1]);
+
+            $formattedDate = $reservationStart->format('d.m.Y');
+            $formattedTimeStart = $reservationStart->format('H:i');
+            $formattedTimeEnd = $reservationEnd->format('H:i');
+
+            $subject = $this->t('Payment failed for your booking');
+
+            $message = sprintf(
+                $this->t("unfortunately the payment for your booking could not be completed.\n\nCourt: %s\nDate: %s\nTime: %s - %s\nBooking ID: %s\n\nThe booking has been cancelled. Please try again or contact us if you have any questions.\n\nThank you,\n%s"),
+                $square->need('name'),
+                $formattedDate,
+                $formattedTimeStart,
+                $formattedTimeEnd,
+                $booking->get('bid'),
+                $this->option('client.name')
+            );
+
+            $mailService = $serviceManager->get('Base\Service\MailService');
+            if (!$mailService) {
+                return;
+            }
+
+            $fromAddress = $this->option('client.mail');
+            $fromName = $this->option('client.name');
+
+            $mailService->sendPlain(
+                $fromAddress,
+                $fromName,
+                $fromAddress,
+                $fromName,
+                $user->need('email'),
+                $user->need('alias'),
+                $subject,
+                $message,
+                []
+            );
+        } catch (\Exception $e) {
+            // Silently continue — email failure should not break the payment error flow
         }
     }
 
@@ -1012,6 +1078,13 @@ class BookingController extends AbstractActionController
             $notes = $notes . " paymentMethod: " . $booking->getMeta('paymentMethod') . " | payment_status: " . $status->getValue() . ' ' . $paymentStatus;
             $booking->setMeta('notes', $notes);
             $bookingService->updatePaymentSingle($booking);
+
+            // Send confirmation email now that payment is confirmed
+            if ($booking->getMeta('suppressEmail') == 'true') {
+                $booking->setMeta('suppressEmail', null);
+                $bookingManager->save($booking);
+                $bookingService->getEventManager()->trigger('create.single', $booking);
+            }
 	    }
 	    else
         {
@@ -1034,11 +1107,16 @@ class BookingController extends AbstractActionController
                     $this->flashMessenger()->addErrorMessage(sprintf($this->t('%sError during payment: Your booking has been cancelled.%s'),
                         '<b>', '</b>'));
                 }
+                // Suppress the automatic cancel email — we send a dedicated payment-failed email instead
+                $booking->setMeta('suppressCancelEmail', 'true');
+                $bookingManager->save($booking);
+
                 $bookingService = $serviceManager->get('Booking\Service\BookingService');
                 $bookingService->cancelSingle($booking);
+
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $user = $userManager->get($booking->get('uid'));
-                $this->sendCancellationEmail($booking, $user, 0);
+                $this->sendPaymentFailedEmail($booking, $user);
             }
         }
 

@@ -60,9 +60,14 @@ class NotificationListener extends AbstractListenerAggregate
 
     public function onCreateSingle(Event $event)
     {
-        // syslog(LOG_EMERG, '|trigger onCreateSingle|'); 
-        
+        // syslog(LOG_EMERG, '|trigger onCreateSingle|');
+
         $booking = $event->getTarget();
+
+        // Suppress email for directpay bookings until payment is confirmed
+        if ($booking->getMeta('suppressEmail') == 'true') {
+            return;
+        }
         $reservations = $this->reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
         $reservation = current($reservations);
 
@@ -258,9 +263,12 @@ class NotificationListener extends AbstractListenerAggregate
 
     public function onCancelSingle(Event $event)
     {
-        
-
         $booking = $event->getTarget();
+
+        // Suppress cancel email when payment failed (separate payment-failed email is sent instead)
+        if ($booking->getMeta('suppressCancelEmail') == 'true') {
+            return;
+        }
         $reservations = $this->reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
         $reservation = current($reservations);
         $square = $this->squareManager->get($booking->need('sid'));

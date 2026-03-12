@@ -134,6 +134,10 @@ return array(
     'These booking times are reserved for the club.' => 'Diese Buchungszeiten sind für Vereinsmitglieder reserviert.',
     'You can only have <b>%s active bookings</b> at the same time at the moment.' => 'Sie können derzeit nur <b>%s aktive Buchung/en</b> gleichzeitig offen haben.',
 
+    'Payment failed for your booking' => 'Zahlung für Ihre Buchung fehlgeschlagen',
+    "unfortunately the payment for your booking could not be completed.\n\nCourt: %s\nDate: %s\nTime: %s - %s\nBooking ID: %s\n\nThe booking has been cancelled. Please try again or contact us if you have any questions.\n\nThank you,\n%s"
+        => "leider konnte die Zahlung für Ihre Buchung nicht abgeschlossen werden.\n\nPlatz: %s\nDatum: %s\nZeit: %s - %s\nBuchungs-Nr: %s\n\nDie Buchung wurde storniert. Bitte versuchen Sie es erneut oder kontaktieren Sie uns bei Fragen.\n\nVielen Dank,\n%s",
+
     'Pay now' => 'Jetzt bezahlen',
     'Pay open bill now:' => 'Offene Rechnung jetzt bezahlen:',
     '%sPayment successful!%s' => '%sZahlung erfolgreich!%s',
