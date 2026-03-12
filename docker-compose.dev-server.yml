@@ -56,10 +56,7 @@ services:
 
       # Secure Header Middleware
       - "traefik.http.middlewares.secure-headers-dev.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.court-dev.middlewares=secure-headers-dev,dev-auth"
-
-      # Basic Auth for DEV instance (set DEV_BASIC_AUTH in .env, generate with: htpasswd -nb user password)
-      - "traefik.http.middlewares.dev-auth.basicauth.users=${DEV_BASIC_AUTH}"
+      - "traefik.http.routers.court-dev.middlewares=secure-headers-dev"
 
       # HTTP -> HTTPS Redirect
       - "traefik.http.routers.court-dev-redirect.entrypoints=web"
