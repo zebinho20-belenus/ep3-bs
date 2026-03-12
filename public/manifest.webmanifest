@@ -1,6 +1,6 @@
 {
-    "name": "TCN-Kail court booking",
-    "short_name": "TCN-Kail Booking",
+    "name": "TC Neuperlach court booking",
+    "short_name": "TCN Court Booking",
     "start_url": "./",
     "display": "standalone",
     "theme_color": "#0d6236",

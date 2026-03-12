@@ -135,8 +135,21 @@ return array(
     'You can only have <b>%s active bookings</b> at the same time at the moment.' => 'Sie können derzeit nur <b>%s aktive Buchung/en</b> gleichzeitig offen haben.',
 
     'Payment failed for your booking' => 'Zahlung für Ihre Buchung fehlgeschlagen',
-    "unfortunately the payment for your booking could not be completed.\n\nCourt: %s\nDate: %s\nTime: %s - %s\nBooking ID: %s\n\nThe booking has been cancelled. Please try again or contact us if you have any questions.\n\nThank you,\n%s"
-        => "leider konnte die Zahlung für Ihre Buchung nicht abgeschlossen werden.\n\nPlatz: %s\nDatum: %s\nZeit: %s - %s\nBuchungs-Nr: %s\n\nDie Buchung wurde storniert. Bitte versuchen Sie es erneut oder kontaktieren Sie uns bei Fragen.\n\nVielen Dank,\n%s",
+    'unfortunately the payment for your booking could not be completed.' => 'leider konnte die Zahlung für Ihre Buchung nicht abgeschlossen werden.',
+    "Booking details:\n\n- Court: %s\n- Date: %s\n- Time: %s - %s\n- Booking ID: %s"
+        => "Buchungsdetails:\n\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s",
+    'The booking has been cancelled. Please try again or contact us if you have any questions.'
+        => 'Die Buchung wurde storniert. Bitte versuchen Sie es erneut oder kontaktieren Sie uns bei Fragen.',
+    'This message was sent automatically. If you have questions, please contact our support team'
+        => 'Diese Nachricht wurde automatisch gesendet. Sollten Sie noch Fragen bzw. Anregungen haben, informieren Sie bitte unser Supportteam',
+    ' at %s' => ' unter %s',
+    ' or' => ' oder',
+    ' on our website %s' => ' auf unserer Website %s',
+
+    'your booking has been cancelled.' => 'Ihre Platz-Buchung wurde storniert.',
+    "Cancelled booking details:\n\n- Court: %s\n- Date: %s\n- Time: %s - %s\n- Booking ID: %s"
+        => "Stornierte Buchungsdetails:\n\n- Platz: %s\n- Datum: %s\n- Zeit: %s - %s Uhr\n- Buchungs-Nr: %s",
+    'A refund of %s EUR has been credited to your account budget.' => 'Eine Rückerstattung von %s EUR wurde Ihrem Konto-Budget gutgeschrieben.',
 
     'Pay now' => 'Jetzt bezahlen',
     'Pay open bill now:' => 'Offene Rechnung jetzt bezahlen:',

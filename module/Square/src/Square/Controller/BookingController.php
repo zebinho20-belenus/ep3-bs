@@ -588,80 +588,132 @@ class BookingController extends AbstractActionController
         try {
             $serviceManager = $this->getServiceLocator();
             $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+            $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
             $square = $squareManager->get($booking->need('sid'));
-            
-            // Get the mail service
-            $mailService = $serviceManager->get('Base\Service\MailService');
-            if (!$mailService) {
-                return;
-            }
-            
+
             $squareName = $square->need('name');
-            $bookingTime = $booking->get('time_start');
-            if (!$bookingTime && $booking->getExtra('reservations')) {
-                $reservations = $booking->getExtra('reservations');
-                if (is_array($reservations) && count($reservations) > 0) {
-                    $firstReservation = reset($reservations);
-                    $date = $firstReservation->get('date');
-                    $time = $firstReservation->get('time_start');
-                    if ($date && $time) {
-                        $dateTime = new \DateTime($date . ' ' . $time);
-                        $bookingTime = $dateTime->getTimestamp();
-                    }
+            $formattedDate = '[Datum nicht verfügbar]';
+            $formattedTimeStart = '[Startzeit nicht verfügbar]';
+            $formattedTimeEnd = '[Endzeit nicht verfügbar]';
+
+            // Reservierungsdaten für Datum/Zeit
+            $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+            if (!empty($reservations)) {
+                $reservation = current($reservations);
+                if ($reservation->get('date')) {
+                    $formattedDate = (new \DateTime($reservation->need('date')))->format('d.m.Y');
+                }
+                if ($reservation->get('time_start')) {
+                    $formattedTimeStart = substr($reservation->get('time_start'), 0, 5);
+                }
+                if ($reservation->get('time_end')) {
+                    $formattedTimeEnd = substr($reservation->get('time_end'), 0, 5);
                 }
             }
-            
-            // Use current time if we can't determine the booking time
-            if (!$bookingTime) {
-                $bookingTime = time();
+
+            // Personalisierte Anrede
+            $anrede = 'Hallo';
+            if ($user->getMeta('gender') == 'male') {
+                $anrede = 'Sehr geehrter Herr';
+            } elseif ($user->getMeta('gender') == 'female') {
+                $anrede = 'Sehr geehrte Frau';
             }
-            
-            $formattedDate = date('d.m.Y', $bookingTime);
-            $formattedTime = date('H:i', $bookingTime);
-            
-            // Prepare refund message if applicable
-            $refundMessage = '';
-            if ($total > 0) {
-                $refundAmount = number_format($total / 100, 2);
-                $refundMessage = sprintf($this->t("\n\nA refund of %s has been processed to your account."), $refundAmount);
+
+            if ($user->getMeta('lastname')) {
+                $anrede .= ' ' . $user->getMeta('lastname');
+            } else {
+                $anrede .= ' ' . $user->need('alias');
             }
-            
-            // Set email content
+
             $subject = sprintf($this->t('Your booking for %s has been cancelled'), $squareName);
-            $body = sprintf(
-                $this->t("Dear %s,\n\nYour booking for %s on %s at %s has been cancelled.%s\n\nIf you have any questions, please contact us.\n\nThank you,\n%s"),
-                $user->need('alias'),
+
+            // Strukturierte Buchungsdetails
+            $buchungsDetails = sprintf(
+                $this->t("Cancelled booking details:\n\n- Court: %s\n- Date: %s\n- Time: %s - %s\n- Booking ID: %s"),
                 $squareName,
                 $formattedDate,
-                $formattedTime,
-                $refundMessage,
-                $this->option('client.name')
+                $formattedTimeStart,
+                $formattedTimeEnd,
+                $booking->need('bid')
             );
-            
-            // Get email settings — From uses mail.address (SMTP sender), ReplyTo uses client.contact.email
-            $fromAddress = $this->config('mail.address');
-            $fromName = $this->option('client.name.short') . ' ' . $this->option('service.name.full');
-            $replyToAddress = $this->option('client.contact.email');
-            $replyToName = $this->option('client.name.full');
-            $toAddress = $user->need('email');
-            $toName = $user->need('alias');
 
-            // Send the email using MailService
-            $mailService->sendPlain(
-                $fromAddress,
-                $fromName,
-                $replyToAddress,
-                $replyToName,
-                $toAddress,
-                $toName,
-                $subject,
-                $body,
-                []
+            // Budget-Rückerstattung
+            $refundInfo = '';
+            if ($total > 0) {
+                $refundAmount = number_format($total / 100, 2, ',', '.');
+                $refundInfo = "\n\n" . sprintf($this->t('A refund of %s EUR has been credited to your account budget.'), $refundAmount);
+            }
+
+            // Kontaktinfo
+            $contactInfo = '';
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('This message was sent automatically. If you have questions, please contact our support team');
+
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf($this->t(' at %s'), $contactEmail);
+                }
+
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= $this->t(' or');
+                    }
+                    $contactInfo .= sprintf($this->t(' on our website %s'), $clientWebsite);
+                }
+                $contactInfo .= '.';
+            }
+
+            $emailText = sprintf(
+                "%s,\n\n%s\n\n%s%s",
+                $anrede,
+                $this->t('your booking has been cancelled.'),
+                $buchungsDetails,
+                $refundInfo
             );
-            
+
+            // Backend MailService verwenden (mit automatischer Signatur)
+            if ($serviceManager->has('Backend\Service\MailService')) {
+                $backendMailService = $serviceManager->get('Backend\Service\MailService');
+                $backendMailService->sendCustomEmail(
+                    $subject,
+                    $emailText,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    [],
+                    $contactInfo,
+                    false
+                );
+            } else {
+                // Fallback auf sendPlain
+                $mailService = $serviceManager->get('Base\Service\MailService');
+                if (!$mailService) {
+                    return;
+                }
+
+                $fromAddress = $this->config('mail.address');
+                $fromName = $this->option('client.name.short') . ' ' . $this->option('service.name.full');
+                $replyToAddress = $this->option('client.contact.email');
+                $replyToName = $this->option('client.name.full');
+
+                $mailService->sendPlain(
+                    $fromAddress,
+                    $fromName,
+                    $replyToAddress,
+                    $replyToName,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    $subject,
+                    $emailText,
+                    []
+                );
+            }
+
             // Record that we sent a notification
             $booking->setMeta('cancellation_notification_sent', date('Y-m-d H:i:s'));
-            
+
         } catch (\Exception $e) {
             // Silently continue — email failure should not break cancellation
         }
@@ -682,52 +734,103 @@ class BookingController extends AbstractActionController
                 return;
             }
 
-            $reservationTimeStart = explode(':', $reservation->need('time_start'));
-            $reservationTimeEnd = explode(':', $reservation->need('time_end'));
+            $formattedDate = (new \DateTime($reservation->need('date')))->format('d.m.Y');
+            $formattedTimeStart = substr($reservation->need('time_start'), 0, 5);
+            $formattedTimeEnd = substr($reservation->need('time_end'), 0, 5);
+            $squareName = $square->need('name');
 
-            $reservationStart = new \DateTime($reservation->need('date'));
-            $reservationStart->setTime($reservationTimeStart[0], $reservationTimeStart[1]);
+            // Personalisierte Anrede (gleicher Stil wie Backend-Stornierungsmail)
+            $anrede = 'Hallo';
+            if ($user->getMeta('gender') == 'male') {
+                $anrede = 'Sehr geehrter Herr';
+            } elseif ($user->getMeta('gender') == 'female') {
+                $anrede = 'Sehr geehrte Frau';
+            }
 
-            $reservationEnd = new \DateTime($reservation->need('date'));
-            $reservationEnd->setTime($reservationTimeEnd[0], $reservationTimeEnd[1]);
-
-            $formattedDate = $reservationStart->format('d.m.Y');
-            $formattedTimeStart = $reservationStart->format('H:i');
-            $formattedTimeEnd = $reservationEnd->format('H:i');
+            if ($user->getMeta('lastname')) {
+                $anrede .= ' ' . $user->getMeta('lastname');
+            } else {
+                $anrede .= ' ' . $user->need('alias');
+            }
 
             $subject = $this->t('Payment failed for your booking');
 
-            $message = sprintf(
-                $this->t("unfortunately the payment for your booking could not be completed.\n\nCourt: %s\nDate: %s\nTime: %s - %s\nBooking ID: %s\n\nThe booking has been cancelled. Please try again or contact us if you have any questions.\n\nThank you,\n%s"),
-                $square->need('name'),
+            // Strukturierte Buchungsdetails
+            $buchungsDetails = sprintf(
+                $this->t("Booking details:\n\n- Court: %s\n- Date: %s\n- Time: %s - %s\n- Booking ID: %s"),
+                $squareName,
                 $formattedDate,
                 $formattedTimeStart,
                 $formattedTimeEnd,
-                $booking->get('bid'),
-                $this->option('client.name')
+                $booking->get('bid')
             );
 
-            $mailService = $serviceManager->get('Base\Service\MailService');
-            if (!$mailService) {
-                return;
+            // Kontaktinfo
+            $contactInfo = '';
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('This message was sent automatically. If you have questions, please contact our support team');
+
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf($this->t(' at %s'), $contactEmail);
+                }
+
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= $this->t(' or');
+                    }
+                    $contactInfo .= sprintf($this->t(' on our website %s'), $clientWebsite);
+                }
+                $contactInfo .= '.';
             }
 
-            $fromAddress = $this->config('mail.address');
-            $fromName = $this->option('client.name.short') . ' ' . $this->option('service.name.full');
-            $replyToAddress = $this->option('client.contact.email');
-            $replyToName = $this->option('client.name.full');
-
-            $mailService->sendPlain(
-                $fromAddress,
-                $fromName,
-                $replyToAddress,
-                $replyToName,
-                $user->need('email'),
-                $user->need('alias'),
-                $subject,
-                $message,
-                []
+            $emailText = sprintf(
+                "%s,\n\n%s\n\n%s\n\n%s",
+                $anrede,
+                $this->t('unfortunately the payment for your booking could not be completed.'),
+                $buchungsDetails,
+                $this->t('The booking has been cancelled. Please try again or contact us if you have any questions.')
             );
+
+            // Backend MailService verwenden (mit automatischer Signatur)
+            if ($serviceManager->has('Backend\Service\MailService')) {
+                $backendMailService = $serviceManager->get('Backend\Service\MailService');
+                $backendMailService->sendCustomEmail(
+                    $subject,
+                    $emailText,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    [],
+                    $contactInfo,
+                    false
+                );
+            } else {
+                // Fallback auf sendPlain
+                $mailService = $serviceManager->get('Base\Service\MailService');
+                if (!$mailService) {
+                    return;
+                }
+
+                $fromAddress = $this->config('mail.address');
+                $fromName = $this->option('client.name.short') . ' ' . $this->option('service.name.full');
+                $replyToAddress = $this->option('client.contact.email');
+                $replyToName = $this->option('client.name.full');
+
+                $mailService->sendPlain(
+                    $fromAddress,
+                    $fromName,
+                    $replyToAddress,
+                    $replyToName,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    $subject,
+                    $emailText,
+                    []
+                );
+            }
         } catch (\Exception $e) {
             error_log('sendPaymentFailedEmail error: ' . $e->getMessage());
         }
