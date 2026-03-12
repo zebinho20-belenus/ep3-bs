@@ -281,6 +281,22 @@ main.container-xl {
     border-left: 4px solid #f59e0b;
 }
 
+.rules-text-scroll {
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+.rules-text-scroll p:last-child {
+    margin-bottom: 0;
+}
+@media (min-width: 768px) {
+    .rules-text-scroll {
+        max-height: 180px;
+    }
+}
+
 /* ---------- Nav Tabs (replaces custom tabs) ---------- */
 
 .nav-tabs {

@@ -84,7 +84,7 @@ function setPaymentLabel(label) {
 
             <div class="alert alert-warning">
                 <p class="mb-2"><strong><?= $this->t('Please note') ?>:</strong></p>
-                <div class="mb-2"><?= $square->getMeta('rules.text') ?></div>
+                <div class="rules-text-scroll mb-2"><?= $square->getMeta('rules.text') ?></div>
                 <div class="form-check">
                     <input type="checkbox" name="bf-accept-rules-text" id="bf-accept-rules-text" class="form-check-input">
                     <label for="bf-accept-rules-text" class="form-check-label"><?= sprintf($this->t('Yes, I have %sread and accepted%s these rules and notes'), '<b>', '</b>') ?></label>
