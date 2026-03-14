@@ -288,11 +288,42 @@ class NotificationListener extends AbstractListenerAggregate
         $subject = sprintf($this->t('Your %s-booking has been cancelled'),
             $this->optionManager->get('subject.square.type'));
 
-        $message = sprintf($this->t('we have just cancelled %s "%s", %s for you (booking id: %s).'),
-            $this->optionManager->get('subject.square.type'),
-            $square->need('name'),
-            $dateRangerHelper($reservationStart, $reservationEnd),
-            $booking->get('bid'));
+        // Personalisierte Anrede
+        $anrede = 'Hallo';
+        if ($user->getMeta('gender') == 'male') {
+            $anrede = 'Sehr geehrter Herr';
+        } elseif ($user->getMeta('gender') == 'female') {
+            $anrede = 'Sehr geehrte Frau';
+        }
+
+        if ($user->getMeta('lastname')) {
+            $anrede .= ' ' . $user->getMeta('lastname');
+        } else {
+            $anrede .= ' ' . $user->need('alias');
+        }
+
+        // Strukturierte Buchungsdetails
+        $formattedDate = $reservationStart->format('d.m.Y');
+        $formattedTimeStart = $reservationStart->format('H:i');
+        $formattedTimeEnd = $reservationEnd->format('H:i');
+
+        $buchungsDetails = sprintf(
+            "- %s: %s\n- %s: %s\n- %s: %s - %s Uhr\n- %s: %s",
+            $this->t('Court'), $square->need('name'),
+            $this->t('Date'), $formattedDate,
+            $this->t('Time'), $formattedTimeStart, $formattedTimeEnd,
+            $this->t('Booking ID'), $booking->get('bid')
+        );
+
+        $message = sprintf(
+            "%s,\n\n%s\n\n%s",
+            $anrede,
+            $this->t('your booking has been cancelled.'),
+            $buchungsDetails
+        );
+
+        $message .= "\n\n" . sprintf($this->t('Should you have any questions and commentaries, please contact us through Email - %s'),
+            str_replace('mailto:', '', $this->optionManager->get('client.website.contact')));
 
         if ($user->getMeta('notification.bookings', 'true') == 'true') {
             $this->userMailService->send($user, $subject, $message);

@@ -111,6 +111,16 @@
                         squarebox.find(".no-ajax").remove();
                         squarebox.find(".datepicker").datepicker();
 
+                        /* Re-initialize autocomplete for backend booking form */
+                        var userInput = squarebox.find("#bf-user");
+                        var urlProvider = squarebox.find("#bf-url-provider");
+                        if (userInput.length && urlProvider.length && $.fn.autocomplete) {
+                            userInput.autocomplete({
+                                minLength: 1,
+                                source: urlProvider.data("user-autocomplete-url")
+                            });
+                        }
+
                         squarebox.find(".inline-label-container").each(function() {
                             updateInlineLabel( $(this) );
                         });

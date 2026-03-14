@@ -1194,6 +1194,8 @@ class BookingController extends AbstractActionController
         $bills = $bookingBillManager->getBy(array('bid' => $bid), 'bbid ASC');
         $user = $userManager->get($booking->need('uid'));
 
+        $previewBills = [];
+
         if ($this->getRequest()->isPost()) {
 
             if (! $this->CsrfProtection()->validate($this->params()->fromPost('csrf_token'))) {
@@ -1201,31 +1203,36 @@ class BookingController extends AbstractActionController
                 return $this->redirect()->toRoute('backend/booking');
             }
 
-            /* Check and save billing status */
+            $save = $this->params()->fromPost('ebf-save');
+            $saveAndBack = $this->params()->fromPost('ebf-save-and-back');
+            $createDefault = $this->params()->fromPost('ebf-create-default');
+            $isSaving = ($save || $saveAndBack);
 
-            $billingStatus = $this->params()->fromPost('ebf-status');
+            if ($isSaving) {
+                /* Check and save billing status */
 
-            if ($bookingStatusService->checkStatus($billingStatus)) {
-                $booking->set('status_billing', $billingStatus);
-                $bookingManager->save($booking);
-            } else {
-                $this->flashMessenger()->addErrorMessage('Invalid billing status selected');
-            }
+                $billingStatus = $this->params()->fromPost('ebf-status');
 
-            /* Delete marked bill positions */
+                if ($bookingStatusService->checkStatus($billingStatus)) {
+                    $booking->set('status_billing', $billingStatus);
+                    $bookingManager->save($booking);
+                } else {
+                    $this->flashMessenger()->addErrorMessage('Invalid billing status selected');
+                }
 
-            foreach ($bills as $bbid => $bill) {
-                $deleteFlag = $this->params()->fromPost('ebf-' . $bbid . '-delete');
+                /* Delete marked bill positions */
 
-                if ($deleteFlag) {
-                    $bookingBillManager->delete($bbid);
-                    unset($bills[$bbid]);
+                foreach ($bills as $bbid => $bill) {
+                    $deleteFlag = $this->params()->fromPost('ebf-' . $bbid . '-delete');
+
+                    if ($deleteFlag) {
+                        $bookingBillManager->delete($bbid);
+                        unset($bills[$bbid]);
+                    }
                 }
             }
 
-            /* Create default bill positions if requested */
-
-            $createDefault = $this->params()->fromPost('ebf-create-default');
+            /* Calculate default bill positions from pricing rules */
 
             if ($createDefault) {
                 $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
@@ -1258,7 +1265,7 @@ class BookingController extends AbstractActionController
                             $squareType, $squareName,
                             $dateRangeHelper($dateTimeStart, $dateTimeEnd));
 
-                        $bookingBillManager->save(new Booking\Bill(array(
+                        $newBill = new Booking\Bill(array(
                             'bid' => $bid,
                             'description' => $description,
                             'quantity' => $booking->get('quantity'),
@@ -1266,74 +1273,112 @@ class BookingController extends AbstractActionController
                             'price' => $pricing['price'],
                             'rate' => $pricing['rate'],
                             'gross' => $pricing['gross'],
-                        )));
+                        ));
+
+                        if ($isSaving) {
+                            $bookingBillManager->save($newBill);
+                        } else {
+                            $previewBills[] = $newBill;
+                        }
 
                         $created = true;
                     }
                 }
 
-                if ($created) {
-                    $this->flashMessenger()->addSuccessMessage('Booking-Bill position has been created');
-                } else {
+                if ($isSaving) {
+                    if ($created) {
+                        $this->flashMessenger()->addSuccessMessage('Booking-Bill position has been created');
+                    } else {
+                        $this->flashMessenger()->addErrorMessage('No Booking-Bill position has been created');
+                    }
+                } elseif (!$created) {
                     $this->flashMessenger()->addErrorMessage('No Booking-Bill position has been created');
                 }
             }
 
-            /* Check and save known (and new) bills */
+            if ($isSaving) {
+                /* Save preview bills from previous "create default" preview */
 
-            $bills[] = new Booking\Bill(['bid' => $bid]);
+                for ($idx = 0; $idx < 10; $idx++) {
+                    $previewDesc = $this->params()->fromPost('ebf-preview-' . $idx . '-description');
+                    $previewPrice = $this->params()->fromPost('ebf-preview-' . $idx . '-price');
+                    $previewVatGross = $this->params()->fromPost('ebf-preview-' . $idx . '-vat-gross');
+                    $previewVatRate = $this->params()->fromPost('ebf-preview-' . $idx . '-vat-rate');
 
-            foreach ($bills as $bill) {
+                    if ($previewDesc && $previewPrice && is_numeric($previewVatRate) && is_numeric($previewVatGross)) {
+                        $previewBill = new Booking\Bill(['bid' => $bid]);
+                        $previewBill->set('description', trim(strip_tags($previewDesc)));
+                        $previewBill->set('price', $previewPrice);
+                        $previewBill->set('gross', $previewVatGross);
+                        $previewBill->set('rate', $previewVatRate);
 
-                $bbid = $bill->get('bbid', 'new');
+                        $previewTime = $this->params()->fromPost('ebf-preview-' . $idx . '-time');
+                        if ($previewTime && is_numeric($previewTime)) {
+                            $previewBill->set('time', $previewTime * 60);
+                        }
 
-                $description = $this->params()->fromPost('ebf-' . $bbid . '-description');
-                $description = trim(strip_tags($description));
+                        $previewQty = $this->params()->fromPost('ebf-preview-' . $idx . '-quantity');
+                        if ($previewQty && is_numeric($previewQty)) {
+                            $previewBill->set('quantity', $previewQty);
+                        }
 
-                if ($description) {
-                    $bill->set('description', $description);
+                        $bookingBillManager->save($previewBill);
+                    }
                 }
 
-                $time = $this->params()->fromPost('ebf-' . $bbid . '-time');
+                /* Check and save known (and new) bills */
 
-                if ($time && is_numeric($time)) {
-                    $bill->set('time', $time * 60);
+                $bills[] = new Booking\Bill(['bid' => $bid]);
+
+                foreach ($bills as $bill) {
+
+                    $bbid = $bill->get('bbid', 'new');
+
+                    $description = $this->params()->fromPost('ebf-' . $bbid . '-description');
+                    $description = trim(strip_tags($description));
+
+                    if ($description) {
+                        $bill->set('description', $description);
+                    }
+
+                    $time = $this->params()->fromPost('ebf-' . $bbid . '-time');
+
+                    if ($time && is_numeric($time)) {
+                        $bill->set('time', $time * 60);
+                    }
+
+                    $quantity = $this->params()->fromPost('ebf-' . $bbid . '-quantity');
+
+                    if ($quantity && is_numeric($quantity)) {
+                        $bill->set('quantity', $quantity);
+                    }
+
+                    $price = $this->params()->fromPost('ebf-' . $bbid . '-price');
+
+                    if ($price && is_numeric($price)) {
+                        $bill->set('price', $price);
+                    }
+
+                    $vatGross = $this->params()->fromPost('ebf-' . $bbid . '-vat-gross');
+                    $vatRate = $this->params()->fromPost('ebf-' . $bbid . '-vat-rate');
+
+                    if (is_numeric($vatGross) && is_numeric($vatRate)) {
+                        $bill->set('gross', $vatGross);
+                        $bill->set('rate', $vatRate);
+                    }
+
+                    if ($description && $price && is_numeric($vatRate) && is_numeric($vatGross)) {
+                        $bookingBillManager->save($bill);
+                    }
                 }
 
-                $quantity = $this->params()->fromPost('ebf-' . $bbid . '-quantity');
+                $this->flashMessenger()->addSuccessMessage('Booking-Bill has been saved');
 
-                if ($quantity && is_numeric($quantity)) {
-                    $bill->set('quantity', $quantity);
+                if ($save) {
+                    return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
+                } else if ($saveAndBack) {
+                    return $this->redirect()->toRoute('user/bookings/bills', ['bid' => $bid], ['query' => []]);
                 }
-
-                $price = $this->params()->fromPost('ebf-' . $bbid . '-price');
-
-                if ($price && is_numeric($price)) {
-                    $bill->set('price', $price);
-                }
-
-                $vatGross = $this->params()->fromPost('ebf-' . $bbid . '-vat-gross');
-                $vatRate = $this->params()->fromPost('ebf-' . $bbid . '-vat-rate');
-
-                if (is_numeric($vatGross) && is_numeric($vatRate)) {
-                    $bill->set('gross', $vatGross);
-                    $bill->set('rate', $vatRate);
-                }
-
-                if ($description && $price && is_numeric($vatRate) && is_numeric($vatGross)) {
-                    $bookingBillManager->save($bill);
-                }
-            }
-
-            $save = $this->params()->fromPost('ebf-save');
-            $saveAndBack = $this->params()->fromPost('ebf-save-and-back');
-
-            $this->flashMessenger()->addSuccessMessage('Booking-Bill has been saved');
-
-            if ($save) {
-                return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $bid], ['query' => []]);
-            } else if ($saveAndBack) {
-                return $this->redirect()->toRoute('user/bookings/bills', ['bid' => $bid], ['query' => []]);
             }
 
             // Reload bills after POST to exclude the temporary new Bill object
@@ -1344,6 +1389,7 @@ class BookingController extends AbstractActionController
             'booking' => $booking,
             'bookingStatusService' => $bookingStatusService,
             'bills' => $bills,
+            'previewBills' => $previewBills,
             'user' => $user,
         );
     }

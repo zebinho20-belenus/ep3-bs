@@ -77,6 +77,11 @@ return array(
     'Invoice' => 'Rechnung',
     'Budget: %s → new budget: %s' => 'Budget: %s → neues Budget: %s',
     'Billing status' => 'Rechnungsstatus',
+    'Court' => 'Platz',
+    'Date' => 'Datum',
+    'Time' => 'Zeit',
+    'Booking ID' => 'Buchungs-Nr',
+    'your booking has been cancelled.' => 'Ihre Buchung wurde storniert.',
     'Notes:' => 'Anmerkungen:',
     'The amount of %s € has been deducted from your budget. Remaining budget: %s €'
         => 'Der Betrag von %s € wurde von Ihrem Guthaben abgezogen. Restguthaben: %s €',

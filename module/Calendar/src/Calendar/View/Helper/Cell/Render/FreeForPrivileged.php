@@ -17,7 +17,9 @@ class FreeForPrivileged extends AbstractHelper
         if ($reservationsCount == 0) {
 	        $labelFree = $square->getMeta('label.free', $this->view->t('Free'));
 
-            return $view->calendarCellLink($labelFree, $view->url('backend/booking/edit', [], $cellLinkParams), 'cc-free');
+            $newBookingParams = $cellLinkParams;
+            $newBookingParams['query']['force'] = 'new';
+            return $view->calendarCellLink($labelFree, $view->url('backend/booking/edit', [], $newBookingParams), 'cc-free');
         } else if ($reservationsCount == 1) {
             $reservation = current($reservations);
             $booking = $reservation->needExtra('booking');

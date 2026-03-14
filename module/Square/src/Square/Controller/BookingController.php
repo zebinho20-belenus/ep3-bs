@@ -505,6 +505,13 @@ class BookingController extends AbstractActionController
                 }
 
 
+                if ($guestPlayerCheckbox == 1 && !$budgetpayment) {
+                    $paypalEmail = $this->config('paypalEmail') ?: 'payment@your-domain.com';
+                    $this->flashMessenger()->addInfoMessage(
+                        sprintf($this->t('Please pay the booking amount before the game via PayPal Friends & Family to %s or use the money letterbox at the office. Another option is instant bank transfer to our bank account.'), $paypalEmail)
+                    );
+                }
+
                 if ($this->config('tmpBookingAt') != null) {
                     $this->flashMessenger()->addSuccessMessage(sprintf($this->t('%sPayment and admittance temporarily at %s!%s'),
                         '<b>', $this->config('tmpBookingAt'), '</b>'));
@@ -1188,7 +1195,8 @@ class BookingController extends AbstractActionController
                 $notes = $notes . "(payLater) ";
             }
 
-            $notes = $notes . " paymentMethod: " . $booking->getMeta('paymentMethod') . " | payment_status: " . $status->getValue() . ' ' . $paymentStatus;
+            $actualPaymentStatus = $paypalCompleted ? 'captured' : ($paymentStatus === 'succeeded' ? 'succeeded' : ($status->isCaptured() ? 'captured' : $status->getValue()));
+            $notes = $notes . " paymentMethod: " . $booking->getMeta('paymentMethod') . " | payment_status: " . $actualPaymentStatus;
             $booking->setMeta('notes', $notes);
             $bookingService->updatePaymentSingle($booking);
 

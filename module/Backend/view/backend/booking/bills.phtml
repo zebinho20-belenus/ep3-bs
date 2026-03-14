@@ -106,6 +106,43 @@ $last_vat_rate = 19;
                             <td></td>
                         </tr>
 
+                        <?php if (!empty($this->previewBills)): ?>
+                            <?php foreach ($this->previewBills as $idx => $previewBill): ?>
+                                <tr class="table-warning">
+                                    <td>
+                                        <input type="text" name="ebf-preview-<?= $idx ?>-description" value="<?= $this->escapeHtml($previewBill->get('description')) ?>" class="form-control form-control-sm" style="width: 220px;">
+                                        <small class="text-muted"><?= $this->t('Preview - click Save to keep') ?></small>
+                                    </td>
+
+                                    <td class="right-text"><input type="text" name="ebf-preview-<?= $idx ?>-time" value="<?= ($previewBill->get('time') ? ($previewBill->get('time') / 60) : '') ?>" class="form-control form-control-sm" style="width: 64px; text-align: right;"></td>
+
+                                    <td class="right-text"><input type="text" name="ebf-preview-<?= $idx ?>-quantity" value="<?= $previewBill->get('quantity') ?>" class="form-control form-control-sm" style="width: 64px; text-align: right;"></td>
+
+                                    <td>
+                                        <div class="d-flex align-items-center flex-wrap gap-1">
+                                            <input type="text" name="ebf-preview-<?= $idx ?>-price" value="<?= $previewBill->get('price') ?>" class="form-control form-control-sm" style="width: 64px; text-align: right;">
+
+                                            <?php
+                                            echo '<select name="ebf-preview-' . $idx . '-vat-gross" class="form-select form-select-sm" style="width: auto;">';
+                                            echo $this->formSelect()->renderOptions(array(
+                                                '0' => $this->t('plus'),
+                                                '1' => $this->t('including'),
+                                            ), array(
+                                                $previewBill->get('gross'),
+                                            ));
+                                            echo '</select>';
+                                            ?>
+
+                                            <input type="text" name="ebf-preview-<?= $idx ?>-vat-rate" value="<?= $previewBill->get('rate') ?>" class="form-control form-control-sm" style="width: 40px; text-align: right;">
+                                            <span class="text-muted">% <?= $this->t('VAT') ?></span>
+                                        </div>
+                                    </td>
+
+                                    <td></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+
                         <tr>
                             <td colspan="5">
                                 <button type="submit" name="ebf-create-default" value="1" class="btn btn-link symbolic symbolic-plus-link p-0"><?= $this->t('New position by using the pricing rules for this booking') ?></button>

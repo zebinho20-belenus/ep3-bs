@@ -441,6 +441,7 @@ return array(
 
     'New position' => 'Neue Position',
     'New position by using the pricing rules for this booking' => 'Neue Position durch Anwenden der Preis-Regeln auf diese Buchung',
+    'Preview - click Save to keep' => 'Vorschau - zum Speichern auf "Speichern" klicken',
 
     'Who?' => 'Wer?',
 

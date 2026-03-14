@@ -24,7 +24,7 @@ return [
     ],
     3 => [
         'name' => 'cleanup-interval',
-        'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'remove_unpaid_bookings' AND INTERVAL_VALUE = '1' AND EVENT_SCHEMA = DATABASE()",
+        'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'remove_unpaid_bookings' AND INTERVAL_VALUE = '15' AND EVENT_SCHEMA = DATABASE()",
         'file' => 'data/db/migrations/003-cleanup-interval.sql',
     ],
 ];

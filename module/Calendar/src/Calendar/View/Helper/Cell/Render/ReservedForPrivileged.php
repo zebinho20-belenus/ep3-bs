@@ -17,7 +17,9 @@ class ReservedForPrivileged extends AbstractHelper
         if ($reservationsCount == 0) {
 	        $labelReserved = $square->getMeta('label.reserved', $this->view->t('Reserved'));
 
-            return $view->calendarCellLink($labelReserved, $view->url('backend/booking/edit', [], $cellLinkParams), 'cc-reserved');
+            $newBookingParams = $cellLinkParams;
+            $newBookingParams['query']['force'] = 'new';
+            return $view->calendarCellLink($labelReserved, $view->url('backend/booking/edit', [], $newBookingParams), 'cc-reserved');
         } else if ($reservationsCount == 1) {
             $reservation = current($reservations);
             $booking = $reservation->needExtra('booking');
