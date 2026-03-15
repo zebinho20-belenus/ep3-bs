@@ -109,17 +109,9 @@
                         populateSquarebox(data);
 
                         squarebox.find(".no-ajax").remove();
-                        squarebox.find(".datepicker").datepicker();
 
-                        /* Re-initialize autocomplete for backend booking form */
-                        var userInput = squarebox.find("#bf-user");
-                        var urlProvider = squarebox.find("#bf-url-provider");
-                        if (userInput.length && urlProvider.length && $.fn.autocomplete) {
-                            userInput.autocomplete({
-                                minLength: 1,
-                                source: urlProvider.data("user-autocomplete-url")
-                            });
-                        }
+                        /* Initialize booking edit form (#91) */
+                        initSquareboxBookingForm();
 
                         squarebox.find(".inline-label-container").each(function() {
                             updateInlineLabel( $(this) );
@@ -285,6 +277,134 @@
         if (calendarWidth && calendarLegendColWidth && calendarDateCols.length) {
             calendarDateCols.width( Math.floor((calendarWidth - calendarLegendColWidth) / calendarDateCols.length) );
         }
+    }
+
+    /**
+     * Complete initialization of the backend booking edit form inside the squarebox.
+     * Replicates all logic from edit.js so we don't depend on inline script execution
+     * via AjaxAwareScript (jQuery 3.x .html() may not reliably evaluate inline scripts).
+     * (#91)
+     */
+    function initSquareboxBookingForm()
+    {
+        if (!squarebox) return;
+
+        var userInput = squarebox.find("#bf-user");
+
+        /* Only run if this is the booking edit form */
+        if (!userInput.length) {
+            /* Still init datepickers for other forms (e.g. event edit) */
+            squarebox.find(".datepicker").datepicker();
+            return;
+        }
+
+        var urlProvider = squarebox.find("#bf-url-provider");
+        var tagProvider = squarebox.find("#bf-tag-provider");
+
+        /* Autocomplete for user field */
+        if (urlProvider.length && $.fn.autocomplete) {
+            userInput.autocomplete({
+                "minLength": 1,
+                "source": urlProvider.data("user-autocomplete-url")
+            });
+        }
+
+        /* Datepicker */
+        squarebox.find("#bf-date-start, #bf-date-end").datepicker();
+
+        /* Form state: disable fields based on edit mode */
+        var dateEnd = squarebox.find("#bf-date-end");
+        var repeat = squarebox.find("#bf-repeat");
+        var rid = squarebox.find("#bf-rid");
+        var editMode = tagProvider.length ? tagProvider.data("edit-mode-tag") : null;
+
+        function disableField(el) {
+            if (typeof el === "string") el = squarebox.find(el);
+            el.attr("disabled", "disabled").css("opacity", 0.5);
+        }
+
+        function enableField(el) {
+            if (typeof el === "string") el = squarebox.find(el);
+            el.removeAttr("disabled").css("opacity", 1.0);
+        }
+
+        function updateFormState() {
+            if (repeat.val() === "0") {
+                disableField(dateEnd);
+            } else {
+                enableField(dateEnd);
+            }
+
+            if (editMode == "no_subscr") {
+                disableField(repeat);
+                disableField("#bf-date-end");
+            }
+
+            if (rid.val()) {
+                disableField(repeat);
+
+                if (editMode == "booking") {
+                    disableField("#bf-time-start");
+                    disableField("#bf-time-end");
+                    disableField("#bf-date-start");
+                    disableField("#bf-date-end");
+                } else if (editMode == "reservation") {
+                    disableField("#bf-user");
+                    disableField("#bf-sid");
+                    disableField("#bf-status-billing");
+                    disableField("#bf-quantity");
+                    disableField("#bf-notes");
+                }
+            }
+        }
+
+        repeat.on("change", updateFormState);
+        updateFormState();
+
+        /* Quantity → Guest checkbox + Player names toggle */
+        var qty = squarebox.find("#bf-quantity");
+
+        function updateQuantityDependents() {
+            var val = parseInt(qty.val()) || 1;
+            var guestContainer = squarebox.find("#bf-guest-player-container");
+            var namesContainer = squarebox.find("#bf-player-names-container");
+
+            if (val > 1) {
+                guestContainer.show();
+                namesContainer.show();
+            } else {
+                guestContainer.hide();
+                namesContainer.hide();
+                squarebox.find("#bf-guest-player").prop("checked", false);
+            }
+
+            squarebox.find(".bf-player-name-row").each(function() {
+                var playerNum = parseInt($(this).data("player"));
+                $(this).toggle(playerNum <= val);
+            });
+        }
+
+        qty.on("change", updateQuantityDependents);
+        updateQuantityDependents();
+
+        /* Exclusive edit-user / edit-bills checkboxes */
+        var editUser = squarebox.find('input[name="bf-edit-user"]');
+        var editBills = squarebox.find('input[name="bf-edit-bills"]');
+
+        if (editUser.length && editBills.length) {
+            editUser.on("change", function() {
+                editBills.prop("checked", false);
+            });
+            editBills.on("change", function() {
+                editUser.prop("checked", false);
+            });
+        }
+
+        /* Enable disabled fields on form submit */
+        var form = squarebox.find("form");
+        form.on("submit", function() {
+            form.find(":disabled").removeAttr("disabled");
+        });
     }
 
     function updateCalendarEvents()
