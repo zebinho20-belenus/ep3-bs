@@ -32,4 +32,9 @@ return [
         'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'remove_unpaid_bookings' AND INTERVAL_VALUE = '15' AND EVENT_SCHEMA = DATABASE()",
         'file' => 'data/db/migrations/004-cleanup-interval-reset.sql',
     ],
+    5 => [
+        'name' => 'opening-times',
+        'check' => "SHOW TABLES LIKE 'bs_squares_opening_times'",
+        'file' => 'data/db/migrations/005-opening-times.sql',
+    ],
 ];
