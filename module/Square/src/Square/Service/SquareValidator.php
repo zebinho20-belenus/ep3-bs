@@ -332,19 +332,21 @@ class SquareValidator extends AbstractService
                 $this->reservationManager->getByBookings($activeBookings);
 
                 $activeBookingsCount = 0;
+                $timeBlock = $square->need('time_block');
 
                 foreach ($activeBookings as $activeBooking) {
                     foreach ($activeBooking->getExtra('reservations') as $activeReservation) {
                         $activeReservationDate = new DateTime($activeReservation->get('date') . ' ' . $activeReservation->get('time_start'));
 
                         if ($activeReservationDate > new DateTime()) {
-                            $activeBookingsCount++;
+                            $resStart = new DateTime($activeReservation->get('date') . ' ' . $activeReservation->get('time_start'));
+                            $resEnd = new DateTime($activeReservation->get('date') . ' ' . $activeReservation->get('time_end'));
+                            $activeBookingsCount += ($resEnd->getTimestamp() - $resStart->getTimestamp()) / $timeBlock;
                         }
                     }
                 }
 
                 // Add the slots of the current booking being attempted
-                $timeBlock = $square->need('time_block');
                 $currentBookingSlots = ($dateEnd->getTimestamp() - $dateStart->getTimestamp()) / $timeBlock;
                 $activeBookingsCount += $currentBookingSlots;
 
