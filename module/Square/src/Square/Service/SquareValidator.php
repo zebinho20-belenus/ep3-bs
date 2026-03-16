@@ -350,8 +350,6 @@ class SquareValidator extends AbstractService
                 $currentBookingSlots = ($dateEnd->getTimestamp() - $dateStart->getTimestamp()) / $timeBlock;
                 $activeBookingsCount += $currentBookingSlots;
 
-                error_log("MAX_BOOKINGS_CHECK: user={$user->need('uid')}, existing=" . ($activeBookingsCount - $currentBookingSlots) . ", currentSlots={$currentBookingSlots}, total={$activeBookingsCount}, max={$maxActiveBookings}, userOverride=" . var_export($userOverride, true) . ", timeBlock={$timeBlock}, dateStart={$dateStart->format('Y-m-d H:i')}, dateEnd={$dateEnd->format('Y-m-d H:i')}");
-
                 if ($activeBookingsCount > $maxActiveBookings) {
                     $bookable = false;
                     $notBookableReason = sprintf($this->t('You can only have <b>%s active bookings</b> at the same time at the moment.'), $maxActiveBookings);
