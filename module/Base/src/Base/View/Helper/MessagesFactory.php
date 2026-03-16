@@ -22,13 +22,11 @@ class MessagesFactory implements FactoryInterface
 
         $messages = new Messages();
 
-        if ($user) {
-            $flashMessenger = $serviceManager
-                ->get('ControllerPluginManager')
-                ->get('FlashMessenger');
+        $flashMessenger = $serviceManager
+            ->get('ControllerPluginManager')
+            ->get('FlashMessenger');
 
-            $messages->setFlashMessenger($flashMessenger);
-        }
+        $messages->setFlashMessenger($flashMessenger);
 
         return $messages;
     }
