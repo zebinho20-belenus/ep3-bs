@@ -210,6 +210,8 @@ return array(
 
     'Budget' => 'Buchungsbudget',
 
+    'Payment method' => 'Zahlungsart',
+    'Pay later' => 'Später zahlen',
     'Billing status' => 'Rechnungsstatus',
     'Billing total' => 'Rechnungssumme',
     'Billing status options' => 'Rechnungsstatus-Bezeichnungen',

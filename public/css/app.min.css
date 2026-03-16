@@ -361,6 +361,7 @@ select.col-filter { padding-right: 1.5rem !important; background-size: 10px; }
 .table .price-col { text-align: right; }
 .table .budget-col { text-align: right; }
 .table .bulk-check-col { width: 36px; text-align: center; }
+.table .payment-method-col { width: 5.5rem; }
 .table .actions-col { }
 .table .actions-col .symbolic { min-width: 44px; min-height: 44px; padding-top: 12px; padding-bottom: 12px; }
 /* Flexible columns that can wrap/truncate to absorb remaining space */

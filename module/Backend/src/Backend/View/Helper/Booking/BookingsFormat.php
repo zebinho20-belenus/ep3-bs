@@ -30,6 +30,7 @@ class BookingsFormat extends AbstractHelper
         $html .= '<th data-sort-type="text" class="notes-col responsive-pass-3">' . $view->t('Notes') . '</th>';
         $html .= '<th data-sort-type="price" class="price-col responsive-pass-5">' . $view->t('Price') . '</th>';
         $html .= '<th data-sort-type="text" data-filter-type="select" class="responsive-pass-2">' . $view->t('Billing status') . '</th>';
+        $html .= '<th data-sort-type="text" data-filter-type="select" class="payment-method-col responsive-pass-3">' . $view->t('Payment method') . '</th>';
         $html .= '<th data-sort-type="none" class="no-print">&nbsp;</th>';
         $html .= '</tr></thead>';
 

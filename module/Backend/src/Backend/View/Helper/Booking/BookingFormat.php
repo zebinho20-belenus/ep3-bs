@@ -179,6 +179,22 @@ class BookingFormat extends AbstractHelper
             $html .= '<td class="responsive-pass-2">-</td>';
         }
 
+        /* Payment method col */
+
+        $paymentMethodMap = array(
+            'paypal' => 'PayPal',
+            'stripe' => 'Stripe',
+            'klarna' => 'Klarna',
+            'budget' => $view->t('Budget'),
+            'paylater' => $view->t('Pay later'),
+            'member' => $view->t('Member'),
+        );
+        $paymentMethod = $booking->getMeta('paymentMethod', '');
+        $paymentMethodLabel = isset($paymentMethodMap[$paymentMethod]) ? $paymentMethodMap[$paymentMethod] : ($paymentMethod ?: '-');
+
+        $html .= sprintf('<td class="payment-method-col responsive-pass-3">%s</td>',
+            $paymentMethodLabel);
+
         /* Actions col */
 
         $editUrl = $view->url('backend/booking/edit', [], ['query' => [
