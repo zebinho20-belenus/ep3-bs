@@ -1,5 +1,3 @@
--- Seasonal opening times (#84)
-
 CREATE TABLE IF NOT EXISTS `bs_squares_opening_times` (
   `stid` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sid` int(10) unsigned DEFAULT NULL COMMENT 'NULL = all squares',

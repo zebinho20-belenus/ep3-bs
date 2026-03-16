@@ -127,13 +127,13 @@ class MigrationManager
             return;
         }
 
-        // Split by semicolons and execute each statement
+        // Remove SQL comment lines, then split by semicolons
+        $sql = preg_replace('/^\s*--.*$/m', '', $sql);
+
         $statements = array_filter(
             array_map('trim', explode(';', $sql)),
             function ($s) {
-                // Skip empty lines and comment-only lines
-                $s = trim($s);
-                return $s !== '' && strpos($s, '--') !== 0;
+                return $s !== '';
             }
         );
 
