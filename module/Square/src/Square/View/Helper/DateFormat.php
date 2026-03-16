@@ -15,7 +15,7 @@ class DateFormat extends AbstractHelper
         $html = '';
 
         if ($dateTimeStart->format('Y-m-d') == $dateTimeEnd->format('Y-m-d')) {
-            $html .= sprintf('<p>%s<br>%s',
+            $html .= sprintf('<p>%s<br>%s</p>',
                 $view->dateFormat($dateTimeStart, IntlDateFormatter::FULL),
                 $view->timeRange($dateTimeStart, $dateTimeEnd, '%s to %s'));
         } else {

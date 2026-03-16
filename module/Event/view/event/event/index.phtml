@@ -6,28 +6,36 @@ $this->setup(array(
     'back' => true,
 ));
 
+$name = $this->event->getMeta('name');
+$description = $this->event->getMeta('description');
+
+if ($this->square) {
+    $location = sprintf('%s %s', $this->option('subject.square.type'), $this->square->need('name'));
+} else {
+    $location = sprintf($this->t('All %s'), $this->option('subject.square.type.plural'));
+}
+
 ?>
 
-<div class="padded centered-text">
+<div class="text-center px-3 py-2">
 
-    <p class="large-text"><?= $this->event->getMeta('name') ?></p>
+    <h4 class="fw-semibold mb-3"><?= $this->escapeHtml($name) ?></h4>
 
-    <?= $this->squareDateFormat($this->event->needExtra('datetime_start'), $this->event->needExtra('datetime_end')) ?>
-
-    <p>
-        <?php
-
-        if ($this->square) {
-            echo sprintf('%s %s', $this->option('subject.square.type'), $this->square->need('name'));
-        } else {
-            echo sprintf($this->t('All %s'), $this->option('subject.square.type.plural'));
-        }
-
-        ?>
-    </p>
-
-    <div class="sandbox left-text" style="max-width: 512px;">
-        <?= $this->event->getMeta('description') ?>
+    <div class="mb-3">
+        <span class="fa fa-calendar text-muted me-1"></span>
+        <?= $this->squareDateFormat($this->event->needExtra('datetime_start'), $this->event->needExtra('datetime_end')) ?>
     </div>
+
+    <div class="mb-3">
+        <span class="fa fa-map-marker text-muted me-1"></span>
+        <span class="fw-medium"><?= $this->escapeHtml($location) ?></span>
+    </div>
+
+    <?php if ($description): ?>
+    <hr class="my-2">
+    <div class="text-start small text-muted" style="max-width: 480px; margin: 0 auto;">
+        <?= $description ?>
+    </div>
+    <?php endif; ?>
 
 </div>
