@@ -114,7 +114,7 @@
 
     <!-- Content -->
     <main class="container-xl py-4">
-        <?php if (isset($_GET['payment_error']) || (isset($_GET['payment_result']) && $_GET['payment_result'] === 'failed')): ?>
+        <?php if (isset($_GET['payment_result']) && $_GET['payment_result'] === 'failed'): ?>
             <?= $this->message($this->t('The payment could not be completed. Please try again or choose a different payment method.'), 'error') ?>
         <?php elseif (isset($_GET['payment_result']) && $_GET['payment_result'] === 'success'): ?>
             <?= $this->message(sprintf($this->t('%sCongratulations:%s Your %s has been booked!'), '<b>', '</b>', $this->option('subject.square.type')), 'success') ?>

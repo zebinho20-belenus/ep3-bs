@@ -15,9 +15,11 @@ class CaptureController extends PayumController
         try {
             $token = $this->getHttpRequestVerifier()->verify($this);
         } catch (InvalidArgumentException $e) {
-            // Token not found or invalid — e.g. payment cancelled, expired, or already processed
+            // Token not found — either already consumed (payment succeeded) or expired.
+            // Don't show error message: if payment succeeded, the token was invalidated
+            // after processing and this is just a duplicate redirect from the gateway.
             error_log('CaptureController: Token verification failed: ' . $e->getMessage());
-            return $this->redirect()->toRoute('frontend', [], ['query' => ['payment_error' => 1]]);
+            return $this->redirect()->toRoute('frontend');
         }
 
         $gateway = $this->getPayum()->getGateway($token->getGatewayName());
