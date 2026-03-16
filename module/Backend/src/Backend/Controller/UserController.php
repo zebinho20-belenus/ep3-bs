@@ -172,6 +172,7 @@ class UserController extends AbstractActionController
                 // $user->setMeta('birthdate', $eud['euf-birthdate']);
                 $user->setMeta('member', $eud['euf-member']);
                 $user->setMeta('budget', $eud['euf-budget'] !== '' ? $eud['euf-budget'] : '0');
+                $user->setMeta('max_active_bookings', $eud['euf-max-active-bookings'] !== '' ? $eud['euf-max-active-bookings'] : null);
                 $user->setMeta('notes', $eud['euf-notes']);
 
                 $userManager->save($user);
@@ -210,6 +211,7 @@ class UserController extends AbstractActionController
                     // 'euf-birthdate' => $user->getMeta('birthdate'),
                     'euf-member' => $user->getMeta('member'),
                     'euf-budget' => $user->getMeta('budget'),
+                    'euf-max-active-bookings' => $user->getMeta('max_active_bookings'),
                     'euf-notes' => $user->getMeta('notes'),
                 ));
             }

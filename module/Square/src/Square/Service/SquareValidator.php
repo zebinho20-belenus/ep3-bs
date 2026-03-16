@@ -318,6 +318,12 @@ class SquareValidator extends AbstractService
         if ($user) {
             $maxActiveBookings = $square->need('max_active_bookings');
 
+            // Per-User Override aus User-Meta
+            $userOverride = $user->getMeta('max_active_bookings');
+            if ($userOverride !== null && $userOverride !== '') {
+                $maxActiveBookings = (int) $userOverride;
+            }
+
             if ($maxActiveBookings != 0) {
                 $activeBookings = $this->bookingManager->getByValidity([
                     'uid' => $user->need('uid'),

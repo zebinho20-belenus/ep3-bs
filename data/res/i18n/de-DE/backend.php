@@ -210,6 +210,10 @@ return array(
 
     'Budget' => 'Buchungsbudget',
 
+    'Booking limit' => 'Buchungslimit',
+    'Empty = default from court, 0 = unlimited' => 'Leer = Standard vom Platz, 0 = unbegrenzt',
+    'concurrent booking(s)' => 'gleichzeitige Buchung(en)',
+
     'Payment method' => 'Zahlungsart',
     'Pay later' => 'Später zahlen',
     'Billing status' => 'Rechnungsstatus',

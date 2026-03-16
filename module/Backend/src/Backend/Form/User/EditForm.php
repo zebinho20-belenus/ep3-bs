@@ -237,6 +237,21 @@ class EditForm extends Form
         ));
 
         $this->add(array(
+            'name' => 'euf-max-active-bookings',
+            'type' => 'Text',
+            'attributes' => array(
+                'id' => 'euf-max-active-bookings',
+                'class' => 'right-text',
+                'style' => 'width: 100px;',
+            ),
+            'options' => array(
+                'label' => 'Booking limit',
+                'notes' => 'Empty = default from court, 0 = unlimited',
+                'postfix' => 'concurrent booking(s)',
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'euf-notes',
             'type' => 'Textarea',
             'attributes' => array(
@@ -496,6 +511,21 @@ class EditForm extends Form
                             'pattern' => '/^[0-9\,\. ]*$/u',
                             'message' => 'Please type a number here',
                         ),
+                    ),
+                ),
+            ),
+            'euf-max-active-bookings' => array(
+                'required' => false,
+                'filters' => array(
+                    array('name' => 'StringTrim'),
+                ),
+                'validators' => array(
+                    array(
+                        'name' => 'Digits',
+                        'options' => array(
+                            'message' => 'Please type a number here',
+                        ),
+                        'break_chain_on_failure' => true,
                     ),
                 ),
             ),
