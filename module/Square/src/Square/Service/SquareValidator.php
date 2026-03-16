@@ -84,7 +84,7 @@ class SquareValidator extends AbstractService
 
         /* Validate start time */
 
-        if (! preg_match('/^(00|0?[1-9]|1[0-9]|2[0-4])\:(00|0[0-9]|[1-5][0-9])(\:(00|0[0-9]|[1-5][0-9]))?$/', $timeStart)) {
+        if (! preg_match('/^(00|0?[1-9]|1[0-9]|2[0-4])\:(00|0[0-9]|[1-5][0-9])(\:(00|0[0-9]|[1-5][0-9]))?$/', (string) $timeStart)) {
             throw new RuntimeException('The passed start time is invalid');
         }
 
@@ -95,7 +95,7 @@ class SquareValidator extends AbstractService
 
         /* Validate end time */
 
-        if (! preg_match('/^(00|0?[1-9]|1[0-9]|2[0-4])\:(00|0[0-9]|[1-5][0-9])(\:(00|0[0-9]|[1-5][0-9]))?$/', $timeEnd)) {
+        if (! preg_match('/^(00|0?[1-9]|1[0-9]|2[0-4])\:(00|0[0-9]|[1-5][0-9])(\:(00|0[0-9]|[1-5][0-9]))?$/', (string) $timeEnd)) {
             throw new RuntimeException('The passed end time is invalid');
         }
 
