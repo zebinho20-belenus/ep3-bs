@@ -1,6 +1,7 @@
 <?php
 namespace Payum\PayumModule\Controller;
 
+use Payum\Core\Exception\InvalidArgumentException;
 use Payum\Core\Reply\HttpRedirect;
 use Payum\Core\Reply\HttpResponse;
 use Payum\Core\Reply\ReplyInterface;
@@ -11,7 +12,16 @@ class CaptureController extends PayumController
 {
     public function doAction()
     {
-        $token = $this->getHttpRequestVerifier()->verify($this);
+        try {
+            $token = $this->getHttpRequestVerifier()->verify($this);
+        } catch (InvalidArgumentException $e) {
+            // Token not found or invalid — e.g. payment cancelled, expired, or already processed
+            error_log('CaptureController: Token verification failed: ' . $e->getMessage());
+            $this->flashMessenger()->addErrorMessage(
+                'Die Zahlung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut oder wählen Sie eine andere Zahlungsmethode.'
+            );
+            return $this->redirect()->toRoute('frontend');
+        }
 
         $gateway = $this->getPayum()->getGateway($token->getGatewayName());
 
