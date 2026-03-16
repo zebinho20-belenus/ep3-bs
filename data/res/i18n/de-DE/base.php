@@ -82,4 +82,6 @@ return array(
     'Visibility' => 'Sichtbarkeit',
     'Quantity' => 'Anzahl',
 
+    'The payment could not be completed. Please try again or choose a different payment method.' => 'Die Zahlung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut oder wählen Sie eine andere Zahlungsmethode.',
+
 );

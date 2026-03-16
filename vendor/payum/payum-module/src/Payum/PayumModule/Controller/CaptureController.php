@@ -17,10 +17,7 @@ class CaptureController extends PayumController
         } catch (InvalidArgumentException $e) {
             // Token not found or invalid — e.g. payment cancelled, expired, or already processed
             error_log('CaptureController: Token verification failed: ' . $e->getMessage());
-            $this->flashMessenger()->addErrorMessage(
-                'Die Zahlung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut oder wählen Sie eine andere Zahlungsmethode.'
-            );
-            return $this->redirect()->toRoute('frontend');
+            return $this->redirect()->toRoute('frontend', [], ['query' => ['payment_error' => 1]]);
         }
 
         $gateway = $this->getPayum()->getGateway($token->getGatewayName());

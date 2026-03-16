@@ -114,6 +114,9 @@
 
     <!-- Content -->
     <main class="container-xl py-4">
+        <?php if (isset($_GET['payment_error'])): ?>
+            <?= $this->message($this->t('The payment could not be completed. Please try again or choose a different payment method.'), 'error') ?>
+        <?php endif; ?>
         <?= $this->messages() ?>
 
         <?= $this->tabs() ?>
