@@ -47,7 +47,7 @@ return array(
 
     '%s\'s %s-booking for %s' => '%s\'s %s-Buchung am %s',
     '%s\'s %s-booking has been cancelled' => '%s\'s %s-Buchung wurde storniert',
-    'Your booking for %s has been cancelled' => '%s\'s Platz-Buchung wurde storniert',
+    'Your booking for %s has been cancelled' => 'Ihre Buchung für Platz %s wurde storniert',
     'Dear %s,\n\nYour booking for %s on %s at %s has been cancelled by an administrator.%s\n\nIf you have any questions, please contact us.\n\nThank you,\n%s' => 'Hallo,\n\nwir haben Ihre Buchung für den Platz "%s", %s, %s bis %s Uhr storniert (Buchungs-Nr: %s).%s\n\nDiese Nachricht wurde automatisch gesendet. Ursprünglich gesendet an %s (%s).\n\nViele Grüße,\nIhr %s Online-Platzbuchung\n%s',
     'A refund of %s has been processed to your account.' => 'Eine Rückerstattung von %s wurde auf Ihr Konto veranlasst.',
     
