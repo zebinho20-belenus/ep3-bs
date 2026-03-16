@@ -31,10 +31,18 @@
                 userInput.autocomplete('destroy');
             }
             if (urlProvider.length) {
-                userInput.autocomplete({
+                var acOptions = {
                     "minLength": 1,
                     "source": urlProvider.data("user-autocomplete-url")
-                });
+                };
+
+                /* In squarebox context, append dropdown inside scope
+                   so it inherits the squarebox z-index (1536) */
+                if (scope !== document) {
+                    acOptions.appendTo = $scope;
+                }
+
+                userInput.autocomplete(acOptions);
             }
         }
 
