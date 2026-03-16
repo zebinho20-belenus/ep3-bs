@@ -564,13 +564,17 @@ class BookingController extends AbstractActionController
             $userManager = $serviceManager->get('User\Manager\UserManager');
             $user = $userManager->get($booking->get('uid'));
 
+            // Suppress automatic event email — we send our own cancellation email below
+            $booking->setMeta('suppressCancelEmail', 'true');
+            $bookingManager->save($booking);
+
             $bookingService->cancelSingle($booking);
 
             # redefine user budget if status paid
             $refundTotal = $bookingService->refundBudget($booking);
-            if ($refundTotal > 0) {
-                $this->sendCancellationEmail($booking, $user, $refundTotal);
-            }
+
+            // Always send cancellation email (with or without refund info)
+            $this->sendCancellationEmail($booking, $user, $refundTotal);
 
             $this->flashMessenger()->addErrorMessage(sprintf($this->t('Your booking has been %scancelled%s.'),
                 '<b>', '</b>'));
@@ -614,16 +618,12 @@ class BookingController extends AbstractActionController
 
             // Personalisierte Anrede
             $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male') {
-                $anrede = 'Sehr geehrter Herr';
-            } elseif ($user->getMeta('gender') == 'female') {
-                $anrede = 'Sehr geehrte Frau';
-            }
-
-            if ($user->getMeta('lastname')) {
-                $anrede .= ' ' . $user->getMeta('lastname');
-            } else {
-                $anrede .= ' ' . $user->need('alias');
+            if ($user->getMeta('gender') == 'male' && $user->getMeta('lastname')) {
+                $anrede = 'Sehr geehrter Herr ' . $user->getMeta('lastname');
+            } elseif ($user->getMeta('gender') == 'female' && $user->getMeta('lastname')) {
+                $anrede = 'Sehr geehrte Frau ' . $user->getMeta('lastname');
+            } elseif ($user->getMeta('firstname')) {
+                $anrede = 'Hallo ' . $user->getMeta('firstname');
             }
 
             $subject = sprintf($this->t('Your booking for %s has been cancelled'), $squareName);
@@ -740,18 +740,14 @@ class BookingController extends AbstractActionController
             $formattedTimeEnd = substr($reservation->need('time_end'), 0, 5);
             $squareName = $square->need('name');
 
-            // Personalisierte Anrede (gleicher Stil wie Backend-Stornierungsmail)
+            // Personalisierte Anrede (gleicher Stil wie Stornierungsmail)
             $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male') {
-                $anrede = 'Sehr geehrter Herr';
-            } elseif ($user->getMeta('gender') == 'female') {
-                $anrede = 'Sehr geehrte Frau';
-            }
-
-            if ($user->getMeta('lastname')) {
-                $anrede .= ' ' . $user->getMeta('lastname');
-            } else {
-                $anrede .= ' ' . $user->need('alias');
+            if ($user->getMeta('gender') == 'male' && $user->getMeta('lastname')) {
+                $anrede = 'Sehr geehrter Herr ' . $user->getMeta('lastname');
+            } elseif ($user->getMeta('gender') == 'female' && $user->getMeta('lastname')) {
+                $anrede = 'Sehr geehrte Frau ' . $user->getMeta('lastname');
+            } elseif ($user->getMeta('firstname')) {
+                $anrede = 'Hallo ' . $user->getMeta('firstname');
             }
 
             $subject = $this->t('Payment failed for your booking');

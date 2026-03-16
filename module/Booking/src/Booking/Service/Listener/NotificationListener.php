@@ -288,20 +288,6 @@ class NotificationListener extends AbstractListenerAggregate
         $subject = sprintf($this->t('Your %s-booking has been cancelled'),
             $this->optionManager->get('subject.square.type'));
 
-        // Personalisierte Anrede
-        $anrede = 'Hallo';
-        if ($user->getMeta('gender') == 'male') {
-            $anrede = 'Sehr geehrter Herr';
-        } elseif ($user->getMeta('gender') == 'female') {
-            $anrede = 'Sehr geehrte Frau';
-        }
-
-        if ($user->getMeta('lastname')) {
-            $anrede .= ' ' . $user->getMeta('lastname');
-        } else {
-            $anrede .= ' ' . $user->need('alias');
-        }
-
         // Strukturierte Buchungsdetails
         $formattedDate = $reservationStart->format('d.m.Y');
         $formattedTimeStart = $reservationStart->format('H:i');
@@ -315,9 +301,9 @@ class NotificationListener extends AbstractListenerAggregate
             $this->t('Booking ID'), $booking->get('bid')
         );
 
+        // Keine manuelle Anrede — userMailService->send() fuegt automatisch "Dear [alias]," voran
         $message = sprintf(
-            "%s,\n\n%s\n\n%s",
-            $anrede,
+            "%s\n\n%s",
             $this->t('your booking has been cancelled.'),
             $buchungsDetails
         );
