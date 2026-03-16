@@ -1,41 +1,57 @@
 (function() {
 
-    var urlProvider;
-    var tagProvider;
+    /**
+     * Initialize the booking edit form within a given scope.
+     * Called from calendar/index.js for squarebox context,
+     * or from $(document).ready() for standalone page context.
+     *
+     * @param {Element} scope - DOM element to scope all selectors to
+     */
+    window.initBookingEditForm = function(scope) {
+        var $scope = $(scope);
 
-    $(document).ready(function() {
+        /* Guard against double initialization */
+        if ($scope.data('bf-initialized')) return;
+        $scope.data('bf-initialized', true);
 
-        urlProvider = $("#bf-url-provider");
-        tagProvider = $("#bf-tag-provider");
+        var urlProvider = $scope.find("#bf-url-provider");
+        var tagProvider = $scope.find("#bf-tag-provider");
 
-        /* Autocomplete for user */
+        /* Only run if this is the booking edit form */
+        var userInput = $scope.find("#bf-user");
+        if (!userInput.length) {
+            /* Still init datepickers for other forms (e.g. event edit) */
+            $scope.find(".datepicker").datepicker();
+            return;
+        }
 
-        var userInput = $("#bf-user");
-
-        userInput.autocomplete({
-            "minLength": 1,
-            "source": urlProvider.data("user-autocomplete-url")
-        });
+        /* Autocomplete for user — destroy first as safety net */
+        if ($.fn.autocomplete) {
+            if (userInput.data('ui-autocomplete')) {
+                userInput.autocomplete('destroy');
+            }
+            if (urlProvider.length) {
+                userInput.autocomplete({
+                    "minLength": 1,
+                    "source": urlProvider.data("user-autocomplete-url")
+                });
+            }
+        }
 
         /* Datepicker */
-
-        $("#bf-date-start, #bf-date-end").datepicker();
+        $scope.find("#bf-date-start, #bf-date-end").datepicker();
 
         /* Update Form */
-
-        $("#bf-repeat").on("change", updateForm);
-
+        $scope.find("#bf-repeat").on("change", updateForm);
         updateForm();
 
         /* Quantity → Guest + Player Names toggle */
-
-        $("#bf-quantity").on("change", updateQuantityDependents);
+        $scope.find("#bf-quantity").on("change", updateQuantityDependents);
         updateQuantityDependents();
 
         /* Exclusive edit fields */
-
-        var $editUser = $('#bf input[name="bf-edit-user"]');
-        var $editBills = $('#bf input[name="bf-edit-bills"]');
+        var $editUser = $scope.find('input[name="bf-edit-user"]');
+        var $editBills = $scope.find('input[name="bf-edit-bills"]');
 
         if ($editUser.length && $editBills.length) {
             $editUser.on('change', function() {
@@ -48,98 +64,101 @@
         }
 
         /* Enable form on submit */
-
-        var formSubmit = $("#bf-submit");
+        var formSubmit = $scope.find("#bf-submit");
         var form = formSubmit.closest("form");
 
         form.on("submit", function() {
             form.find(":disabled").removeAttr("disabled");
         });
 
-    });
+        /* --- scoped helper functions --- */
 
-    function updateForm()
-    {
+        function updateForm()
+        {
+            var dateEnd = $scope.find("#bf-date-end");
+            var repeat = $scope.find("#bf-repeat");
 
-        /* Datepicker on demand for date end */
+            if (repeat.val() === "0") {
+                disableFormElement(dateEnd);
+            } else {
+                enableFormElement(dateEnd);
+            }
 
-        var dateEnd = $("#bf-date-end");
-        var repeat = $("#bf-repeat");
+            var editMode = tagProvider.data("edit-mode-tag");
 
-        if (repeat.val() === "0") {
-            disableFormElement(dateEnd);
-        } else {
-            enableFormElement(dateEnd);
-        }
+            if (editMode == "no_subscr") {
+                disableFormElement(repeat);
+                disableFormElement($scope.find("#bf-date-end"));
+            }
 
-        var editMode = tagProvider.data("edit-mode-tag");
+            var rid = $scope.find("#bf-rid");
 
-        if (editMode == "no_subscr") {
-            disableFormElement(repeat);
-            disableFormElement("#bf-date-end"); 
-        }   
+            if (rid.val()) {
+                disableFormElement(repeat);
 
-        /* Lock specific fields in edit mode */
-
-        var rid = $("#bf-rid");
-
-        if (rid.val()) {
-            disableFormElement(repeat);
-
-            if (editMode == "booking") {
-                disableFormElement("#bf-time-start");
-                disableFormElement("#bf-time-end");
-                disableFormElement("#bf-date-start");
-                disableFormElement("#bf-date-end");
-            } else if (editMode == "reservation") {
-                disableFormElement("#bf-user");
-                disableFormElement("#bf-sid");
-                disableFormElement("#bf-status-billing");
-                disableFormElement("#bf-quantity");
-                disableFormElement("#bf-notes");
+                if (editMode == "booking") {
+                    disableFormElement($scope.find("#bf-time-start"));
+                    disableFormElement($scope.find("#bf-time-end"));
+                    disableFormElement($scope.find("#bf-date-start"));
+                    disableFormElement($scope.find("#bf-date-end"));
+                } else if (editMode == "reservation") {
+                    disableFormElement($scope.find("#bf-user"));
+                    disableFormElement($scope.find("#bf-sid"));
+                    disableFormElement($scope.find("#bf-status-billing"));
+                    disableFormElement($scope.find("#bf-quantity"));
+                    disableFormElement($scope.find("#bf-notes"));
+                }
             }
         }
-    }
 
-    function updateQuantityDependents()
-    {
-        var quantity = parseInt($("#bf-quantity").val()) || 1;
-        var guestContainer = $("#bf-guest-player-container");
-        var namesContainer = $("#bf-player-names-container");
+        function updateQuantityDependents()
+        {
+            var quantity = parseInt($scope.find("#bf-quantity").val()) || 1;
+            var guestContainer = $scope.find("#bf-guest-player-container");
+            var namesContainer = $scope.find("#bf-player-names-container");
 
-        if (quantity > 1) {
-            guestContainer.show();
-            namesContainer.show();
-        } else {
-            guestContainer.hide();
-            namesContainer.hide();
-            $("#bf-guest-player").prop("checked", false);
+            if (quantity > 1) {
+                guestContainer.show();
+                namesContainer.show();
+            } else {
+                guestContainer.hide();
+                namesContainer.hide();
+                $scope.find("#bf-guest-player").prop("checked", false);
+            }
+
+            $scope.find(".bf-player-name-row").each(function() {
+                var playerNum = parseInt($(this).data("player"));
+                $(this).toggle(playerNum <= quantity);
+            });
         }
 
-        $(".bf-player-name-row").each(function() {
-            var playerNum = parseInt($(this).data("player"));
-            $(this).toggle(playerNum <= quantity);
-        });
-    }
+        function disableFormElement(element)
+        {
+            if (typeof element == "string") {
+                element = $scope.find(element);
+            }
 
-    function disableFormElement(element)
-    {
-        if (typeof element == "string") {
-            element = $(element);
+            element.attr("disabled", "disabled");
+            element.css("opacity", 0.5);
         }
 
-        element.attr("disabled", "disabled");
-        element.css("opacity", 0.5);
-    }
+        function enableFormElement(element)
+        {
+            if (typeof element == "string") {
+                element = $scope.find(element);
+            }
 
-    function enableFormElement(element)
-    {
-        if (typeof element == "string") {
-            element = $(element);
+            element.removeAttr("disabled");
+            element.css("opacity", 1.0);
         }
+    };
 
-        element.removeAttr("disabled");
-        element.css("opacity", 1.0);
-    }
+    /* Auto-init on page load, but NOT inside squarebox (calendar/index.js handles that) */
+    $(document).ready(function() {
+        var bf = $("#bf");
+        if (bf.length && !bf.closest('.squarebox-desktop, .squarebox-mobile').length) {
+            window.initBookingEditForm(document);
+        }
+    });
 
 })();
