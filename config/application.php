@@ -78,7 +78,7 @@ return array(
             'modulex',
             'vendor',
         ),
-        'config_cache_enabled' => ! EP3_BS_DEV,
+        'config_cache_enabled' => false, // Payum objects cannot be serialized with var_export()
         'config_cache_key' => 'ep3-bs',
         'module_map_cache_enabled' => ! EP3_BS_DEV,
         'module_map_cache_key' => 'ep3-bs',
