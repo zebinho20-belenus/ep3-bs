@@ -343,7 +343,12 @@ class SquareValidator extends AbstractService
                     }
                 }
 
-                if ($activeBookingsCount >= $maxActiveBookings) {
+                // Add the slots of the current booking being attempted
+                $timeBlock = $square->need('time_block');
+                $currentBookingSlots = ($dateEnd->getTimestamp() - $dateStart->getTimestamp()) / $timeBlock;
+                $activeBookingsCount += $currentBookingSlots;
+
+                if ($activeBookingsCount > $maxActiveBookings) {
                     $bookable = false;
                     $notBookableReason = sprintf($this->t('You can only have <b>%s active bookings</b> at the same time at the moment.'), $maxActiveBookings);
                 }
