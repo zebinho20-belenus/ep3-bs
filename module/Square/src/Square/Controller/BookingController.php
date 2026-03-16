@@ -1163,9 +1163,13 @@ class BookingController extends AbstractActionController
             || $status->getValue() === "success"
             || $paymentStatus === "succeeded";
 
+        // Determine redirect query parameter for session-independent messages
+        $paymentResult = null;
+
         if ($isSuccess) {
 
             // syslog(LOG_EMERG, 'doneAction - success');
+            $paymentResult = 'success';
 
             if ($booking->getMeta('directpay_pending') != 'true') {
                 if ($booking->getMeta('payLater') == 'true') {
@@ -1230,6 +1234,7 @@ class BookingController extends AbstractActionController
 	    else
         {
             // syslog(LOG_EMERG, 'doneAction - error');
+            $paymentResult = 'failed';
 
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {
@@ -1261,7 +1266,13 @@ class BookingController extends AbstractActionController
             }
         }
 
-        return $this->redirectBack()->toOrigin();
+        // Redirect with query parameter as session-independent fallback (#85)
+        $originUrl = $this->redirectBack()->getOriginAsUrl();
+        if (!$originUrl) {
+            $originUrl = $this->url()->fromRoute('frontend');
+        }
+        $separator = strpos($originUrl, '?') !== false ? '&' : '?';
+        return $this->redirect()->toUrl($originUrl . $separator . 'payment_result=' . $paymentResult);
 
     }
 }
