@@ -409,8 +409,23 @@ class BookingController extends AbstractActionController
             } 
 
             $payservice = $this->params()->fromPost('paymentservice');
+
+            // Payment tracking: set notes tag + paymentMethod (#85)
+            if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
+                $notes = $notes . 'PP ';
+            } elseif ($budgetpayment) {
+                $notes = $notes . 'BZ ';
+                $payservice = $payservice ?: 'budget';
+            } elseif ($guestPlayerCheckbox == 1 && !$budgetpayment) {
+                $notes = $notes . 'SZ ';
+                $payservice = $payservice ?: 'paylater';
+            } elseif ($member && !$payable) {
+                $notes = $notes . 'MG ';
+                $payservice = $payservice ?: 'member';
+            }
+
             $meta = array('player-names' => json_encode($playerNames), 'notes' => $notes, 'gp' => $guestPlayerCheckbox, 'status_billing' => $statusBilling);
-            
+
             // Store player names in meta data
             if (is_array($playerNames) && !empty($playerNames)) {
                 // Process player names individually to ensure they're stored as scalar values
@@ -616,14 +631,15 @@ class BookingController extends AbstractActionController
                 }
             }
 
-            // Personalisierte Anrede
-            $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male' && $user->getMeta('lastname')) {
-                $anrede = 'Sehr geehrter Herr ' . $user->getMeta('lastname');
-            } elseif ($user->getMeta('gender') == 'female' && $user->getMeta('lastname')) {
-                $anrede = 'Sehr geehrte Frau ' . $user->getMeta('lastname');
-            } elseif ($user->getMeta('firstname')) {
-                $anrede = 'Hallo ' . $user->getMeta('firstname');
+            // Personalisierte Anrede: Vorname+Nachname → Email → Alias
+            $firstname = $user->getMeta('firstname');
+            $lastname = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($user->get('email')) {
+                $anrede = 'Hallo ' . $user->get('email');
+            } else {
+                $anrede = 'Hallo ' . $user->need('alias');
             }
 
             $subject = sprintf($this->t('Your booking for %s has been cancelled'), $squareName);
@@ -740,14 +756,15 @@ class BookingController extends AbstractActionController
             $formattedTimeEnd = substr($reservation->need('time_end'), 0, 5);
             $squareName = $square->need('name');
 
-            // Personalisierte Anrede (gleicher Stil wie Stornierungsmail)
-            $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male' && $user->getMeta('lastname')) {
-                $anrede = 'Sehr geehrter Herr ' . $user->getMeta('lastname');
-            } elseif ($user->getMeta('gender') == 'female' && $user->getMeta('lastname')) {
-                $anrede = 'Sehr geehrte Frau ' . $user->getMeta('lastname');
-            } elseif ($user->getMeta('firstname')) {
-                $anrede = 'Hallo ' . $user->getMeta('firstname');
+            // Personalisierte Anrede: Vorname+Nachname → Email → Alias
+            $firstname = $user->getMeta('firstname');
+            $lastname = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($user->get('email')) {
+                $anrede = 'Hallo ' . $user->get('email');
+            } else {
+                $anrede = 'Hallo ' . $user->need('alias');
             }
 
             $subject = $this->t('Payment failed for your booking');
@@ -1050,6 +1067,13 @@ class BookingController extends AbstractActionController
         $booking->setMeta('payLater', 'true');
         $booking->setMeta('paymentMethod', $payservice);
         $booking->setMeta('directpay', 'true');
+
+        // Add PP tag to existing notes (#85)
+        $existingNotes = $booking->getMeta('notes', '');
+        if (strpos($existingNotes, 'PP') === false) {
+            $booking->setMeta('notes', $existingNotes . 'PP ');
+        }
+
         $bookingManager->save($booking);
 
         $square = $squareManager->get($booking->need('sid'));
