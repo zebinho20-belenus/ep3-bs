@@ -32,6 +32,7 @@ while ($walkingDate <= $this->dateEnd) {
     echo sprintf('<td class="calendar-date-col %s">',
         ($walkingIndex > 0 ? 'responsive-pass-' . (max(1, 6 - $walkingIndex)) : ''));
 
+    echo '<div class="calendar-date-wrapper">';
     echo '<table class="calendar-date-table full-width">';
 
     echo $this->calendarDateRow($walkingDate, $this->timeBlockCount);
@@ -96,6 +97,7 @@ while ($walkingDate <= $this->dateEnd) {
     $eventsCleanupPlugin($events, $walkingDate);
 
     echo '</table>';
+    echo '</div>';
 
     echo '</td>';
 

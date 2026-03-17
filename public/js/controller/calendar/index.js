@@ -290,9 +290,9 @@
 
         $(".calendar-date-col").each(function(dateIndex) {
             var calendarDateCol = $(this);
-            var dateTable = calendarDateCol.find(".calendar-date-table");
+            var dateWrapper = calendarDateCol.find(".calendar-date-wrapper");
 
-            if (! dateTable.length) return;
+            if (! dateWrapper.length) return;
 
             // Collect unique event groups
             var eventGroups = [];
@@ -349,7 +349,7 @@
 
                         if (! eventGroupOverlay.length) {
                             eventGroupOverlay = firstCell.clone();
-                            eventGroupOverlay.appendTo(dateTable);
+                            eventGroupOverlay.appendTo(dateWrapper);
                             eventGroupOverlay.attr("id", overlayId);
                             eventGroupOverlay.removeClass(eventGroup);
                         }
