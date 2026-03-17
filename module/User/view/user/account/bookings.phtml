@@ -48,14 +48,35 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/bookings.min
 
         <hr>
 
+        <?php
+        // Pre-pass: determine smart default filter
+        $hasPendingFuture = false;
+        $hasUpcoming = false;
+        foreach ($this->bookings as $_bid => $_booking) {
+            $_reservations = $_booking->needExtra('reservations');
+            $_dtStart = null;
+            foreach ($_reservations as $_res) {
+                $_tmp = new DateTime($_res->need('date') . ' ' . $_res->need('time_start'));
+                if (!$_dtStart || $_tmp < $_dtStart) $_dtStart = $_tmp;
+            }
+            if (!$_dtStart || $this->now > $_dtStart) continue;
+            $hasUpcoming = true;
+            $_bills = $_booking->getExtra('bills');
+            $_price = 0;
+            if ($_bills) foreach ($_bills as $_bill) $_price += $_bill->need('price');
+            if ($_booking->get('status_billing') === 'pending' && $_price > 0) { $hasPendingFuture = true; break; }
+        }
+        $defaultFilter = $hasPendingFuture ? 'pending' : ($hasUpcoming ? 'upcoming' : 'all');
+        ?>
+
         <div id="bookings-filter" class="btn-group mb-3 no-print" role="group">
-            <input type="radio" class="btn-check" name="bookings-filter" id="filter-all" value="all" autocomplete="off" checked>
+            <input type="radio" class="btn-check" name="bookings-filter" id="filter-all" value="all" autocomplete="off" <?= $defaultFilter === 'all' ? 'checked' : '' ?>>
             <label class="btn btn-outline-primary btn-sm" for="filter-all"><?= $this->t('All') ?></label>
 
-            <input type="radio" class="btn-check" name="bookings-filter" id="filter-upcoming" value="upcoming" autocomplete="off">
+            <input type="radio" class="btn-check" name="bookings-filter" id="filter-upcoming" value="upcoming" autocomplete="off" <?= $defaultFilter === 'upcoming' ? 'checked' : '' ?>>
             <label class="btn btn-outline-primary btn-sm" for="filter-upcoming"><?= $this->t('Upcoming') ?></label>
 
-            <input type="radio" class="btn-check" name="bookings-filter" id="filter-pending" value="pending" autocomplete="off">
+            <input type="radio" class="btn-check" name="bookings-filter" id="filter-pending" value="pending" autocomplete="off" <?= $defaultFilter === 'pending' ? 'checked' : '' ?>>
             <label class="btn btn-outline-primary btn-sm" for="filter-pending"><?= $this->t('Pending') ?></label>
         </div>
 
@@ -103,8 +124,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/bookings.min
                 $dataTime = $isFuture ? 'future' : 'past';
                 $dataStatus = ($statusBilling == 'pending' && $price > 0) ? 'pending' : (($statusBilling == 'paid') ? 'paid' : 'free');
 
-                if (! $isFuture) {
-                    $rowClass = ' text-muted';
+                if ($isFuture) {
+                    $cancellable = $this->squareValidator->isCancellable($booking);
 
                     if (! $todayMentioned) {
                         echo '<tr class="separator-row"><td colspan="4">';
@@ -116,12 +137,12 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/bookings.min
 
                         $todayMentioned = true;
                     }
-                } else {
-                    $cancellable = $this->squareValidator->isCancellable($booking);
 
                     if ($dataStatus == 'pending') {
                         $rowClass = ' table-warning';
                     }
+                } else {
+                    $rowClass = ' text-muted';
                 }
 
                 if ($bills) {

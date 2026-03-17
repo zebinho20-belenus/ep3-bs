@@ -24,6 +24,9 @@ $(function () {
         }
     });
 
+    // Trigger default filter on page load
+    $('#bookings-filter input[name="bookings-filter"]:checked').trigger('change');
+
     // Clickable pending rows → navigate to bill
     $('#bookings-table').on('click', '.booking-row-clickable', function (e) {
         // Don't navigate if user clicked a link or button inside the row
