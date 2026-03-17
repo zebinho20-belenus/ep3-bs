@@ -36,10 +36,12 @@ $this->setup(array(
                 <?= $this->backendBookingsFormat($this->reservations, $this->dateStart, $this->dateEnd, $this->search) ?>
 
                 <div class="edit-actions no-print" id="bulk-actions" style="display: none;">
-                    <button type="submit" name="bulk-action" value="reactivate"
-                        class="default-button" id="bulk-reactivate-btn" style="display: none;">
-                        <span class="symbolic symbolic-reload"><?= $this->t('Reactivate selected bookings') ?></span>
-                    </button>
+                    <?php if ($this->sessionUser && $this->sessionUser->can('calendar.reactivate-bookings')): ?>
+                        <button type="submit" name="bulk-action" value="reactivate"
+                            class="default-button" id="bulk-reactivate-btn" style="display: none;">
+                            <span class="symbolic symbolic-reload"><?= $this->t('Reactivate selected bookings') ?></span>
+                        </button>
+                    <?php endif; ?>
 
                     <button type="submit" name="bulk-action" value="cancel"
                         class="default-button default-button-danger" id="bulk-cancel-btn">
