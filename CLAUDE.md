@@ -456,7 +456,7 @@ Comprehensive OWASP Top 10 security audit and hardening. Key changes:
 | **Bcrypt** | Cost factor 10 (was 6) in Backend UserController |
 | **Hardening** | `unserialize(['allowed_classes' => false])` everywhere, removed `@` error suppression, `$_SERVER` guard for `HTTP_STRIPE_SIGNATURE` |
 | **Libraries** | jQuery 1.12.4 → 3.7.1, jQuery UI 1.10.4 → 1.14.1, TinyMCE 4.0.26 → 6.8.5 |
-| **Service Worker** | Cache version bumped to `ep3bs_v3.11:static` (was v3.10) |
+| **Service Worker** | Cache version bumped to `ep3bs_v3.12:static` (was v3.10) |
 
 **TinyMCE 6 migration notes:**
 - Skin: `lightgray` → `oxide`, Theme: `modern` → `silver`
