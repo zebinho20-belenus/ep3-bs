@@ -114,7 +114,7 @@
                         if (typeof window.initBookingEditForm === 'function') {
                             window.initBookingEditForm(squarebox[0]);
                         } else {
-                            squarebox.find(".datepicker").datepicker();
+                            squarebox.find(".datepicker").datepicker({ appendTo: squarebox });
                         }
 
                         squarebox.find(".inline-label-container").each(function() {

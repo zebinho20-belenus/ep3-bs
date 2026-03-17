@@ -17,11 +17,15 @@
         var urlProvider = $scope.find("#bf-url-provider");
         var tagProvider = $scope.find("#bf-tag-provider");
 
+        /* In squarebox context, append datepicker inside scope
+           so it inherits the squarebox z-index (1536) */
+        var dpOptions = (scope !== document) ? { appendTo: $scope } : {};
+
         /* Only run if this is the booking edit form */
         var userInput = $scope.find("#bf-user");
         if (!userInput.length) {
             /* Still init datepickers for other forms (e.g. event edit) */
-            $scope.find(".datepicker").datepicker();
+            $scope.find(".datepicker").datepicker(dpOptions);
             return;
         }
 
@@ -47,7 +51,7 @@
         }
 
         /* Datepicker */
-        $scope.find("#bf-date-start, #bf-date-end").datepicker();
+        $scope.find("#bf-date-start, #bf-date-end").datepicker(dpOptions);
 
         /* Update Form */
         $scope.find("#bf-repeat").on("change", updateForm);
