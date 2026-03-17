@@ -456,7 +456,7 @@ Comprehensive OWASP Top 10 security audit and hardening. Key changes:
 | **Bcrypt** | Cost factor 10 (was 6) in Backend UserController |
 | **Hardening** | `unserialize(['allowed_classes' => false])` everywhere, removed `@` error suppression, `$_SERVER` guard for `HTTP_STRIPE_SIGNATURE` |
 | **Libraries** | jQuery 1.12.4 → 3.7.1, jQuery UI 1.10.4 → 1.14.1, TinyMCE 4.0.26 → 6.8.5 |
-| **Service Worker** | Cache version bumped to `ep3bs_v3.12:static` (was v3.10) |
+| **Service Worker** | Cache version bumped to `ep3bs_v3.13:static` (was v3.10) |
 
 **TinyMCE 6 migration notes:**
 - Skin: `lightgray` → `oxide`, Theme: `modern` → `silver`
@@ -491,6 +491,13 @@ jQuery UI datepicker appeared behind event overlays (z-index conflict). Fix: `.u
 - Multi-column events showed name per column. Fix: hide original cell labels, show label only in middle overlay.
 - 1-hour multi-court events were invisible: safety check `firstColCells.length < 2` skipped wide overlay, combined with CSS label-hidden → no visible content. Fix: changed to `< 1`.
 - Resize handler called `updateCalendarEvents()` on every pixel → flicker/stale overlays. Fix: single debounced handler (150ms), fires `updateCalendarCols()` + `updateCalendarEvents()` once after resize settles. Added `orientationchange` for mobile rotation.
+
+**Phase 6 — Overlay label visibility root cause fix (Mar 2026):**
+**Root cause:** JS label-hiding runs BEFORE `firstCell.clone()`. `clone()` copies inline-styles including `visibility: hidden` onto the overlay label. The overlay label was never restored to `visible` → event name invisible on all overlays.
+**Fix:** Added `"visibility": "visible"` explicitly in both overlay label CSS calls:
+- Wide overlay (lines ~392-397): `eventGroupOverlayLabel.css({"visibility": "visible", ...})`
+- Single-column overlay (~439-444): same
+**Note:** CSS `a.cc-event[class*="cc-group-"] .cc-label { visibility: hidden !important }` still correctly hides ORIGINAL cell labels. Overlays don't have `cc-group-*` class (removed at line 377), so they're unaffected by this CSS rule.
 
 **Phase 5 — Calendar mobile clean cells (Mar 2026):**
 CSS-only mobile UX improvements (`@media (max-width: 767px)` in `app.css`):
