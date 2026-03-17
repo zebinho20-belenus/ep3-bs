@@ -455,6 +455,26 @@ Comprehensive OWASP Top 10 security audit and hardening. Key changes:
 - `tinyMCE.activeEditor.windowManager.open()` → `tinymce.activeEditor.windowManager.openUrl()`
 - Setup files updated: `tinymce.setup.js`, `tinymce.setup.light.js`, `tinymce.setup.medium.js`
 
+### Calendar Event Overlay Not Merging (Fixed Mar 2026, #94)
+
+**Problem:** Multi-hour events (Veranstaltungen) displayed as individual hourly cells instead of one merged block. The HTML rendered correctly with `cc-event cc-group-{eid}` classes, but the JavaScript overlay that visually merges them was broken.
+
+**Root Cause:** Multiple bugs in `updateCalendarEvents()` (`public/js/controller/calendar/index.js`):
+1. `String.match()` returns an Array, but `$.inArray()` compared by reference (never found duplicates)
+2. Off-by-one: `for (i <= length)` instead of `i < length`
+3. Events spanning all courts (`sid=null`) have `cc-group-{eid}` on every court column, but the overlay merged ALL cells into one giant block across all courts
+4. No `position: relative` container for `position: absolute` overlays
+
+**Solution:** Complete rewrite of overlay logic:
+- Extract `match()[0]` as string for proper `$.inArray` comparison
+- Fix loop bound to `< length`
+- Group cells by `td.index()` (court column) — create one overlay per (event, court) pair instead of one per event
+- Append overlays to `.calendar-date-table` (with `position: relative`) for correct absolute positioning
+
+**Files changed:**
+- `public/js/controller/calendar/index.js` + `index.min.js`
+- `public/css/app.css` + `app.min.css` (`.calendar-date-table { position: relative }`)
+
 ### PHP 8.4 Migration (Mar 2026)
 
 Upgraded from PHP 8.1 to 8.4, Stripe SDK 6.9.0 to 7.128.0. Key changes:

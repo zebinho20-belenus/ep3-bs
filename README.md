@@ -583,6 +583,7 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | "temporaer belegt" visible to visitors (#79) | Fixed Mar 2026 | Visitors see "Belegt" instead of "temporaer belegt" for pending bookings |
 | Email billing status raw slugs (#80) | Fixed Mar 2026 | `$this->t(ucfirst())` translation |
 | Email booking details double spacing (#80) | Fixed Mar 2026 | Single newlines between detail lines (Platz, Datum, Zeit, Nr) |
+| Event overlay not merging (#94) | Fixed Mar 2026 | JS `$.inArray` array-vs-string bug, off-by-one loop, missing `position:relative` |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
