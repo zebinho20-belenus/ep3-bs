@@ -295,19 +295,20 @@
 
             calendarDateCol.find(".cc-event").each(function() {
                 var classes = $(this).attr("class");
-                var eventGroup = classes.match(/cc-group-\d+/);
+                var eventGroupMatch = classes.match(/cc-group-\d+/);
 
-                if (eventGroup) {
-                    if ($.inArray(eventGroup, eventGroups) === -1) {
-                        eventGroups.push(eventGroup);
+                if (eventGroupMatch) {
+                    var eventGroupName = eventGroupMatch[0];
+                    if ($.inArray(eventGroupName, eventGroups) === -1) {
+                        eventGroups.push(eventGroupName);
                     }
                 }
             });
 
             var eventGroupsLength = eventGroups.length;
 
-            for (var i = 0; i <= eventGroupsLength; i++) {
-                var eventGroup = eventGroups[i] + "";
+            for (var i = 0; i < eventGroupsLength; i++) {
+                var eventGroup = eventGroups[i];
 
                 var eventGroupCellFirst = calendarDateCol.find("." + eventGroup + ":first");
                 var eventGroupCellLast = calendarDateCol.find("." + eventGroup + ":last");
@@ -331,7 +332,7 @@
 
                     if (! eventGroupOverlay.length) {
                         eventGroupOverlay = eventGroupCellFirst.clone();
-                        eventGroupOverlay.appendTo( eventGroupCellFirst.closest("td") );
+                        eventGroupOverlay.appendTo( calendarDateCol );
                         eventGroupOverlay.attr("id", eventGroup + "-overlay-" + dateIndex);
                         eventGroupOverlay.removeClass(eventGroup);
                     }
