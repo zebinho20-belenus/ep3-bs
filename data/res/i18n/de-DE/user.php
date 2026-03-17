@@ -282,4 +282,8 @@ return array(
     'other players' => 'angegebene Mitspieler',
     'Kosten' => 'costs',
 
+    'Upcoming' => 'Zukünftige',
+    'Cancel' => 'Stornieren',
+    'No matching bookings' => 'Keine passenden Buchungen',
+
 );

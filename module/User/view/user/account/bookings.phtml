@@ -10,6 +10,8 @@ $this->setup(array(
     ),
 ));
 
+$this->headScript()->appendFile($this->basePath('js/controller/user/bookings.min.js'));
+
 ?>
 
 <div>
@@ -46,8 +48,18 @@ $this->setup(array(
 
         <hr>
 
-        <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <div id="bookings-filter" class="btn-group mb-3 no-print" role="group">
+            <input type="radio" class="btn-check" name="bookings-filter" id="filter-all" value="all" autocomplete="off" checked>
+            <label class="btn btn-outline-primary btn-sm" for="filter-all"><?= $this->t('All') ?></label>
+
+            <input type="radio" class="btn-check" name="bookings-filter" id="filter-upcoming" value="upcoming" autocomplete="off">
+            <label class="btn btn-outline-primary btn-sm" for="filter-upcoming"><?= $this->t('Upcoming') ?></label>
+
+            <input type="radio" class="btn-check" name="bookings-filter" id="filter-pending" value="pending" autocomplete="off">
+            <label class="btn btn-outline-primary btn-sm" for="filter-pending"><?= $this->t('Pending') ?></label>
+        </div>
+
+        <table id="bookings-table" class="table table-hover align-middle">
             <tbody>
             <?php
 
@@ -87,11 +99,15 @@ $this->setup(array(
                     }
                 }
 
-                if ($this->now > $bookingDateTimeStart) {
-                    $rowClass = ' class="text-muted"';
+                $isFuture = ($this->now <= $bookingDateTimeStart);
+                $dataTime = $isFuture ? 'future' : 'past';
+                $dataStatus = ($statusBilling == 'pending' && $price > 0) ? 'pending' : (($statusBilling == 'paid') ? 'paid' : 'free');
+
+                if (! $isFuture) {
+                    $rowClass = ' text-muted';
 
                     if (! $todayMentioned) {
-                        echo '<tr><td colspan="4">';
+                        echo '<tr class="separator-row"><td colspan="4">';
                         echo '<div class="text-center position-relative py-2">';
                         echo '<hr class="my-0">';
                         echo '<span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">' . $this->t('Now') . '</span>';
@@ -103,8 +119,8 @@ $this->setup(array(
                 } else {
                     $cancellable = $this->squareValidator->isCancellable($booking);
 
-                    if ($statusBilling == 'pending' && $price > 0) {
-                        $rowClass = ' class="table-warning"';
+                    if ($dataStatus == 'pending') {
+                        $rowClass = ' table-warning';
                     }
                 }
 
@@ -123,27 +139,29 @@ $this->setup(array(
                     $pricing .= ' <span class="badge bg-success">' . $this->t('Paid') . '</span>';
                 }
 
-                echo '<tr' . $rowClass . '>';
+                echo '<tr class="booking-row' . $rowClass . '" data-time="' . $dataTime . '" data-status="' . $dataStatus . '">';
 
-                $nameClass = ($this->now <= $bookingDateTimeStart) ? 'text-success fw-semibold' : 'text-muted';
-                echo '<td class="' . $nameClass . '">' . $this->option('subject.square.type') . ' ' . $this->t($square->need('name')) . '</td>';
-                echo '<td>' . $this->dateRange($bookingDateTimeStart, $bookingDateTimeEnd) . '</td>';
-                echo '<td>' . $pricing . '</td>';
+                $nameClass = $isFuture ? 'text-success fw-semibold' : 'text-muted';
+                echo '<td data-label="' . htmlspecialchars($this->option('subject.square.type')) . '" class="' . $nameClass . '">' . $this->option('subject.square.type') . ' ' . $this->t($square->need('name')) . '</td>';
+                echo '<td data-label="' . $this->t('Date') . '">' . $this->dateRange($bookingDateTimeStart, $bookingDateTimeEnd) . '</td>';
+                echo '<td data-label="' . $this->t('Price') . '">' . $pricing . '</td>';
 
                 if ($cancellable) {
-                    echo sprintf('<td><a href="%s" class="btn btn-outline-danger btn-sm">%s</a></td>',
-                        $this->url('square/booking/cancellation', [], ['query' => ['bid' => $booking->need('bid')]]), $this->t('Cancel booking'));
+                    echo sprintf('<td class="bookings-action-col"><a href="%s" class="btn btn-outline-danger btn-sm"><span class="d-none d-sm-inline">%s</span><span class="d-sm-none">%s</span></a></td>',
+                        $this->url('square/booking/cancellation', [], ['query' => ['bid' => $booking->need('bid')]]), $this->t('Cancel booking'), $this->t('Cancel'));
                 } else {
-                    echo '<td class="text-center text-muted">&middot;</td>';
+                    echo '<td class="bookings-action-col text-center text-muted">&middot;</td>';
                 }
 
                 echo '</tr>';
             }
 
             ?>
+            <tr class="no-results-row" style="display: none;">
+                <td colspan="4" class="text-center text-muted py-3"><?= $this->t('No matching bookings') ?></td>
+            </tr>
             </tbody>
         </table>
-        </div>
 
     <?php endif; ?>
 
