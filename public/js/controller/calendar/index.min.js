@@ -435,6 +435,16 @@
                         });
                     });
                 }
+
+                // Hide labels in original cells (overlay covers them)
+                calendarDateCol.find("." + eventGroup + " .cc-label").css("visibility", "hidden");
+
+                // If multiple overlays exist for this event, show label only in middle one
+                var allOverlays = $("[id^='" + eventGroup + "-'][id$='-overlay-" + dateIndex + "']");
+                if (allOverlays.length > 1) {
+                    allOverlays.find(".cc-label").css("visibility", "hidden");
+                    allOverlays.eq(Math.floor(allOverlays.length / 2)).find(".cc-label").css("visibility", "visible");
+                }
             }
         });
     }
