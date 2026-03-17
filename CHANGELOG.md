@@ -2,6 +2,10 @@
 
 ## v2.1.1 (2026-03-17)
 
+### Bug Fixes
+
+- **Uniform email salutation (#81)**: All outgoing emails now use "Hallo Vorname Nachname" (fallback: alias). Removed gender-based "Sehr geehrter Herr/Sehr geehrte Frau" from all email-sending locations (Backend cancel/reactivate/edit/bulk, Square cancel/payment-failed, User MailService for booking confirmations).
+
 ### Features
 
 - **Reactivate permission (#82)**: New `calendar.reactivate-bookings` privilege for assist users. Reactivation of cancelled bookings can now be granted/denied independently of the general `admin.booking` permission. Permission check added in all views (edit form, bulk action, booking list) and controllers.
