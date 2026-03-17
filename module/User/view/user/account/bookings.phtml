@@ -139,7 +139,10 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/bookings.min
                     $pricing .= ' <span class="badge bg-success">' . $this->t('Paid') . '</span>';
                 }
 
-                echo '<tr class="booking-row' . $rowClass . '" data-time="' . $dataTime . '" data-status="' . $dataStatus . '">';
+                $billUrl = $bills ? $this->url('user/bookings/bills', ['bid' => $bid]) : '';
+                $isClickable = ($dataStatus == 'pending' && $billUrl);
+
+                echo '<tr class="booking-row' . $rowClass . ($isClickable ? ' booking-row-clickable' : '') . '" data-time="' . $dataTime . '" data-status="' . $dataStatus . '"' . ($isClickable ? ' data-href="' . $billUrl . '"' : '') . '>';
 
                 $nameClass = $isFuture ? 'text-success fw-semibold' : 'text-muted';
                 echo '<td data-label="' . htmlspecialchars($this->option('subject.square.type')) . '" class="' . $nameClass . '">' . $this->option('subject.square.type') . ' ' . $this->t($square->need('name')) . '</td>';

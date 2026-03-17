@@ -24,4 +24,11 @@ $(function () {
         }
     });
 
+    // Clickable pending rows → navigate to bill
+    $('#bookings-table').on('click', '.booking-row-clickable', function (e) {
+        // Don't navigate if user clicked a link or button inside the row
+        if ($(e.target).closest('a, button, input').length) return;
+        window.location.href = $(this).data('href');
+    });
+
 });

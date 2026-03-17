@@ -1371,6 +1371,10 @@ a.squarebox-primary-close-link:hover {
 #bookings-table .booking-row[data-filtered="true"],
 #bookings-table .separator-row[data-filtered="true"] { display: none; }
 
+/* Clickable pending rows */
+#bookings-table .booking-row-clickable { cursor: pointer; }
+#bookings-table .booking-row-clickable:hover { background-color: #fef3c7; }
+
 /* ---------- Bookings Mobile Card Layout ---------- */
 
 @media (max-width: 575.98px) {
@@ -1432,6 +1436,65 @@ a.squarebox-primary-close-link:hover {
 
     #bookings-table .no-results-row td {
         border: none;
+    }
+}
+
+/* ---------- Bills Mobile Layout ---------- */
+
+@media (max-width: 575.98px) {
+    .bills-card .table-responsive { overflow: visible; }
+
+    .bills-table,
+    .bills-table thead,
+    .bills-table tbody,
+    .bills-table tr,
+    .bills-table td,
+    .bills-table th {
+        display: block;
+        width: 100%;
+    }
+
+    .bills-table thead { display: none; }
+
+    .bills-table tbody tr {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        background: #fff;
+    }
+
+    .bills-table tbody tr.bills-total-row {
+        border-color: var(--color-primary);
+        background: #f8f9fa;
+    }
+
+    .bills-table td {
+        padding: 0.2rem 0;
+        border: none;
+    }
+
+    .bills-table td::before {
+        content: attr(data-label);
+        display: inline-block;
+        font-weight: 600;
+        color: var(--color-text-heading);
+        margin-right: 0.5rem;
+        font-size: 0.8125rem;
+    }
+
+    .bills-table .bills-total-row td::before {
+        font-size: 0.875rem;
+    }
+
+    .payment-options {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .payment_radio {
+        justify-content: center;
+        width: 100%;
     }
 }
 

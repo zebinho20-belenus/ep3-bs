@@ -41,9 +41,9 @@ $this->setup(array(
     ?>
     <p><?= $this->t('Status') ?>: <span class="billing-badge <?= $cssClass ?>"><?= $this->escapeHtml($this->bookingBillingStatus) ?></span></p>
 
-    <div class="card card-body bg-light">
+    <div class="card card-body bg-light bills-card">
         <div class="table-responsive">
-        <table class="table table-bordered align-middle mb-0">
+        <table class="table table-bordered align-middle mb-0 bills-table">
 
             <?php
 
@@ -66,23 +66,23 @@ $this->setup(array(
                 ?>
 
                 <tr>
-                    <td><?= $bill->get('description') ?></td>
+                    <td data-label="<?= $this->t('Description') ?>"><?= $bill->get('description') ?></td>
 
                     <?php if ($bill->get('time')): ?>
-                        <td><?= $this->prettyTime($bill->get('time')) ?></td>
-                        <td><?= $this->numberFormat($bill->get('quantity')) . ' ' . $squareUnit ?></td>
+                        <td data-label="<?= $this->t('Time') ?>"><?= $this->prettyTime($bill->get('time')) ?></td>
+                        <td data-label="<?= $this->t('Quantity') ?>"><?= $this->numberFormat($bill->get('quantity')) . ' ' . $squareUnit ?></td>
                     <?php else: ?>
-                        <td colspan="2"><?= sprintf($this->t('%s items'), $bill->get('quantity')) ?></td>
+                        <td colspan="2" data-label="<?= $this->t('Quantity') ?>"><?= sprintf($this->t('%s items'), $bill->get('quantity')) ?></td>
                     <?php endif; ?>
 
-                    <td><?= $this->priceFormat($bill->get('price'), $bill->get('rate'), $bill->get('gross')) ?></td>
+                    <td data-label="<?= $this->t('Price') ?>"><?= $this->priceFormat($bill->get('price'), $bill->get('rate'), $bill->get('gross')) ?></td>
                 </tr>
 
             <?php endforeach; ?>
 
-            <tr class="table-active fw-bold">
-                <td colspan="3"><?= $this->t('Total') ?></td>
-                <td><?= $this->priceFormat($total) ?></td>
+            <tr class="table-active fw-bold bills-total-row">
+                <td colspan="3" data-label=""><?= $this->t('Total') ?></td>
+                <td data-label="<?= $this->t('Total') ?>"><?= $this->priceFormat($total) ?></td>
             </tr>
 
         </table>

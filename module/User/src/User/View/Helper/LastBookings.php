@@ -19,6 +19,7 @@ class LastBookings extends AbstractHelper
     protected $bookingBillManager;
 
     public $unpaidCount = 0;
+    public $upcomingCount = 0;
 
     public function __construct(BookingManager $bookingManager, ReservationManager $reservationManager,
         SquareManager $squareManager, BillManager $bookingBillManager)
@@ -33,6 +34,7 @@ class LastBookings extends AbstractHelper
     {
         $view = $this->getView();
         $this->unpaidCount = 0;
+        $this->upcomingCount = 0;
 
         $userBookings = $this->bookingManager->getByValidity(array(
             'uid' => $user->need('uid'),
@@ -98,6 +100,7 @@ class LastBookings extends AbstractHelper
         }
 
         $this->unpaidCount = $unpaidCount;
+        $this->upcomingCount = count($futureBookings);
 
         // Sort future bookings by date ascending, take first 4
         usort($futureBookings, function ($a, $b) {
