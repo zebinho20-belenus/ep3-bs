@@ -337,7 +337,7 @@
                     var firstColCells = cellsByCol[colKeys[0]];
                     var lastColCells = cellsByCol[colKeys[colKeys.length - 1]];
 
-                    if (firstColCells.length < 2) continue; // safety
+                    if (firstColCells.length < 1) continue; // safety
 
                     var firstCell = firstColCells[0];
                     var lastCell = lastColCells[lastColCells.length - 1];
