@@ -1146,6 +1146,32 @@ a.squarebox-primary-close-link:hover {
     .calendar-time-col .cte-label { display: none; }
 }
 
+/* ---------- Calendar mobile: clean cells ---------- */
+@media screen and (max-width: 767px) {
+    /* Prio 1: Hide "Frei" text — light background is enough */
+    a.cc-free .cc-label,
+    a.cc-free-min .cc-label,
+    a.cc-free-max .cc-label { font-size: 0; visibility: hidden; }
+
+    /* Prio 2+3: Hide labels in occupied/single cells — color carries meaning */
+    a.cc-single .cc-label,
+    a.cc-multiple .cc-label { font-size: 0; visibility: hidden; }
+
+    /* Prio 2: Own bookings — short label via ::after */
+    a.cc-own .cc-label { font-size: 0; visibility: hidden; }
+    a.cc-own::after { content: "✓"; font-size: 14px; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    a.cc-own { position: relative; }
+
+    /* Prio 2: Pending own bookings */
+    a.cc-try .cc-label { font-size: 0; visibility: hidden; }
+    a.cc-try::after { content: "!"; font-size: 14px; font-weight: bold; color: #664d03; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    a.cc-try { position: relative; }
+
+    /* Prio 5: Time column even more compact */
+    .calendar-time-col .cts-label { font-size: 10px; }
+    .cts-label { font-size: 12px; }
+}
+
 /* ---------- Cookie Consent ---------- */
 
 #myCookieConsent {

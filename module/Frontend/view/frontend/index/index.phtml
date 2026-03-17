@@ -18,4 +18,14 @@ $this->headScript()->appendFile($this->basePath('js/controller/frontend/index.mi
     </div>
 </div>
 
+<div id="calendar-legend" class="no-print d-md-none text-center mb-2" style="font-size: 0.7rem; color: #6b7280;">
+    <span style="display: inline-block; width: 10px; height: 10px; background: #F0F5FA; border: 1px solid #d1d5db; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Free') ?>
+    <?php if ($this->user): ?>
+    &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: var(--color-accent); border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Your Booking') ?>
+    <?php endif; ?>
+    &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: #046bd2; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Subscription') ?>
+    &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: #94A3B8; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Occupied') ?>
+    &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: #DC2626; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Event') ?>
+</div>
+
 <?= $this->calendar ?>
