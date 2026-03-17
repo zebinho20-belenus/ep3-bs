@@ -16,7 +16,7 @@ if (! ($this->dateStart || $this->dateEnd)) {
             <div class="inline-element">
                 <label for="date-start" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date start') ?></span></label>
                 <input type="text" name="date-start" id="date-start" value="<?= $this->dateFormat($this->dateStart, IntlDateFormatter::MEDIUM) ?>"
-                       class="inline-label-container datepicker form-control form-control-sm" style="padding-left: 28px; width: 110px;">
+                       class="inline-label-container datepicker form-control form-control-sm" style="padding-left: 28px; width: 120px; text-align: center;">
             </div>
 
             <span class="text-muted"><?= $this->t('to') ?></span>
@@ -24,7 +24,7 @@ if (! ($this->dateStart || $this->dateEnd)) {
             <div class="inline-element">
                 <label for="date-end" class="inline-label symbolic symbolic-date"><span><?= $this->t('Date end') ?></span></label>
                 <input type="text" name="date-end" id="date-end" value="<?= $this->dateFormat($this->dateEnd, IntlDateFormatter::MEDIUM) ?>"
-                       class="inline-label-container datepicker form-control form-control-sm" style="padding-left: 28px; width: 110px;">
+                       class="inline-label-container datepicker form-control form-control-sm" style="padding-left: 28px; width: 120px; text-align: center;">
             </div>
 
             <input type="submit" value="<?= $this->t('Search') ?>" class="default-button">
