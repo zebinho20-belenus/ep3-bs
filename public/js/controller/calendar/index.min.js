@@ -73,14 +73,23 @@
         /* Update calendar */
 
         updateCalendarCols();
-        $(window).resize(updateCalendarCols);
         $(document).on("updateLayout", updateCalendarCols);
 
         /* Update calendar events */
 
         updateCalendarEvents();
-        $(window).resize(updateCalendarEvents);
         $(document).on("updateLayout", updateCalendarEvents);
+
+        /* Debounced resize: recalculate after resize settles (150ms) */
+        var resizeTimer;
+        function debouncedCalendarUpdate() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                updateCalendarCols();
+                updateCalendarEvents();
+            }, 150);
+        }
+        $(window).on("resize orientationchange", debouncedCalendarUpdate);
 
     });
 
