@@ -290,7 +290,11 @@
 
         $(".calendar-date-col").each(function(dateIndex) {
             var calendarDateCol = $(this);
+            var dateTable = calendarDateCol.find(".calendar-date-table");
 
+            if (! dateTable.length) return;
+
+            // Collect unique event groups
             var eventGroups = [];
 
             calendarDateCol.find(".cc-event").each(function() {
@@ -305,60 +309,74 @@
                 }
             });
 
-            var eventGroupsLength = eventGroups.length;
-
-            for (var i = 0; i < eventGroupsLength; i++) {
+            // For each event group, create one overlay per court column
+            for (var i = 0; i < eventGroups.length; i++) {
                 var eventGroup = eventGroups[i];
 
-                var eventGroupCellFirst = calendarDateCol.find("." + eventGroup + ":first");
-                var eventGroupCellLast = calendarDateCol.find("." + eventGroup + ":last");
+                // Group cells by their column index (= court)
+                var cellsByCol = {};
 
-                var posFirst = eventGroupCellFirst.position();
-                var posLast = eventGroupCellLast.position();
+                calendarDateCol.find("." + eventGroup).each(function() {
+                    var cell = $(this);
+                    var td = cell.closest("td");
+                    var colIndex = td.index();
 
-                if (posFirst && posLast) {
-                    var startX = Math.floor(posFirst.left) - 1;
-                    var startY = Math.floor(posFirst.top) - 1;
-
-                    var endX = Math.ceil(posLast.left) + 1;
-                    var endY = Math.ceil(posLast.top) + 1;
-
-                    var eventWidth = Math.round((endX + eventGroupCellLast.outerWidth()) - startX);
-                    var eventHeight = Math.round((endY + eventGroupCellLast.outerHeight()) - startY);
-
-                    /* Create event group overlay */
-
-                    var eventGroupOverlay = $("#" + eventGroup + "-overlay-" + dateIndex);
-
-                    if (! eventGroupOverlay.length) {
-                        eventGroupOverlay = eventGroupCellFirst.clone();
-                        eventGroupOverlay.appendTo( calendarDateCol );
-                        eventGroupOverlay.attr("id", eventGroup + "-overlay-" + dateIndex);
-                        eventGroupOverlay.removeClass(eventGroup);
+                    if (! cellsByCol[colIndex]) {
+                        cellsByCol[colIndex] = [];
                     }
+                    cellsByCol[colIndex].push(cell);
+                });
 
-                    var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
+                // Create one overlay per column
+                $.each(cellsByCol, function(colIndex, cells) {
+                    if (cells.length < 2) return; // single cell needs no overlay
 
-                    eventGroupOverlay.css({
-                        "position": "absolute",
-                        "z-index": 128,
-                        "left": startX, "top": startY,
-                        "width": eventWidth,
-                        "height": eventHeight,
-                        "padding": 0
-                    });
+                    var firstCell = cells[0];
+                    var lastCell = cells[cells.length - 1];
+                    var firstTd = firstCell.closest("td");
 
-                    eventGroupOverlayLabel.css({
-                        "height": "auto",
-                        "font-size": "12px",
-                        "line-height": 1.5
-                    });
+                    var posFirst = firstCell.position();
+                    var posLast = lastCell.position();
 
-                    eventGroupOverlayLabel.css({
-                        "position": "relative",
-                        "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
-                    });
-                }
+                    if (posFirst && posLast) {
+                        var startX = Math.floor(posFirst.left);
+                        var startY = Math.floor(posFirst.top);
+                        var eventWidth = firstCell.outerWidth();
+                        var eventHeight = Math.round((Math.ceil(posLast.top) + lastCell.outerHeight()) - startY);
+
+                        var overlayId = eventGroup + "-c" + colIndex + "-overlay-" + dateIndex;
+                        var eventGroupOverlay = $("#" + overlayId);
+
+                        if (! eventGroupOverlay.length) {
+                            eventGroupOverlay = firstCell.clone();
+                            eventGroupOverlay.appendTo(dateTable);
+                            eventGroupOverlay.attr("id", overlayId);
+                            eventGroupOverlay.removeClass(eventGroup);
+                        }
+
+                        var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
+
+                        eventGroupOverlay.css({
+                            "position": "absolute",
+                            "z-index": 128,
+                            "left": startX, "top": startY,
+                            "width": eventWidth,
+                            "height": eventHeight,
+                            "padding": 0
+                        });
+
+                        eventGroupOverlayLabel.css({
+                            "height": "auto",
+                            "font-size": "12px",
+                            "line-height": 1.5
+                        });
+
+                        eventGroupOverlayLabel.css({
+                            "position": "relative",
+                            "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
+                        });
+                    }
+                });
             }
         });
     }
