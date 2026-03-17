@@ -327,35 +327,41 @@
                     cellsByCol[colIndex].push(cell);
                 });
 
-                // Create one overlay per column
+                // Create overlays: one wide overlay for multi-column events,
+                // or one overlay per column for single-column events
                 var wrapperOffset = dateWrapper.offset();
+                var colKeys = Object.keys(cellsByCol);
 
-                $.each(cellsByCol, function(colIndex, cells) {
-                    if (cells.length < 2) return; // single cell needs no overlay
+                if (colKeys.length > 1) {
+                    // Multi-column event: one wide overlay spanning all columns
+                    var firstColCells = cellsByCol[colKeys[0]];
+                    var lastColCells = cellsByCol[colKeys[colKeys.length - 1]];
 
-                    var firstCell = cells[0];
-                    var lastCell = cells[cells.length - 1];
+                    if (firstColCells.length < 2) continue; // safety
 
-                    // Use td dimensions for flush edges (a elements are narrower due to td padding)
+                    var firstCell = firstColCells[0];
+                    var lastCell = lastColCells[lastColCells.length - 1];
+                    var firstColLastCell = firstColCells[firstColCells.length - 1];
+
                     var firstTd = firstCell.closest("td");
                     var lastTd = lastCell.closest("td");
+                    var firstColLastTd = firstColLastCell.closest("td");
+
                     var firstTdOff = firstTd.offset();
                     var lastTdOff = lastTd.offset();
+                    var firstColLastTdOff = firstColLastTd.offset();
 
                     var startX = Math.floor(firstTdOff.left - wrapperOffset.left);
                     var startY = Math.floor(firstTdOff.top - wrapperOffset.top);
-                    var eventWidth = firstTd.outerWidth();
-                    var eventHeight = Math.round((lastTdOff.top + lastTd.outerHeight()) - firstTdOff.top);
+                    var eventWidth = Math.round((lastTdOff.left + lastTd.outerWidth()) - firstTdOff.left);
+                    var eventHeight = Math.round((firstColLastTdOff.top + firstColLastTd.outerHeight()) - firstTdOff.top);
 
-                    var overlayId = eventGroup + "-c" + colIndex + "-overlay-" + dateIndex;
-                    var eventGroupOverlay = $("#" + overlayId);
+                    var overlayId = eventGroup + "-wide-overlay-" + dateIndex;
 
-                    if (! eventGroupOverlay.length) {
-                        eventGroupOverlay = firstCell.clone();
-                        eventGroupOverlay.appendTo(dateWrapper);
-                        eventGroupOverlay.attr("id", overlayId);
-                        eventGroupOverlay.removeClass(eventGroup);
-                    }
+                    var eventGroupOverlay = firstCell.clone();
+                    eventGroupOverlay.appendTo(dateWrapper);
+                    eventGroupOverlay.attr("id", overlayId);
+                    eventGroupOverlay.removeClass(eventGroup);
 
                     var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
 
@@ -365,7 +371,8 @@
                         "left": startX, "top": startY,
                         "width": eventWidth,
                         "height": eventHeight,
-                        "padding": 0
+                        "padding": 0,
+                        "text-align": "center"
                     });
 
                     eventGroupOverlayLabel.css({
@@ -378,7 +385,54 @@
                         "position": "relative",
                         "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
                     });
-                });
+                } else {
+                    // Single-column event: one overlay per column
+                    $.each(cellsByCol, function(colIndex, cells) {
+                        if (cells.length < 2) return; // single cell needs no overlay
+
+                        var firstCell = cells[0];
+                        var lastCell = cells[cells.length - 1];
+
+                        var firstTd = firstCell.closest("td");
+                        var lastTd = lastCell.closest("td");
+                        var firstTdOff = firstTd.offset();
+                        var lastTdOff = lastTd.offset();
+
+                        var startX = Math.floor(firstTdOff.left - wrapperOffset.left);
+                        var startY = Math.floor(firstTdOff.top - wrapperOffset.top);
+                        var eventWidth = firstTd.outerWidth();
+                        var eventHeight = Math.round((lastTdOff.top + lastTd.outerHeight()) - firstTdOff.top);
+
+                        var overlayId = eventGroup + "-c" + colIndex + "-overlay-" + dateIndex;
+
+                        var eventGroupOverlay = firstCell.clone();
+                        eventGroupOverlay.appendTo(dateWrapper);
+                        eventGroupOverlay.attr("id", overlayId);
+                        eventGroupOverlay.removeClass(eventGroup);
+
+                        var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
+
+                        eventGroupOverlay.css({
+                            "position": "absolute",
+                            "z-index": 128,
+                            "left": startX, "top": startY,
+                            "width": eventWidth,
+                            "height": eventHeight,
+                            "padding": 0
+                        });
+
+                        eventGroupOverlayLabel.css({
+                            "height": "auto",
+                            "font-size": "12px",
+                            "line-height": 1.5
+                        });
+
+                        eventGroupOverlayLabel.css({
+                            "position": "relative",
+                            "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
+                        });
+                    });
+                }
             }
         });
     }
