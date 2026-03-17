@@ -1472,19 +1472,24 @@ a.squarebox-primary-close-link:hover {
     .bills-table td {
         padding: 0.2rem 0;
         border: none;
+        word-break: break-word;
     }
 
     .bills-table td::before {
         content: attr(data-label);
-        display: inline-block;
+        display: block;
         font-weight: 600;
         color: var(--color-text-heading);
-        margin-right: 0.5rem;
-        font-size: 0.8125rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 0.1rem;
     }
 
+    .bills-table .bills-total-label { display: none; }
+
     .bills-table .bills-total-row td::before {
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
     }
 
     .payment-options {

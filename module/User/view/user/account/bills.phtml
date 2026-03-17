@@ -81,7 +81,7 @@ $this->setup(array(
             <?php endforeach; ?>
 
             <tr class="table-active fw-bold bills-total-row">
-                <td colspan="3" data-label=""><?= $this->t('Total') ?></td>
+                <td colspan="3" class="bills-total-label"><?= $this->t('Total') ?></td>
                 <td data-label="<?= $this->t('Total') ?>"><?= $this->priceFormat($total) ?></td>
             </tr>
 
