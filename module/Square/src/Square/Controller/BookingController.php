@@ -636,8 +636,8 @@ class BookingController extends AbstractActionController
             $lastname = $user->getMeta('lastname');
             if ($firstname && $lastname) {
                 $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
-            } elseif ($user->get('email')) {
-                $anrede = 'Hallo ' . $user->get('email');
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
             } else {
                 $anrede = 'Hallo ' . $user->need('alias');
             }
@@ -761,8 +761,8 @@ class BookingController extends AbstractActionController
             $lastname = $user->getMeta('lastname');
             if ($firstname && $lastname) {
                 $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
-            } elseif ($user->get('email')) {
-                $anrede = 'Hallo ' . $user->get('email');
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
             } else {
                 $anrede = 'Hallo ' . $user->need('alias');
             }

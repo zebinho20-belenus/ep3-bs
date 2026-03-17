@@ -1644,17 +1644,14 @@ class BookingController extends AbstractActionController
             }
 
             // Personalisierte Anrede
-            $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male') {
-                $anrede = 'Sehr geehrter Herr';
-            } elseif ($user->getMeta('gender') == 'female') {
-                $anrede = 'Sehr geehrte Frau';
-            }
-
-            if ($user->getMeta('lastname')) {
-                $anrede .= ' ' . $user->getMeta('lastname');
+            $firstname = $user->getMeta('firstname');
+            $lastname  = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
             } else {
-                $anrede .= ' ' . $user->need('alias');
+                $anrede = 'Hallo ' . $user->need('alias');
             }
 
             $subject = sprintf($this->t('%s\'s Platz-Buchung wurde storniert'), $user->need('alias'));
@@ -1987,17 +1984,14 @@ class BookingController extends AbstractActionController
             }
 
             // Personalisierte Anrede
-            $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male') {
-                $anrede = 'Sehr geehrter Herr';
-            } elseif ($user->getMeta('gender') == 'female') {
-                $anrede = 'Sehr geehrte Frau';
-            }
-
-            if ($user->getMeta('lastname')) {
-                $anrede .= ' ' . $user->getMeta('lastname');
+            $firstname = $user->getMeta('firstname');
+            $lastname  = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
             } else {
-                $anrede .= ' ' . $user->need('alias');
+                $anrede = 'Hallo ' . $user->need('alias');
             }
 
             $subject = sprintf($this->t('%s\'s Platz-Buchung wurde reaktiviert'), $user->need('alias'));
@@ -2147,17 +2141,14 @@ class BookingController extends AbstractActionController
             }
 
             // Personalisierte Anrede
-            $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male') {
-                $anrede = 'Sehr geehrter Herr';
-            } elseif ($user->getMeta('gender') == 'female') {
-                $anrede = 'Sehr geehrte Frau';
-            }
-
-            if ($user->getMeta('lastname')) {
-                $anrede .= ' ' . $user->getMeta('lastname');
+            $firstname = $user->getMeta('firstname');
+            $lastname  = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
             } else {
-                $anrede .= ' ' . $user->need('alias');
+                $anrede = 'Hallo ' . $user->need('alias');
             }
 
             $subject = sprintf($this->t('Buchungsbestätigung: Platz %s, %s'), $squareName, $formattedDate);
@@ -2459,16 +2450,14 @@ class BookingController extends AbstractActionController
             }
 
             // Personalized greeting
-            $anrede = 'Hallo';
-            if ($user->getMeta('gender') == 'male') {
-                $anrede = 'Sehr geehrter Herr';
-            } elseif ($user->getMeta('gender') == 'female') {
-                $anrede = 'Sehr geehrte Frau';
-            }
-            if ($user->getMeta('lastname')) {
-                $anrede .= ' ' . $user->getMeta('lastname');
+            $firstname = $user->getMeta('firstname');
+            $lastname  = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
             } else {
-                $anrede .= ' ' . $user->need('alias');
+                $anrede = 'Hallo ' . $user->need('alias');
             }
 
             // Build changes text
