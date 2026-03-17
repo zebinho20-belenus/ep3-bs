@@ -1,5 +1,5 @@
 // Use a cacheName for cache versioning
-var cacheName = 'ep3bs_v3.13:static';
+var cacheName = 'ep3bs_v3.14:static';
 
 // During the installation phase, cache static assets
 self.addEventListener('install', function(e) {
@@ -14,6 +14,8 @@ self.addEventListener('install', function(e) {
                 '../js/jquery-ui/jquery-ui.min.js',
                 '../js/controller/frontend/index.min.js',
                 '../js/controller/frontend/hammer.min.js',
+                '../js/controller/calendar/index.min.js',
+                '../js/default.min.js',
                 '../js/jquery-ui/i18n/de-DE.js',
                 '../imgs/icons/locale/en-US.png',
                 '../imgs/icons/locale/de-DE.png',
