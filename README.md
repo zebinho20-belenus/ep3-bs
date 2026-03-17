@@ -324,8 +324,8 @@ Access: `/backend` (requires authentication + admin permission)
 ### Booking Management
 
 - **List View:** Sortable table, per-column filters, 13 columns (responsive: 13 -> 5 on mobile)
-- **Actions:** Edit, Cancel (active), Reactivate (cancelled, if slot free), Delete (cancelled, admin only)
-- **Reactivate:** Collision check via `getInRange()` before showing reactivate icon
+- **Actions:** Edit, Cancel (active), Reactivate (cancelled, if slot free + permission), Delete (cancelled, admin only)
+- **Reactivate:** Requires `calendar.reactivate-bookings` privilege + collision check via `getInRange()`
 - **Edit View:** BS5 grid layout (2x2, 4 sandboxes)
 - **Delete/Cancel:** Confirmation page with `<form method="post">`, budget refund
 
@@ -563,6 +563,7 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Datepicker arrows invisible (#92) | Fixed Mar 2026 | CSS override with Unicode arrows instead of sprite icons |
 | Booking limit counts slots (#93) | Fixed Mar 2026 | Sum slot durations instead of counting reservations |
 | Event overlay not merging (#94) | Fixed Mar 2026 | JS `$.inArray` bug, off-by-one loop, multi-column merge, datepicker z-index |
+| Datepicker behind squarebox (#96) | Fixed Mar 2026 | Raised datepicker z-index above squarebox (2048 > 1536) |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -577,6 +578,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.1.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>

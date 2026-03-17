@@ -228,8 +228,14 @@ Email includes: booking details, player names, itemized bill, payment informatio
 
 **Row actions** (icon-only, no text labels):
 - **Active bookings**: Edit (symbolic-edit) + Cancel (symbolic-cross)
-- **Cancelled bookings, slot free**: Edit + Reactivate (symbolic-reload) + Delete (symbolic-cross)
-- **Cancelled bookings, slot occupied**: Edit + Delete (no Reactivate)
+- **Cancelled bookings, slot free + permission**: Edit + Reactivate (symbolic-reload) + Delete (symbolic-cross)
+- **Cancelled bookings, slot occupied or no permission**: Edit + Delete (no Reactivate)
+
+**Reactivate permission (#82)**: Reactivation requires the `calendar.reactivate-bookings` privilege. Admins have it automatically. Assist users need it explicitly granted in user meta (`allow.calendar.reactivate-bookings`). The permission is checked in:
+1. `BookingFormat.php` — hides the reactivate icon in the booking list
+2. `BookingController::editAction()` — reactivate via edit form
+3. `BookingController::deleteAction()` — reactivate via booking list link
+4. `BookingController::bulkAction()` — bulk reactivation
 
 **Reactivate collision check**: `BookingFormat` has `ReservationManager` + `BookingManager` injected via `BookingFormatFactory`. Before showing the reactivate icon, it calls `getInRange()` to check for overlapping active bookings on the same court.
 

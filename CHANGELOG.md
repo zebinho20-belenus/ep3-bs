@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.1.1 (2026-03-17)
+
+### Features
+
+- **Reactivate permission (#82)**: New `calendar.reactivate-bookings` privilege for assist users. Reactivation of cancelled bookings can now be granted/denied independently of the general `admin.booking` permission. Button hidden when permission is missing.
+- **Datepicker z-index fix (#96)**: Datepicker in squarebox now appears above the modal (z-index 2048 > 1536).
+- **Event admin search (#95)**: Default date range expanded to ±2 weeks. "New event" button always visible. Event datepicker inputs widened to 120px with centered date text.
+
+---
+
 ## v2.1 (2026-03-17)
 
 61 commits since v2.0 (2026-03-07). All changes on branch `dev_sh_docker_devops`.
