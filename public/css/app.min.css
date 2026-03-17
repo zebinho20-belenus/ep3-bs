@@ -1005,6 +1005,10 @@ a.squarebox-primary-close-link:hover {
 .squarebox-mobile .alert { font-size: 12px; padding: 0.5rem 0.75rem; }
 /* Rules text: no height cap on mobile — squarebox itself scrolls */
 .squarebox-mobile .rules-text-scroll { max-height: none; overflow-y: visible; }
+/* Pricing table: hide detail columns (duration, players) on mobile — info shown in ps-meta */
+.squarebox-mobile .ps-detail-col { display: none; }
+.ps-meta { display: none; }
+.squarebox-mobile .ps-meta { display: block; font-size: 0.7rem; color: #6b7280; margin-top: 2px; }
 .squarebox-mobile .btn-lg { font-size: 0.9rem; padding: 0.5rem 1rem; }
 
 /* Player name inputs within squarebox */

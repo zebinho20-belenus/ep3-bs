@@ -60,14 +60,8 @@ class PricingSummary extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
-        $html .= '<div class="table-responsive">';
-        $html .= '<table class="table table-bordered align-middle mb-0">';
+        $html .= '<table class="table table-bordered align-middle mb-0 pricing-summary-table">';
         $html .= '<tr class="table-light">';
-
-        $html .= sprintf('<td>' . $view->t('<b>%s %s</b><div class="small-text">%s</div>') . '</td>',
-            $this->optionManager->need('subject.square.type'),
-            $view->t($square->need('name')),
-            $view->dateRange($dateStart, $dateEnd));
 
         if ($quantity == 1) {
             $squareUnit = $this->optionManager->need('subject.square.unit');
@@ -75,14 +69,23 @@ class PricingSummary extends AbstractHelper
             $squareUnit = $this->optionManager->need('subject.square.unit.plural');
         }
 
-        $html .= sprintf('<td>%s</td>',
-            $view->prettyTime($finalPricing['seconds']));
+        $prettyTimeTxt = $view->prettyTime($finalPricing['seconds']);
+        $quantityTxt   = $quantity > 1 ? $view->numberFormat($quantity) . ' ' . $squareUnit : '';
+        $metaLine      = implode(' · ', array_filter([$prettyTimeTxt, $quantityTxt]));
+
+        $html .= sprintf('<td><b>%s %s</b><div class="small-text">%s</div><div class="ps-meta">%s</div></td>',
+            $this->optionManager->need('subject.square.type'),
+            $view->t($square->need('name')),
+            $view->dateRange($dateStart, $dateEnd),
+            $view->escapeHtml($metaLine));
+
+        $html .= sprintf('<td class="ps-detail-col">%s</td>', $prettyTimeTxt);
 
         if ($quantity > 1) {
-            $html .= sprintf('<td>%s %s</td>',
+            $html .= sprintf('<td class="ps-detail-col">%s %s</td>',
                 $view->numberFormat($quantity), $squareUnit);
         } else {
-            $html .= '<td></td>';
+            $html .= '<td class="ps-detail-col"></td>';
         }
 
         $html .= sprintf('<td>%s</td>',
@@ -120,7 +123,6 @@ class PricingSummary extends AbstractHelper
         $html .= '</tr>';
 
         $html .= '</table>';
-        $html .= '</div>';
 
         return $html;
     }
