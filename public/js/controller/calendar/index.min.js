@@ -337,6 +337,9 @@
                     cellsByCol[colIndex].push(cell);
                 });
 
+                // Hide labels in original cells BEFORE overlay creation
+                calendarDateCol.find("." + eventGroup + " .cc-label").css({"visibility": "hidden", "font-size": "0"});
+
                 // Create overlays: one wide overlay for multi-column events,
                 // or one overlay per column for single-column events
                 var wrapperOffset = dateWrapper.offset();
@@ -445,9 +448,6 @@
                         });
                     });
                 }
-
-                // Hide labels in original cells (overlay covers them)
-                calendarDateCol.find("." + eventGroup + " .cc-label").css("visibility", "hidden");
 
                 // If multiple overlays exist for this event, show label only in middle one
                 var allOverlays = $("[id^='" + eventGroup + "-'][id$='-overlay-" + dateIndex + "']");

@@ -851,8 +851,8 @@ a.cc-event:link,
 a.cc-event:visited { opacity: 1.0; color: #fff; background: #DC2626 url(../imgs/icons/misc-event.png) no-repeat center center; }
 a.cc-event:hover { background-color: #b91c1c; }
 
-/* Hide labels and background image in grouped event cells — overlay shows the merged label */
-a.cc-event[class*="cc-group-"] .cc-label { visibility: hidden; }
+/* Hide labels in grouped event cells — overlay shows the merged label */
+a.cc-event[class*="cc-group-"] .cc-label { visibility: hidden !important; font-size: 0 !important; }
 a.cc-event[class*="cc-group-"] { background-image: none; }
 
 a.cc-free:link,
