@@ -243,6 +243,28 @@ Event-driven system: `BookingService::createSingle()` triggers `create.single` e
 
 Email includes: booking details, player names, itemized bill, payment information (method + budget deduction), translated billing status, guest payment instructions, door code (if Loxone enabled), iCal attachment.
 
+**Salutation:** All outgoing emails use `Hallo Vorname Nachname` (fallback: alias). No gender-based forms. Applied in `User\MailService::send()` (booking confirmations) and directly in Backend/Square BookingControllers (cancel, reactivate, edit, bulk, payment-failed).
+
+### My Bookings Page (`/user/bookings`)
+
+**Smart-sort and default filter:**
+
+Bookings are grouped and sorted in three sections:
+1. **Pending future** (unpaid, nearest first) — highlighted in yellow (`table-warning`)
+2. **Upcoming future** (paid/free, nearest first)
+3. **Past** (newest first — "jung nach alt")
+
+Separator "Jetzt" appears between future and past sections.
+
+**Smart default filter:** Auto-selects on page load:
+- `pending` — if any unpaid booking exists (past OR future)
+- `upcoming` — if no unpaid bookings but future bookings exist
+- `all` — otherwise
+
+**Notification badge:** Orange badge (unpaid count) or green badge (upcoming count) on "My bookings" button in userpanel and navbar. On **desktop** (hover devices): clicking the badge opens a Bootstrap popover with next 4 bookings summary. On **mobile/touch**: badge is a pure indicator only (no tap-conflict with link navigation).
+
+Key files: `module/User/view/user/account/bookings.phtml`, `public/js/controller/user/bookings.js`, `module/User/src/User/View/Helper/LastBookings.php`
+
 ### Responsive Backend Tables
 
 Progressive column hiding for booking list (13 columns -> 5 on mobile) and user list (7 -> 5). Sortable columns, per-column filters, icon-only actions with tooltips.
@@ -559,6 +581,8 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Email booking details double spacing (#80) | Fixed Mar 2026 | Single newlines between detail lines (Platz, Datum, Zeit, Nr) |
 | Payment token/cleanup issues (#85) | Fixed Mar 2026 | Graceful token error handling, session-independent messages, payment method tracking |
 | Cancellation email duplicates (#89) | Fixed Mar 2026 | Removed duplicate email sending, fixed guest salutation |
+| Email salutation gender-based (#81) | Fixed Mar 2026 | Unified to "Hallo Vorname Nachname" across all emails |
+| My bookings sort/filter (#65, #71) | Fixed Mar 2026 | Smart-sort (pending first, upcoming, past newest-first), smart default filter, notification badge with desktop popover |
 | Squarebox booking form init (#91) | Fixed Mar 2026 | Consolidated form initialization after AJAX load |
 | Datepicker arrows invisible (#92) | Fixed Mar 2026 | CSS override with Unicode arrows instead of sprite icons |
 | Booking limit counts slots (#93) | Fixed Mar 2026 | Sum slot durations instead of counting reservations |

@@ -562,6 +562,44 @@ Previous PHP 8.1 fixes (still in place):
 - `UriFactory.php:96`: `strtolower((string) ...)`
 - `PropertyBag.php:69`: `#[\ReturnTypeWillChange]` on `getIterator()`
 
+### Uniform Email Salutation (Fixed Mar 2026, #81)
+
+**Problem:** Backend booking emails used gender-based "Sehr geehrter Herr/Sehr geehrte Frau". Guest/admin-created bookings showed only "Hallo Nachname" (no firstname). Inconsistent across all email-sending locations.
+
+**Solution:** All emails now use `Hallo Vorname Nachname` (fallback: alias if no name set). Applied in:
+- `User\MailService::send()` — builds `$salutationName` from `getMeta('firstname')` + `getMeta('lastname')`, uses `t('Hello')` translation key
+- `Backend\BookingController` — 4 locations (cancel, reactivate, edit, bulk): replaced gender if/elseif with firstname+lastname logic
+- `Square\BookingController` — 2 locations (user cancel, payment failed): removed email-address fallback, unified to alias
+
+**Files changed:** `module/User/src/User/Service/MailService.php`, `module/Backend/src/Backend/Controller/BookingController.php`, `module/Square/src/Square/Controller/BookingController.php`
+
+### My Bookings Smart-Sort & Badge Popover (Fixed Mar 2026, #65, #71)
+
+**Problem:** "Meine Buchungen" page showed bookings in arbitrary order. Pending/unpaid bookings were not prioritized. No mobile-friendly way to preview booking summary from the notification badge.
+
+**Solution — Smart-sort (`bookings.phtml`):**
+
+Bookings are grouped in a PHP pre-pass into three arrays, then merged:
+1. `$groupPending` — future bookings with `status_billing=pending` + `price > 0` (sorted ASC)
+2. `$groupUpcoming` — future bookings that are not pending (sorted ASC)
+3. `$groupPast` — past bookings (sorted DESC = newest first)
+
+**Smart default filter:** Auto-selected on page load via `$defaultFilter` PHP variable (sets `checked` on radio button):
+- `pending` — if `$groupPending` not empty **OR** any entry in `$groupPast` has `isPending=true`
+- `upcoming` — if `$groupUpcoming` not empty
+- `all` — otherwise
+
+JS triggers the pre-selected filter on load: `$('#bookings-filter input:checked').trigger('change')`.
+
+**Controller sort:** `ReservationManager::getByBookings($bookings, 'date ASC, time_start ASC')` — ASC so future bookings sort correctly within groups.
+
+**Solution — Badge Popover (Option C):**
+- Badge (`data-popover-content` attribute) on "My bookings" button in userpanel + navbar
+- **Desktop** (`window.matchMedia('(hover: hover)')`): Bootstrap Popover on badge click, `trigger: 'focus'` closes on outside click
+- **Mobile/touch**: badge is pure indicator — `pointer-events: none` via `@media (hover: none)`, no popover initialized → no tap-navigation conflict
+
+**Files changed:** `module/User/view/user/account/bookings.phtml`, `module/User/src/User/Controller/AccountController.php`, `public/js/controller/user/bookings.js` + `.min.js`, `public/js/default.min.js`, `public/css/app.css` + `.min.css`, `module/Base/view/layout/layout.phtml`, `module/Frontend/view/frontend/index/userpanel.online.phtml`
+
 ### Debugging Tips
 
 - Use `error_log()` for debug output — it goes to PHP error.log (`data/log/errors.txt` in Docker)
