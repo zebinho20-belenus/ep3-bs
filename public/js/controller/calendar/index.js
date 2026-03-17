@@ -83,7 +83,7 @@
         /* Debounced resize: hide overlays immediately, recalculate after settle */
         var resizeTimer;
         function debouncedCalendarUpdate() {
-            $("[id$='-overlay-']").hide();
+            $(".calendar-event-overlay").hide();
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
                 updateCalendarCols();
@@ -295,7 +295,7 @@
 
     function updateCalendarEvents()
     {
-        $("[id$='-overlay-']").remove();
+        $(".calendar-event-overlay").remove();
 
         $(".calendar-date-col").each(function(dateIndex) {
             var calendarDateCol = $(this);
@@ -324,6 +324,7 @@
                 var overlay = sourceCell.clone();
                 overlay.appendTo(dateWrapper);
                 overlay.attr("id", id);
+                overlay.addClass("calendar-event-overlay");
                 overlay.removeClass(function(i, c) { return (c.match(/cc-group-\d+/) || []).join(' '); });
                 overlay.css({
                     "position": "absolute", "z-index": 256,
