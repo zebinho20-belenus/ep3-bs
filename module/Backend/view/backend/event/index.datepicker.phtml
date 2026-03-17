@@ -2,8 +2,9 @@
 
 if (! ($this->dateStart || $this->dateEnd)) {
     $this->dateStart = new DateTime();
+    $this->dateStart->modify('-2 weeks');
     $this->dateEnd = new DateTime();
-    $this->dateEnd->modify('+ 2 days');
+    $this->dateEnd->modify('+2 weeks');
 }
 
 ?>

@@ -27,6 +27,7 @@
 
 ### UI/UX
 
+- **Event admin search (#95)**: Default date range expanded from +2 days to ±2 weeks. "New event" button now always visible (not only when no results found), styled as `default-button`.
 - **Event popup styling**: Icons, better spacing, fixed unclosed `<p>` tag.
 - **Squarebox improvements**: Scrollable on desktop, improved visual hierarchy, smooth guest player info transition.
 - **Logo updates (#88)**: New TCN Kail e.V. 2026 branding — SVG source, ImageMagick rendering, proper icon sizes for PWA manifest.

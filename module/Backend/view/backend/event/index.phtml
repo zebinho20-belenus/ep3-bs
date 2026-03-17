@@ -38,9 +38,11 @@ $this->setup(array(
                 <p><span class="red"><?= sprintf($this->t('%sNo events found%s for this search'), '<b>', '</b>') ?></span></p>
             <?php endif; ?>
 
-            <p><a href="<?= $this->url('backend/event/edit') ?>" class="unlined gray"><span class="symbolic symbolic-plus"><?= $this->t('New event') ?></span></a></p>
-
         <?php endif; ?>
+
+        <p><a href="<?= $this->url('backend/event/edit') ?>" class="default-button">
+            <span class="symbolic symbolic-plus"><?= $this->t('New event') ?></span>
+        </a></p>
 
     </div>
 </div>
