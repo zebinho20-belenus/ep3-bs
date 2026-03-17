@@ -106,7 +106,7 @@ Defined in each module's `config/module.config.php`. Key routes:
 
 ### Frontend Assets & UI Framework
 
-- **Bootstrap 5.3.3** loaded locally from `public/vendor/bootstrap/css/bootstrap.min.css` + JS bundle
+- **Bootstrap 5.3.8** loaded locally from `public/vendor/bootstrap/css/bootstrap.min.css` + JS bundle
 - **Custom CSS** in `public/css/app.css` — design tokens, BS5 overrides, legacy compatibility; copied to `app.min.css`
 - CSS load order: `bootstrap.min.css` → `jquery-ui.min.css` → `app.css` → `font-awesome` → `tennis-tcnkail.min.css`
 - **jQuery 3.7.1** + **jQuery UI 1.14.1** (local: `public/js/jquery/`, `public/js/jquery-ui/`)
@@ -310,7 +310,11 @@ Zend ServiceManager with Factory classes (e.g., `BookingServiceFactory`). Factor
 | Backend pricing config view | `module/Backend/view/backend/config-square/pricing.phtml` |
 | Migration registry | `data/db/migrations.php` |
 | Migration manager | `module/Base/src/Base/Manager/MigrationManager.php` |
-| SQL index migration | `data/db/migrations/001-add-indexes.sql` |
+| SQL migrations | `data/db/migrations/001-add-indexes.sql` |
+| | `data/db/migrations/002-member-emails.sql` |
+| | `data/db/migrations/003-cleanup-interval.sql` |
+| | `data/db/migrations/004-cleanup-interval-reset.sql` |
+| | `data/db/migrations/005-opening-times.sql` |
 
 ## Docker Setup
 
@@ -446,7 +450,7 @@ Comprehensive OWASP Top 10 security audit and hardening. Key changes:
 | **Bcrypt** | Cost factor 10 (was 6) in Backend UserController |
 | **Hardening** | `unserialize(['allowed_classes' => false])` everywhere, removed `@` error suppression, `$_SERVER` guard for `HTTP_STRIPE_SIGNATURE` |
 | **Libraries** | jQuery 1.12.4 → 3.7.1, jQuery UI 1.10.4 → 1.14.1, TinyMCE 4.0.26 → 6.8.5 |
-| **Service Worker** | Cache version bumped to `ep3bs_v3.1:static` |
+| **Service Worker** | Cache version bumped to `ep3bs_v3.10:static` |
 
 **TinyMCE 6 migration notes:**
 - Skin: `lightgray` → `oxide`, Theme: `modern` → `silver`
@@ -471,9 +475,62 @@ Comprehensive OWASP Top 10 security audit and hardening. Key changes:
 - Group cells by `td.index()` (court column) — create one overlay per (event, court) pair instead of one per event
 - Append overlays to `.calendar-date-table` (with `position: relative`) for correct absolute positioning
 
+**Phase 2 — Multi-column overlay merge (Mar 2026):**
+Events spanning multiple court columns (e.g. 2 of 3 courts) created separate overlays per column. Fix: detect adjacent columns via `colKeys` and merge them into one wide overlay spanning all covered columns. Single-column events keep their original per-column overlay.
+
+**Phase 3 — Datepicker z-index & label centering (Mar 2026):**
+jQuery UI datepicker appeared behind event overlays (z-index conflict). Fix: `.ui-datepicker { z-index: 256 !important }` in `app.css`. Event overlay label text was left-aligned; fixed with `display: block; text-align: center` on the label `<span>`.
+
 **Files changed:**
 - `public/js/controller/calendar/index.js` + `index.min.js`
-- `public/css/app.css` + `app.min.css` (`.calendar-date-table { position: relative }`)
+- `public/css/app.css` + `app.min.css` (`.calendar-date-table { position: relative }`, `.ui-datepicker` z-index, overlay label centering)
+
+### Payment Token Handling & Cleanup Interval (Fixed Mar 2026, #85)
+
+**Problem:** Multiple issues with the payment flow: (1) Payum tokens expired or were invalid after the unpaid booking cleanup ran, causing 500 errors; (2) flash messages were lost because the session was not started for guest users; (3) payment method was not tracked in booking metadata.
+
+**Solution:**
+- Graceful error handling for invalid/expired Payum tokens — redirect to homepage with error message
+- Session-independent success/error messages via query parameters instead of flash messages
+- Payment method tracking: `paymentMethod` meta stored on booking, shown as tag in backend booking notes
+- `payment_method` column added to backend booking list (responsive-pass-2)
+- Migration 003: reduced cleanup interval to 3 min for testing; Migration 004: reset to production values (3 hours / every 15 min)
+
+**Files changed:** `Square\BookingController.php`, `Backend\BookingFormat.php`, `BackendBookingsFormat.php`, migrations 003+004
+
+### Cancellation Email Fixes (Fixed Mar 2026, #89)
+
+**Problem:** (1) Cancellation emails were sent twice — once by the controller and once by `BookingService::cancelSingle()` event listener. (2) Guest users received "Herr/Frau" salutation instead of no salutation.
+
+**Solution:**
+- Removed duplicate email sending from controller; `NotificationListener` handles all cancellation emails
+- Guest salutation check: skip "Herr/Frau" prefix when user has no `gender` meta
+
+**Files changed:** `Backend\BookingController.php`, `NotificationListener.php`
+
+### Squarebox Booking Form Init (Fixed Mar 2026, #91)
+
+**Problem:** Booking form fields in the squarebox popup were not properly initialized after AJAX load — datepicker not attached, time dropdowns not populated, player count not synced.
+
+**Solution:** Refactored to single `initBookingForm()` function called after every AJAX squarebox load. All form initialization (datepicker, time selects, player fields, autocomplete) consolidated in one place.
+
+**Files changed:** `public/js/controller/calendar/index.js` + `index.min.js`
+
+### jQuery UI Datepicker Arrows Invisible (Fixed Mar 2026, #92)
+
+**Problem:** Datepicker prev/next month arrows were invisible — jQuery UI's default `.ui-icon` sprites not loaded, and the arrows relied on background-image icons.
+
+**Solution:** CSS override in `app.css` — replaced sprite-based arrows with Unicode characters (`&#x25C0;` / `&#x25B6;`) via `::after` pseudo-elements, styled to match the theme.
+
+**Files changed:** `public/css/app.css` + `app.min.css`
+
+### Booking Limit Counts Slots, Not Reservations (Fixed Mar 2026, #93)
+
+**Problem:** The "max active bookings" limit counted each reservation as 1, regardless of how many time slots it spanned. A 2-hour booking counted as 1, but should count as 2 slots.
+
+**Solution:** Changed `BookingController` to sum reservation durations (slot count) instead of counting reservations. Also added per-user booking limit override via `bs_users_meta` key `maxActiveBookings`.
+
+**Files changed:** `Square\BookingController.php`
 
 ### PHP 8.4 Migration (Mar 2026)
 

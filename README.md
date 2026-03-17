@@ -4,7 +4,7 @@
 
 ![PHP](https://img.shields.io/badge/PHP-8.4-purple)
 ![Framework](https://img.shields.io/badge/Framework-Zend_Framework_2-green)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.3-blue)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.8-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-3.7.1-blue)
 ![TinyMCE](https://img.shields.io/badge/TinyMCE-6.8.5-blue)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
@@ -14,7 +14,7 @@
 Fork of [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) v1.7.0
 Extended with **Direct Payment**, **PWA Support**, **Member/Guest Pricing**, and **Loxone Door Control**
 
-[Technical Documentation](CLAUDE.md) | [Migration Plan](MIGRATION-PLAN.md) | [Feature Checklist](FEATURE-CHECKLIST.md)
+[Technical Documentation](CLAUDE.md) | [Changelog](CHANGELOG.md)
 
 </div>
 
@@ -34,7 +34,6 @@ Extended with **Direct Payment**, **PWA Support**, **Member/Guest Pricing**, and
 - [Configuration](#configuration)
 - [Security](#security)
 - [Loxone Door Control](#loxone-door-control)
-- [Laravel Migration](#laravel-migration)
 - [Contributing](#contributing)
 
 ---
@@ -49,7 +48,7 @@ EP3-BS is a comprehensive online booking system designed for sports facilities (
 |-----------|---------|
 | PHP | 8.4 (Apache) |
 | Framework | Zend Framework 2 (custom Entity-Manager-Service pattern) |
-| Frontend | Bootstrap 5.3.3, jQuery 3.7.1, jQuery UI 1.14.1 |
+| Frontend | Bootstrap 5.3.8, jQuery 3.7.1, jQuery UI 1.14.1 |
 | Editor | TinyMCE 6.8.5 |
 | Payment | Payum (PayPal, Stripe with SCA, Klarna) |
 | Database | MariaDB 10.11 |
@@ -176,7 +175,7 @@ Core tables use a **meta pattern** -- parallel `*_meta` tables (key-value) for f
 
 | Library | Version | Location |
 |---------|---------|----------|
-| Bootstrap | 5.3.3 | `public/vendor/bootstrap/` |
+| Bootstrap | 5.3.8 | `public/vendor/bootstrap/` |
 | jQuery | 3.7.1 | `public/js/jquery/` |
 | jQuery UI | 1.14.1 | `public/js/jquery-ui/` |
 | TinyMCE | 6.8.5 | `public/js/tinymce/` |
@@ -410,6 +409,9 @@ All subsequent migrations run **automatically on app startup**. The `MigrationMa
 | `data/db/ep3-bs.sql` | Base schema | Manual |
 | `001-add-indexes.sql` | Performance indexes | Auto |
 | `002-member-emails.sql` | Member email verification | Auto |
+| `003-cleanup-interval.sql` | Unpaid booking cleanup interval (test) | Auto |
+| `004-cleanup-interval-reset.sql` | Reset cleanup to production values | Auto |
+| `005-opening-times.sql` | Opening times table (`bs_squares_opening_times`) | Auto |
 
 Registry: `data/db/migrations.php`
 
@@ -513,35 +515,7 @@ Automatic door access codes for bookings:
 
 ## Laravel Migration
 
-### Status: Planning Phase Complete
-
-A comprehensive migration to Laravel 11 is planned in the `dev_sh_laravel_migration` branch.
-
-- [MIGRATION-PLAN.md](MIGRATION-PLAN.md) -- Complete 10-phase plan with code examples
-- [FEATURE-CHECKLIST.md](FEATURE-CHECKLIST.md) -- 100% feature parity verification
-
-### Target Stack
-
-| Component | Current (ZF2) | Target (Laravel 11) |
-|-----------|---------------|---------------------|
-| Framework | Zend Framework 2 | Laravel 11 |
-| Frontend | jQuery + Bootstrap 5 | Vue 3 + PrimeVue 4 |
-| CSS | Custom CSS | Tailwind CSS 3 |
-| Build | Manual minification | Vite |
-| Payment | Payum (PayPal, Stripe, Klarna) | srmklive/paypal + Stripe optional |
-| ORM | Zend\Db\TableGateway | Eloquent |
-| Auth | Zend\Authentication | Laravel Breeze |
-
-### Git Workflow
-
-```
-master                          # Production (ZF2)
-+-- dev_sh_docker_devops        # Current ZF2 development
-+-- dev_sh_laravel_migration    # Laravel Migration
-    +-- feature/phase-1-foundation
-    +-- feature/phase-2-paypal
-    +-- ...
-```
+A migration to Laravel 11 is planned. Planning branch: `dev_sh_laravel_migration`. The current ZF2 system remains in active production use.
 
 ---
 
@@ -583,7 +557,12 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | "temporaer belegt" visible to visitors (#79) | Fixed Mar 2026 | Visitors see "Belegt" instead of "temporaer belegt" for pending bookings |
 | Email billing status raw slugs (#80) | Fixed Mar 2026 | `$this->t(ucfirst())` translation |
 | Email booking details double spacing (#80) | Fixed Mar 2026 | Single newlines between detail lines (Platz, Datum, Zeit, Nr) |
-| Event overlay not merging (#94) | Fixed Mar 2026 | JS `$.inArray` array-vs-string bug, off-by-one loop, missing `position:relative` |
+| Payment token/cleanup issues (#85) | Fixed Mar 2026 | Graceful token error handling, session-independent messages, payment method tracking |
+| Cancellation email duplicates (#89) | Fixed Mar 2026 | Removed duplicate email sending, fixed guest salutation |
+| Squarebox booking form init (#91) | Fixed Mar 2026 | Consolidated form initialization after AJAX load |
+| Datepicker arrows invisible (#92) | Fixed Mar 2026 | CSS override with Unicode arrows instead of sprite icons |
+| Booking limit counts slots (#93) | Fixed Mar 2026 | Sum slot durations instead of counting reservations |
+| Event overlay not merging (#94) | Fixed Mar 2026 | JS `$.inArray` bug, off-by-one loop, multi-column merge, datepicker z-index |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -598,6 +577,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**Current System:** Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>
