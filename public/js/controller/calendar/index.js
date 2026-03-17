@@ -336,54 +336,55 @@
                 console.log("[overlay-debug] cellsByCol keys:", Object.keys(cellsByCol), "counts:", Object.keys(cellsByCol).map(function(k){return cellsByCol[k].length;}));
 
                 // Create one overlay per column
+                var wrapperOffset = dateWrapper.offset();
+
                 $.each(cellsByCol, function(colIndex, cells) {
                     if (cells.length < 2) return; // single cell needs no overlay
 
                     var firstCell = cells[0];
                     var lastCell = cells[cells.length - 1];
-                    var firstTd = firstCell.closest("td");
 
-                    var posFirst = firstCell.position();
-                    var posLast = lastCell.position();
+                    // Use offset() (page-relative) and compute relative to wrapper
+                    // position() doesn't work — table cells are implicit containing blocks
+                    var firstOff = firstCell.offset();
+                    var lastOff = lastCell.offset();
 
-                    if (posFirst && posLast) {
-                        var startX = Math.floor(posFirst.left);
-                        var startY = Math.floor(posFirst.top);
-                        var eventWidth = firstCell.outerWidth();
-                        var eventHeight = Math.round((Math.ceil(posLast.top) + lastCell.outerHeight()) - startY);
+                    var startX = Math.floor(firstOff.left - wrapperOffset.left);
+                    var startY = Math.floor(firstOff.top - wrapperOffset.top);
+                    var eventWidth = firstCell.outerWidth();
+                    var eventHeight = Math.round((lastOff.top + lastCell.outerHeight()) - firstOff.top);
 
-                        var overlayId = eventGroup + "-c" + colIndex + "-overlay-" + dateIndex;
-                        var eventGroupOverlay = $("#" + overlayId);
+                    var overlayId = eventGroup + "-c" + colIndex + "-overlay-" + dateIndex;
+                    var eventGroupOverlay = $("#" + overlayId);
 
-                        if (! eventGroupOverlay.length) {
-                            eventGroupOverlay = firstCell.clone();
-                            eventGroupOverlay.appendTo(dateWrapper);
-                            eventGroupOverlay.attr("id", overlayId);
-                            eventGroupOverlay.removeClass(eventGroup);
-                        }
-
-                        var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
-
-                        eventGroupOverlay.css({
-                            "position": "absolute",
-                            "z-index": 128,
-                            "left": startX, "top": startY,
-                            "width": eventWidth,
-                            "height": eventHeight,
-                            "padding": 0
-                        });
-
-                        eventGroupOverlayLabel.css({
-                            "height": "auto",
-                            "font-size": "12px",
-                            "line-height": 1.5
-                        });
-
-                        eventGroupOverlayLabel.css({
-                            "position": "relative",
-                            "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
-                        });
+                    if (! eventGroupOverlay.length) {
+                        eventGroupOverlay = firstCell.clone();
+                        eventGroupOverlay.appendTo(dateWrapper);
+                        eventGroupOverlay.attr("id", overlayId);
+                        eventGroupOverlay.removeClass(eventGroup);
                     }
+
+                    var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
+
+                    eventGroupOverlay.css({
+                        "position": "absolute",
+                        "z-index": 128,
+                        "left": startX, "top": startY,
+                        "width": eventWidth,
+                        "height": eventHeight,
+                        "padding": 0
+                    });
+
+                    eventGroupOverlayLabel.css({
+                        "height": "auto",
+                        "font-size": "12px",
+                        "line-height": 1.5
+                    });
+
+                    eventGroupOverlayLabel.css({
+                        "position": "relative",
+                        "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
+                    });
                 });
             }
         });
