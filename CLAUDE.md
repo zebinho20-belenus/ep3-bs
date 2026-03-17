@@ -571,7 +571,7 @@ Previous PHP 8.1 fixes (still in place):
 
 **Root Causes & Fixes:**
 1. **Close button:** `squarebox.append(...)` placed it as the **last** DOM element → `position: sticky; float: right; top: 0` rendered it at the bottom. Fix: changed to `squarebox.prepend(...)` so it's the first element and floats top-right.
-2. **Pricing table:** `PricingSummary.php` rendered a bare `<table>` with no overflow wrapper. Fix: wrapped in `<div class="table-responsive">` for Bootstrap horizontal scroll.
+2. **Pricing table:** 4-column table (court, duration, players, price) overflowed in 90vw. Fix: columns 2+3 get `class="ps-detail-col"` and are hidden via CSS on mobile (`.squarebox-mobile .ps-detail-col { display: none }`). Same info shown as compact gray `.ps-meta` line inside first cell. Desktop: 4-column layout unchanged, `.ps-meta` hidden. No `table-responsive` scroll wrapper needed.
 3. **Rules text:** `.rules-text-scroll` had `max-height: 120px` globally (180px on desktop). On mobile the squarebox itself has `overflow-y: auto` — no inner scroll cap needed. Fix: `.squarebox-mobile .rules-text-scroll { max-height: none; overflow-y: visible; }`.
 
 **Files changed:** `public/js/controller/calendar/index.js` + `index.min.js`, `module/Square/src/Square/View/Helper/PricingSummary.php`, `public/css/app.css` + `app.min.css`
