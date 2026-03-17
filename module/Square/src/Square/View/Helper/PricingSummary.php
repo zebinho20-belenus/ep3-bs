@@ -118,7 +118,8 @@ class PricingSummary extends AbstractHelper
         /* Render total */
 
         $html .= '<tr class="table-active fw-bold">';
-        $html .= '<td colspan="3">'. $view->t('Total') . '</td>';
+        $html .= '<td>' . $view->t('Total') . '</td>';
+        $html .= '<td class="ps-detail-col" colspan="2"></td>';
         $html .= '<td>' . $view->priceFormat($total) . '</td>';
         $html .= '</tr>';
 
