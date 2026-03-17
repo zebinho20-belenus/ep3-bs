@@ -60,6 +60,7 @@ class PricingSummary extends AbstractHelper
         $view = $this->getView();
         $html = '';
 
+        $html .= '<div class="table-responsive">';
         $html .= '<table class="table table-bordered align-middle mb-0">';
         $html .= '<tr class="table-light">';
 
@@ -119,6 +120,7 @@ class PricingSummary extends AbstractHelper
         $html .= '</tr>';
 
         $html .= '</table>';
+        $html .= '</div>';
 
         return $html;
     }

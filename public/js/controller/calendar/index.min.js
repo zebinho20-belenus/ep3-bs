@@ -121,7 +121,7 @@
                             updateInlineLabel( $(this) );
                         });
 
-                        squarebox.append('<a href="#" class="squarebox-primary-close-link squarebox-close-link">&times;</a>');
+                        squarebox.prepend('<a href="#" class="squarebox-primary-close-link squarebox-close-link">&times;</a>');
 
                         updateSquarebox();
 
