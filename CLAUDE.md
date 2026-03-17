@@ -562,6 +562,20 @@ Previous PHP 8.1 fixes (still in place):
 - `UriFactory.php:96`: `strtolower((string) ...)`
 - `PropertyBag.php:69`: `#[\ReturnTypeWillChange]` on `getIterator()`
 
+### Mobile Squarebox Layout Fixes (Fixed Mar 2026, #97)
+
+**Problem:** Three mobile booking confirmation issues visible on screenshot:
+1. X-Button appeared at bottom of modal (not top-right)
+2. Pricing table (4 columns: court, duration, players, price) overflowed horizontally without scroll
+3. Rules text was capped at `max-height: 120px` — text cut off mid-sentence
+
+**Root Causes & Fixes:**
+1. **Close button:** `squarebox.append(...)` placed it as the **last** DOM element → `position: sticky; float: right; top: 0` rendered it at the bottom. Fix: changed to `squarebox.prepend(...)` so it's the first element and floats top-right.
+2. **Pricing table:** `PricingSummary.php` rendered a bare `<table>` with no overflow wrapper. Fix: wrapped in `<div class="table-responsive">` for Bootstrap horizontal scroll.
+3. **Rules text:** `.rules-text-scroll` had `max-height: 120px` globally (180px on desktop). On mobile the squarebox itself has `overflow-y: auto` — no inner scroll cap needed. Fix: `.squarebox-mobile .rules-text-scroll { max-height: none; overflow-y: visible; }`.
+
+**Files changed:** `public/js/controller/calendar/index.js` + `index.min.js`, `module/Square/src/Square/View/Helper/PricingSummary.php`, `public/css/app.css` + `app.min.css`
+
 ### Uniform Email Salutation (Fixed Mar 2026, #81)
 
 **Problem:** Backend booking emails used gender-based "Sehr geehrter Herr/Sehr geehrte Frau". Guest/admin-created bookings showed only "Hallo Nachname" (no firstname). Inconsistent across all email-sending locations.

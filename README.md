@@ -588,6 +588,7 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Booking limit counts slots (#93) | Fixed Mar 2026 | Sum slot durations instead of counting reservations |
 | Event overlay not merging (#94) | Fixed Mar 2026 | JS `$.inArray` bug, off-by-one loop, multi-column merge, datepicker z-index |
 | Datepicker behind squarebox (#96) | Fixed Mar 2026 | Raised datepicker z-index above squarebox (2048 > 1536) |
+| Mobile squarebox layout (#97) | Fixed Mar 2026 | Close button top-right (was bottom), pricing table responsive, rules text no height cap |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
