@@ -285,5 +285,7 @@ return array(
     'Upcoming' => 'Zukünftige',
     'Cancel' => 'Stornieren',
     'No matching bookings' => 'Keine passenden Buchungen',
+    '1 upcoming booking' => '1 anstehende Buchung',
+    '%s upcoming bookings' => '%s anstehende Buchungen',
 
 );

@@ -136,12 +136,19 @@ class LastBookings extends AbstractHelper
             $html .= '</ul>';
         }
 
+        $upcomingCount = count($futureBookings);
         if ($unpaidCount > 0) {
             $unpaidText = ($unpaidCount == 1)
                 ? $view->t('1 unpaid booking')
                 : sprintf($view->t('%s unpaid bookings'), $unpaidCount);
 
-            $html .= '<div style=\'color: #dc2626; font-weight: bold; margin-top: 4px; font-size: 0.9em;\'>' . $unpaidText . '</div>';
+            $html .= '<div style=\'color: #d97706; font-weight: bold; margin-top: 4px; font-size: 0.9em;\'>' . $unpaidText . '</div>';
+        } elseif ($upcomingCount > 0) {
+            $upcomingText = ($upcomingCount == 1)
+                ? $view->t('1 upcoming booking')
+                : sprintf($view->t('%s upcoming bookings'), $upcomingCount);
+
+            $html .= '<div style=\'color: #2e8b3c; font-weight: bold; margin-top: 4px; font-size: 0.9em;\'>' . $upcomingText . '</div>';
         }
 
         return $html;

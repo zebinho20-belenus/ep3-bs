@@ -1504,7 +1504,7 @@ a.squarebox-primary-close-link:hover {
     position: absolute;
     top: -4px;
     right: -6px;
-    background: #dc2626;
+    background: #6b7280;
     color: #fff;
     font-size: 0.65rem;
     font-weight: 700;
@@ -1518,3 +1518,5 @@ a.squarebox-primary-close-link:hover {
     justify-content: center;
     pointer-events: none;
 }
+.notification-badge-warning { background: #d97706; }
+.notification-badge-success { background: #2e8b3c; }

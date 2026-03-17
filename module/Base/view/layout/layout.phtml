@@ -89,13 +89,16 @@
                         $lastBookingsHelper = $this->plugin('UserLastBookings');
                         $lastBookingsHelper($sessionUser);
                         $navUnpaidCount = $lastBookingsHelper->unpaidCount;
+                        $navUpcomingCount = $lastBookingsHelper->upcomingCount;
                     ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= $this->url('user/bookings') ?>" style="position: relative;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('My bookings') ?>">
                             <span class="fa fa-list"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('My bookings') ?></span>
                             <?php if ($navUnpaidCount > 0): ?>
-                                <span class="notification-badge"><?= $navUnpaidCount ?></span>
+                                <span class="notification-badge notification-badge-warning"><?= $navUnpaidCount ?></span>
+                            <?php elseif ($navUpcomingCount > 0): ?>
+                                <span class="notification-badge notification-badge-success"><?= $navUpcomingCount ?></span>
                             <?php endif; ?>
                         </a>
                     </li>
