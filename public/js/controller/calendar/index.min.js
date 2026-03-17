@@ -368,6 +368,7 @@
                     eventGroupOverlay.css({
                         "position": "absolute",
                         "z-index": 128,
+                        "display": "block",
                         "left": startX, "top": startY,
                         "width": eventWidth,
                         "height": eventHeight,
@@ -378,7 +379,8 @@
                     eventGroupOverlayLabel.css({
                         "height": "auto",
                         "font-size": "12px",
-                        "line-height": 1.5
+                        "line-height": 1.5,
+                        "text-align": "center"
                     });
 
                     eventGroupOverlayLabel.css({

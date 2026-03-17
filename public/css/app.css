@@ -790,6 +790,7 @@ a.symbolic-button:hover .arrow-right { border-color: transparent transparent tra
 .calendar-table > tr > td { vertical-align: top; }
 .calendar-table .calendar-date-col { padding-left: 3px; }
 .calendar-date-wrapper { position: relative; }
+.ui-datepicker { z-index: 256 !important; }
 
 /* Calendar table reset.
    BS5 sets border-box and line-height:1.5 globally. We keep border-box (so
