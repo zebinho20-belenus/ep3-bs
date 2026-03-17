@@ -6,6 +6,9 @@
 
 - **Reactivate permission (#82)**: New `calendar.reactivate-bookings` privilege for assist users. Reactivation of cancelled bookings can now be granted/denied independently of the general `admin.booking` permission. Permission check added in all views (edit form, bulk action, booking list) and controllers.
 - **My bookings tooltip & notification badge (#65, #71)**: Tooltip shows next 4 future bookings + count of unpaid bookings in current year. Red notification badge on "My bookings" button (userpanel + navbar) when unpaid bookings exist.
+- **Bookings filter & mobile card layout**: New filter toggle buttons (All/Upcoming/Pending) on "My bookings" page. Mobile-responsive card layout for booking rows on small screens with `data-label` pseudo-element labels.
+- **Clickable pending bookings**: Pending booking rows (with unpaid bills) are fully clickable — entire row/card navigates to the bill page, not just the price button.
+- **Mobile-friendly bills page**: Bill table uses stacked card layout on mobile (< 576px) instead of horizontal-scrolling table. Payment option buttons stack vertically on small screens.
 - **Datepicker z-index fix (#96)**: Datepicker in squarebox now appears above the modal (z-index 2048 > 1536).
 - **Event admin search (#95)**: Default date range expanded to ±2 weeks. "New event" button always visible. Event datepicker inputs widened to 120px with centered date text.
 
