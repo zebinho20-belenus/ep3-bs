@@ -94,7 +94,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/bookings.min
 
         $sortedBookings = array_merge($groupPending, $groupUpcoming, $groupPast);
 
-        $defaultFilter = $groupPending ? 'pending' : ($groupUpcoming ? 'upcoming' : 'all');
+        $hasPastPending = (bool) array_filter($groupPast, fn($e) => $e['isPending']);
+        $defaultFilter = ($groupPending || $hasPastPending) ? 'pending' : ($groupUpcoming ? 'upcoming' : 'all');
         ?>
 
         <div id="bookings-filter" class="btn-group mb-3 no-print" role="group">
