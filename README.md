@@ -586,7 +586,7 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Squarebox booking form init (#91) | Fixed Mar 2026 | Consolidated form initialization after AJAX load |
 | Datepicker arrows invisible (#92) | Fixed Mar 2026 | CSS override with Unicode arrows instead of sprite icons |
 | Booking limit counts slots (#93) | Fixed Mar 2026 | Sum slot durations instead of counting reservations |
-| Event overlay not merging (#94) | Fixed Mar 2026 | JS `$.inArray` bug, off-by-one loop, multi-column merge, single label, 1h multi-court fix, debounced resize |
+| Event overlay not merging (#94) | Fixed Mar 2026 | Full refactor: `getBoundingClientRect()`, helper functions, SW cache for JS files, label visibility fix |
 | Calendar mobile clean cells | Added Mar 2026 | "Frei" hidden, own=✓, pending=!, occupied/abo=color-only, color legend |
 | Datepicker behind squarebox (#96) | Fixed Mar 2026 | Raised datepicker z-index above squarebox (2048 > 1536) |
 | Mobile squarebox layout (#97) | Fixed Mar 2026 | Close button top-right (was bottom), pricing table 2-col on mobile (no scroll), rules text no height cap |

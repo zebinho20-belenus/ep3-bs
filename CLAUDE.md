@@ -492,12 +492,25 @@ jQuery UI datepicker appeared behind event overlays (z-index conflict). Fix: `.u
 - 1-hour multi-court events were invisible: safety check `firstColCells.length < 2` skipped wide overlay, combined with CSS label-hidden → no visible content. Fix: changed to `< 1`.
 - Resize handler called `updateCalendarEvents()` on every pixel → flicker/stale overlays. Fix: single debounced handler (150ms), fires `updateCalendarCols()` + `updateCalendarEvents()` once after resize settles. Added `orientationchange` for mobile rotation.
 
-**Phase 6 — Overlay label visibility root cause fix (Mar 2026):**
-**Root cause:** JS label-hiding runs BEFORE `firstCell.clone()`. `clone()` copies inline-styles including `visibility: hidden` onto the overlay label. The overlay label was never restored to `visible` → event name invisible on all overlays.
-**Fix:** Added `"visibility": "visible"` explicitly in both overlay label CSS calls:
-- Wide overlay (lines ~392-397): `eventGroupOverlayLabel.css({"visibility": "visible", ...})`
-- Single-column overlay (~439-444): same
-**Note:** CSS `a.cc-event[class*="cc-group-"] .cc-label { visibility: hidden !important }` still correctly hides ORIGINAL cell labels. Overlays don't have `cc-group-*` class (removed at line 377), so they're unaffected by this CSS rule.
+**Phase 6 — Full refactor with getBoundingClientRect (Mar 2026):**
+
+`updateCalendarEvents()` completely rewritten. Key changes:
+
+1. **Positioning**: `offset()` → `getBoundingClientRect()` via `tdRect(td)` helper. Returns position relative to `dateWrapper` directly. More reliable across CSS positioning contexts.
+
+2. **Helper functions**:
+   - `tdRect(td)` — returns `{left, top, right, bottom, width, height}` relative to `dateWrapper[0]`
+   - `createOverlay(id, sourceCell, x, y, w, h)` — creates + positions overlay, validates dimensions (`w>0, h>0`), explicitly sets `visibility: visible` on label
+
+3. **Label centering**: `setTimeout(0)` defers vertical centering to after DOM update → accurate `label.outerHeight()`
+
+4. **z-index**: 128 → 256 (above `cc-conflict` at 256 — adjusted to ensure visibility)
+
+5. **SW cache**: `calendar/index.min.js` and `default.min.js` added to SW cache list → version bumps now invalidate ALL JS files. Version: `v3.15`.
+
+6. **Root cause for invisible labels**: `clone()` inherited `visibility: hidden` inline-style from original cell. `createOverlay()` now always sets `visibility: visible` on label.
+
+**Files changed:** `public/js/controller/calendar/index.js` + `index.min.js`, `public/js/sw.js`
 
 **Phase 5 — Calendar mobile clean cells (Mar 2026):**
 CSS-only mobile UX improvements (`@media (max-width: 767px)` in `app.css`):
