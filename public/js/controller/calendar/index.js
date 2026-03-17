@@ -295,168 +295,128 @@
 
     function updateCalendarEvents()
     {
-        // Remove all existing overlays before recreating
         $("[id$='-overlay-']").remove();
 
         $(".calendar-date-col").each(function(dateIndex) {
             var calendarDateCol = $(this);
             var dateWrapper = calendarDateCol.find(".calendar-date-wrapper");
+            if (!dateWrapper.length) return;
 
-            if (! dateWrapper.length) return;
+            var wrapperEl = dateWrapper[0];
+
+            // Helper: get position of a td relative to dateWrapper using getBoundingClientRect
+            function tdRect(td) {
+                var wR = wrapperEl.getBoundingClientRect();
+                var tR = td[0].getBoundingClientRect();
+                return {
+                    left:   tR.left   - wR.left,
+                    top:    tR.top    - wR.top,
+                    right:  tR.right  - wR.left,
+                    bottom: tR.bottom - wR.top,
+                    width:  tR.width,
+                    height: tR.height
+                };
+            }
+
+            // Helper: create and position one overlay
+            function createOverlay(id, sourceCell, x, y, w, h) {
+                if (w <= 0 || h <= 0) return null;
+                var overlay = sourceCell.clone();
+                overlay.appendTo(dateWrapper);
+                overlay.attr("id", id);
+                overlay.removeClass(function(i, c) { return (c.match(/cc-group-\d+/) || []).join(' '); });
+                overlay.css({
+                    "position": "absolute", "z-index": 256,
+                    "display": "block",
+                    "left": Math.round(x), "top": Math.round(y),
+                    "width": Math.round(w), "height": Math.round(h),
+                    "padding": 0, "text-align": "center",
+                    "pointer-events": "auto"
+                });
+                var label = overlay.find(".cc-label");
+                label.css({
+                    "visibility": "visible",
+                    "height": "auto",
+                    "font-size": "12px",
+                    "line-height": 1.5,
+                    "text-align": "center",
+                    "position": "relative"
+                });
+                // Vertically center label after it's in DOM
+                setTimeout(function() {
+                    label.css("top", Math.round((h / 2) - (label.outerHeight() / 2)));
+                }, 0);
+                return overlay;
+            }
 
             // Collect unique event groups
             var eventGroups = [];
-
             calendarDateCol.find(".cc-event").each(function() {
-                var classes = $(this).attr("class");
-                var eventGroupMatch = classes.match(/cc-group-\d+/);
-
-                if (eventGroupMatch) {
-                    var eventGroupName = eventGroupMatch[0];
-                    if ($.inArray(eventGroupName, eventGroups) === -1) {
-                        eventGroups.push(eventGroupName);
-                    }
+                var m = $(this).attr("class").match(/cc-group-\d+/);
+                if (m && $.inArray(m[0], eventGroups) === -1) {
+                    eventGroups.push(m[0]);
                 }
             });
 
-            // For each event group, create one overlay per court column
             for (var i = 0; i < eventGroups.length; i++) {
                 var eventGroup = eventGroups[i];
 
-                // Group cells by their column index (= court)
-                var cellsByCol = {};
+                // Hide original cell labels
+                calendarDateCol.find("." + eventGroup + " .cc-label").css({
+                    "visibility": "hidden", "font-size": "0"
+                });
 
+                // Group cells by column index
+                var cellsByCol = {};
                 calendarDateCol.find("." + eventGroup).each(function() {
                     var cell = $(this);
                     var td = cell.closest("td");
-                    var colIndex = td.index();
-
-                    if (! cellsByCol[colIndex]) {
-                        cellsByCol[colIndex] = [];
-                    }
-                    cellsByCol[colIndex].push(cell);
+                    var idx = td.index();
+                    if (!cellsByCol[idx]) cellsByCol[idx] = [];
+                    cellsByCol[idx].push(cell);
                 });
 
-                // Hide labels in original cells BEFORE overlay creation
-                calendarDateCol.find("." + eventGroup + " .cc-label").css({"visibility": "hidden", "font-size": "0"});
-
-                // Create overlays: one wide overlay for multi-column events,
-                // or one overlay per column for single-column events
-                var wrapperOffset = dateWrapper.offset();
                 var colKeys = Object.keys(cellsByCol);
+                if (!colKeys.length) continue;
 
                 if (colKeys.length > 1) {
-                    // Multi-column event: one wide overlay spanning all columns
+                    // Multi-column: one wide overlay spanning all columns
                     var firstColCells = cellsByCol[colKeys[0]];
-                    var lastColCells = cellsByCol[colKeys[colKeys.length - 1]];
+                    var lastColCells  = cellsByCol[colKeys[colKeys.length - 1]];
+                    if (!firstColCells.length) continue;
 
-                    if (firstColCells.length < 1) continue; // safety
+                    var r0 = tdRect(firstColCells[0].closest("td"));
+                    var r1 = tdRect(lastColCells[lastColCells.length - 1].closest("td"));
+                    var rB = tdRect(firstColCells[firstColCells.length - 1].closest("td"));
 
-                    var firstCell = firstColCells[0];
-                    var lastCell = lastColCells[lastColCells.length - 1];
-                    var firstColLastCell = firstColCells[firstColCells.length - 1];
-
-                    var firstTd = firstCell.closest("td");
-                    var lastTd = lastCell.closest("td");
-                    var firstColLastTd = firstColLastCell.closest("td");
-
-                    var firstTdOff = firstTd.offset();
-                    var lastTdOff = lastTd.offset();
-                    var firstColLastTdOff = firstColLastTd.offset();
-
-                    var startX = Math.floor(firstTdOff.left - wrapperOffset.left);
-                    var startY = Math.floor(firstTdOff.top - wrapperOffset.top);
-                    var eventWidth = Math.round((lastTdOff.left + lastTd.outerWidth()) - firstTdOff.left);
-                    var eventHeight = Math.round((firstColLastTdOff.top + firstColLastTd.outerHeight()) - firstTdOff.top);
-
-                    var overlayId = eventGroup + "-wide-overlay-" + dateIndex;
-
-                    var eventGroupOverlay = firstCell.clone();
-                    eventGroupOverlay.appendTo(dateWrapper);
-                    eventGroupOverlay.attr("id", overlayId);
-                    eventGroupOverlay.removeClass(eventGroup);
-
-                    var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
-
-                    eventGroupOverlay.css({
-                        "position": "absolute",
-                        "z-index": 128,
-                        "display": "block",
-                        "left": startX, "top": startY,
-                        "width": eventWidth,
-                        "height": eventHeight,
-                        "padding": 0,
-                        "text-align": "center"
-                    });
-
-                    eventGroupOverlayLabel.css({
-                        "visibility": "visible",
-                        "height": "auto",
-                        "font-size": "12px",
-                        "line-height": 1.5,
-                        "text-align": "center"
-                    });
-
-                    eventGroupOverlayLabel.css({
-                        "position": "relative",
-                        "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
-                    });
+                    createOverlay(
+                        eventGroup + "-wide-overlay-" + dateIndex,
+                        firstColCells[0],
+                        r0.left, r0.top,
+                        r1.right - r0.left,
+                        rB.bottom - r0.top
+                    );
                 } else {
-                    // Single-column event: one overlay per column
-                    $.each(cellsByCol, function(colIndex, cells) {
-                        if (cells.length < 2) return; // single cell needs no overlay
-
-                        var firstCell = cells[0];
-                        var lastCell = cells[cells.length - 1];
-
-                        var firstTd = firstCell.closest("td");
-                        var lastTd = lastCell.closest("td");
-                        var firstTdOff = firstTd.offset();
-                        var lastTdOff = lastTd.offset();
-
-                        var startX = Math.floor(firstTdOff.left - wrapperOffset.left);
-                        var startY = Math.floor(firstTdOff.top - wrapperOffset.top);
-                        var eventWidth = firstTd.outerWidth();
-                        var eventHeight = Math.round((lastTdOff.top + lastTd.outerHeight()) - firstTdOff.top);
-
-                        var overlayId = eventGroup + "-c" + colIndex + "-overlay-" + dateIndex;
-
-                        var eventGroupOverlay = firstCell.clone();
-                        eventGroupOverlay.appendTo(dateWrapper);
-                        eventGroupOverlay.attr("id", overlayId);
-                        eventGroupOverlay.removeClass(eventGroup);
-
-                        var eventGroupOverlayLabel = eventGroupOverlay.find(".cc-label");
-
-                        eventGroupOverlay.css({
-                            "position": "absolute",
-                            "z-index": 128,
-                            "left": startX, "top": startY,
-                            "width": eventWidth,
-                            "height": eventHeight,
-                            "padding": 0
-                        });
-
-                        eventGroupOverlayLabel.css({
-                            "visibility": "visible",
-                            "height": "auto",
-                            "font-size": "12px",
-                            "line-height": 1.5,
-                            "text-align": "center"
-                        });
-
-                        eventGroupOverlayLabel.css({
-                            "position": "relative",
-                            "top": Math.round((eventHeight / 2) - (eventGroupOverlayLabel.height() / 2))
-                        });
+                    // Single-column: one overlay per time-slot group
+                    $.each(cellsByCol, function(colIdx, cells) {
+                        if (cells.length < 2) return;
+                        var r0 = tdRect(cells[0].closest("td"));
+                        var rL = tdRect(cells[cells.length - 1].closest("td"));
+                        createOverlay(
+                            eventGroup + "-c" + colIdx + "-overlay-" + dateIndex,
+                            cells[0],
+                            r0.left, r0.top,
+                            r0.width,
+                            rL.bottom - r0.top
+                        );
                     });
-                }
 
-                // If multiple overlays exist for this event, show label only in middle one
-                var allOverlays = $("[id^='" + eventGroup + "-'][id$='-overlay-" + dateIndex + "']");
-                if (allOverlays.length > 1) {
-                    allOverlays.find(".cc-label").css("visibility", "hidden");
-                    allOverlays.eq(Math.floor(allOverlays.length / 2)).find(".cc-label").css("visibility", "visible");
+                    // Multiple per-column overlays: show label only in middle one
+                    var allOvl = $("[id^='" + eventGroup + "-c'][id$='-overlay-" + dateIndex + "']");
+                    if (allOvl.length > 1) {
+                        allOvl.find(".cc-label").css("visibility", "hidden");
+                        allOvl.eq(Math.floor(allOvl.length / 2)).find(".cc-label").css("visibility", "visible");
+                    }
                 }
             }
         });
