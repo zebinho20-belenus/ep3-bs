@@ -288,9 +288,13 @@
         // Remove all existing overlays before recreating
         $("[id$='-overlay-']").remove();
 
+        console.log("[overlay-debug] date-cols:", $(".calendar-date-col").length);
+
         $(".calendar-date-col").each(function(dateIndex) {
             var calendarDateCol = $(this);
             var dateWrapper = calendarDateCol.find(".calendar-date-wrapper");
+
+            console.log("[overlay-debug] dateIndex:", dateIndex, "wrapper:", dateWrapper.length, "events:", calendarDateCol.find(".cc-event").length);
 
             if (! dateWrapper.length) return;
 
@@ -309,6 +313,8 @@
                 }
             });
 
+            console.log("[overlay-debug] eventGroups:", eventGroups);
+
             // For each event group, create one overlay per court column
             for (var i = 0; i < eventGroups.length; i++) {
                 var eventGroup = eventGroups[i];
@@ -326,6 +332,8 @@
                     }
                     cellsByCol[colIndex].push(cell);
                 });
+
+                console.log("[overlay-debug] cellsByCol keys:", Object.keys(cellsByCol), "counts:", Object.keys(cellsByCol).map(function(k){return cellsByCol[k].length;}));
 
                 // Create one overlay per column
                 $.each(cellsByCol, function(colIndex, cells) {
