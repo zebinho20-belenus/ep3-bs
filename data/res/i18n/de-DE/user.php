@@ -105,6 +105,7 @@ return array(
     'May create multiple bookings' => 'Darf Abos erstellen',
     'May cancel multiple bookings' => 'Darf Abos stornieren',
     'May delete multiple bookings' => 'Darf Abos löschen',
+    'May reactivate cancelled bookings' => 'Darf stornierte Buchungen reaktivieren',
 
     'Request activation mail' => 'Aktivierungs E-Mail senden',
     'Resend activation email' => 'Aktivierung erneut senden',

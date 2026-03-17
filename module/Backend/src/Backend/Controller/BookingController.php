@@ -173,7 +173,7 @@ class BookingController extends AbstractActionController
 
                 /* Reactivate cancelled booking */
 
-                if ($this->params()->fromPost('bf-reactivate') && $d['bf-rid'] && $sessionUser->can('admin.booking')) {
+                if ($this->params()->fromPost('bf-reactivate') && $d['bf-rid'] && $sessionUser->can('calendar.reactivate-bookings')) {
                     $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
                     $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
                     $userManager = $serviceManager->get('User\Manager\UserManager');
@@ -827,7 +827,7 @@ class BookingController extends AbstractActionController
 
             /* Reactivate cancelled booking directly from booking list */
             if ($reactivateParam == 'true') {
-                $this->authorize('admin.booking');
+                $this->authorize('calendar.reactivate-bookings');
 
                 if ($booking->get('status') == 'cancelled') {
 
@@ -1096,7 +1096,7 @@ class BookingController extends AbstractActionController
                 $deleteCount++;
 
             } elseif ($action === 'reactivate' && $booking->get('status') === 'cancelled') {
-                $this->authorize('admin.booking');
+                $this->authorize('calendar.reactivate-bookings');
 
                 // Collision check
                 $dateTimeStart = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_start'));

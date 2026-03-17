@@ -103,6 +103,7 @@ class User extends AbstractEntity
         'calendar.create-subscription-bookings' => 'May create multiple bookings',
         'calendar.cancel-subscription-bookings' => 'May cancel multiple bookings',
         'calendar.delete-subscription-bookings' => 'May delete multiple bookings',
+        'calendar.reactivate-bookings' => 'May reactivate cancelled bookings',
     );
 
     /**

@@ -208,6 +208,10 @@ class BookingFormat extends AbstractHelper
 
         if ($booking->get('status') == 'cancelled') {
 
+            // Check if user has reactivation permission
+            $sessionUser = $this->getView()->sessionUser();
+            $canReactivatePermission = $sessionUser && $sessionUser->can('calendar.reactivate-bookings');
+
             // Check if time slot is free for reactivation
             $canReactivate = true;
             $dateTimeStart = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_start'));
@@ -228,7 +232,7 @@ class BookingFormat extends AbstractHelper
                 }
             }
 
-            if ($canReactivate) {
+            if ($canReactivate && $canReactivatePermission) {
                 $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
 
                 $html .= sprintf('<td class="actions-col no-print">'
