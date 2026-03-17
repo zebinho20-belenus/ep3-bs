@@ -80,9 +80,10 @@
         updateCalendarEvents();
         $(document).on("updateLayout", updateCalendarEvents);
 
-        /* Debounced resize: recalculate after resize settles (150ms) */
+        /* Debounced resize: hide overlays immediately, recalculate after settle */
         var resizeTimer;
         function debouncedCalendarUpdate() {
+            $("[id$='-overlay-']").hide();
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
                 updateCalendarCols();
