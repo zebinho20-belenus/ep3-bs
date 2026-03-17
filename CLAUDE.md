@@ -456,7 +456,7 @@ Comprehensive OWASP Top 10 security audit and hardening. Key changes:
 | **Bcrypt** | Cost factor 10 (was 6) in Backend UserController |
 | **Hardening** | `unserialize(['allowed_classes' => false])` everywhere, removed `@` error suppression, `$_SERVER` guard for `HTTP_STRIPE_SIGNATURE` |
 | **Libraries** | jQuery 1.12.4 → 3.7.1, jQuery UI 1.10.4 → 1.14.1, TinyMCE 4.0.26 → 6.8.5 |
-| **Service Worker** | Cache version bumped to `ep3bs_v3.10:static` |
+| **Service Worker** | Cache version bumped to `ep3bs_v3.11:static` (was v3.10) |
 
 **TinyMCE 6 migration notes:**
 - Skin: `lightgray` → `oxide`, Theme: `modern` → `silver`
@@ -500,9 +500,12 @@ CSS-only mobile UX improvements (`@media (max-width: 767px)` in `app.css`):
 - `a.cc-single .cc-label, a.cc-multiple .cc-label { visibility: hidden }` — occupied/abo color-only
 - Color legend (`#calendar-legend`) in `index.phtml` below datepicker, `d-md-none` (mobile-only)
 
+**Important — Service Worker cache**: After CSS/JS changes, bump the SW cache version in `public/js/sw.js` (`cacheName = 'ep3bs_v3.XX:static'`). The SW caches `app.css` and other assets — without a version bump, users with cached PWA won't see changes. Current version: `v3.11`.
+
 **Files changed:**
 - `public/js/controller/calendar/index.js` + `index.min.js`
 - `public/css/app.css` + `app.min.css`
+- `public/js/sw.js` (cache version)
 - `module/Frontend/view/frontend/index/index.phtml` (legend)
 
 ### Payment Token Handling & Cleanup Interval (Fixed Mar 2026, #85)
