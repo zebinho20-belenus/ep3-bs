@@ -1523,5 +1523,15 @@ a.squarebox-primary-close-link:hover {
     justify-content: center;
     pointer-events: none;
 }
+.notification-badge[data-popover-content] {
+    pointer-events: auto;
+    cursor: pointer;
+}
 .notification-badge-warning { background: #d97706; }
 .notification-badge-success { background: #2e8b3c; }
+
+/* Badge popover */
+.popover { max-width: 320px; }
+@media (max-width: 576px) {
+    .popover { max-width: 90vw; }
+}
