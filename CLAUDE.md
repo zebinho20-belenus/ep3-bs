@@ -487,12 +487,23 @@ Events spanning multiple court columns (e.g. 2 of 3 courts) created separate ove
 **Phase 3 — Datepicker z-index & label centering (Mar 2026):**
 jQuery UI datepicker appeared behind event overlays (z-index conflict). Fix: `.ui-datepicker { z-index: 256 !important }` in `app.css`. Event overlay label text was left-aligned; fixed with `display: block; text-align: center` on the label `<span>`.
 
-**Phase 4 — Single label for multi-column events (Mar 2026):**
-Multi-column events (e.g. 3 of 8 courts) showed the event name in every column overlay. Fix: after overlay creation, hide all original cell labels via `visibility: hidden`. When multiple per-column overlays exist, only show label in the middle overlay (`allOverlays.eq(Math.floor(allOverlays.length / 2))`). Works regardless of whether the wide merge overlay or individual column overlays are created.
+**Phase 4 — Single label, 1h fix, debounced resize (Mar 2026):**
+- Multi-column events showed name per column. Fix: hide original cell labels, show label only in middle overlay.
+- 1-hour multi-court events were invisible: safety check `firstColCells.length < 2` skipped wide overlay, combined with CSS label-hidden → no visible content. Fix: changed to `< 1`.
+- Resize handler called `updateCalendarEvents()` on every pixel → flicker/stale overlays. Fix: single debounced handler (150ms), fires `updateCalendarCols()` + `updateCalendarEvents()` once after resize settles. Added `orientationchange` for mobile rotation.
+
+**Phase 5 — Calendar mobile clean cells (Mar 2026):**
+CSS-only mobile UX improvements (`@media (max-width: 767px)` in `app.css`):
+- `a.cc-free .cc-label { visibility: hidden }` — "Frei" text hidden, light background sufficient
+- `a.cc-own::after { content: "✓" }` — own bookings show checkmark icon instead of truncated text
+- `a.cc-try::after { content: "!" }` — pending bookings show exclamation icon
+- `a.cc-single .cc-label, a.cc-multiple .cc-label { visibility: hidden }` — occupied/abo color-only
+- Color legend (`#calendar-legend`) in `index.phtml` below datepicker, `d-md-none` (mobile-only)
 
 **Files changed:**
 - `public/js/controller/calendar/index.js` + `index.min.js`
-- `public/css/app.css` + `app.min.css` (`.calendar-date-table { position: relative }`, `.ui-datepicker` z-index, overlay label centering)
+- `public/css/app.css` + `app.min.css`
+- `module/Frontend/view/frontend/index/index.phtml` (legend)
 
 ### Payment Token Handling & Cleanup Interval (Fixed Mar 2026, #85)
 

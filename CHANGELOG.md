@@ -15,7 +15,8 @@
 - **Clickable pending bookings**: Pending booking rows (with unpaid bills) are fully clickable — entire row/card navigates to the bill page, not just the price button.
 - **Mobile-friendly bills page**: Bill table uses stacked card layout on mobile (< 576px) instead of horizontal-scrolling table. Payment option buttons stack vertically on small screens. Long bill descriptions wrap with `word-break`. Labels shown as block above values. Duplicate "Gesamt" label in total row hidden.
 - **Datepicker z-index fix (#96)**: Datepicker in squarebox now appears above the modal (z-index 2048 > 1536).
-- **Event overlay single label (#94)**: Multi-column events (e.g. 3 courts) now show the event name only once (middle overlay), not repeated per column. Original cell labels hidden via `visibility: hidden`.
+- **Event overlay improvements (#94)**: Multi-column events show name only once (middle overlay). Fixed 1-hour multi-court events invisible (`< 2` → `< 1`). Debounced resize handler (150ms) prevents overlay flicker. Added `orientationchange` for mobile rotation.
+- **Calendar mobile UX**: Clean cell display — "Frei" hidden (color sufficient), own bookings show ✓, pending show !, occupied/abo color-only. Color legend below datepicker (mobile-only).
 - **Event admin search (#95)**: Default date range expanded to ±2 weeks. "New event" button always visible. Event datepicker inputs widened to 120px with centered date text.
 
 ---
