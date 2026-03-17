@@ -195,6 +195,8 @@ return array(
 
     'You have no imminent bookings.' => 'Sie haben keine aktuellen Buchungen.',
     'You have unpaid bookings' => 'Sie haben noch unbezahlte Buchungen',
+    '1 unpaid booking' => '1 unbezahlte Buchung',
+    '%s unpaid bookings' => '%s unbezahlte Buchungen',
     'You have not booked any %s yet.' => 'Sie haben noch keine %s gebucht.',
     'You have already booked one %s.' => 'Sie haben dieses Jahr einen %s gebucht.',
     'You have already booked %s %s.' => 'Sie haben dieses Jahr %s %s gebucht.',

@@ -18,6 +18,8 @@ class LastBookings extends AbstractHelper
     protected $squareManager;
     protected $bookingBillManager;
 
+    public $unpaidCount = 0;
+
     public function __construct(BookingManager $bookingManager, ReservationManager $reservationManager,
         SquareManager $squareManager, BillManager $bookingBillManager)
     {
@@ -30,119 +32,116 @@ class LastBookings extends AbstractHelper
     public function __invoke(User $user)
     {
         $view = $this->getView();
+        $this->unpaidCount = 0;
 
         $userBookings = $this->bookingManager->getByValidity(array(
             'uid' => $user->need('uid'),
         ));
 
-        if ($userBookings) {
-            $this->reservationManager->getByBookings($userBookings);
-            $this->bookingBillManager->getByBookings($userBookings);
+        if (! $userBookings) {
+            return '<div><em>' . sprintf($view->t('You have not booked any %s yet.'), $view->option('subject.square.type.plural')) . '</em></div>';
+        }
 
-            $now = new DateTime();
+        $this->reservationManager->getByBookings($userBookings);
+        $this->bookingBillManager->getByBookings($userBookings);
 
-            $lowerLimit = clone $now;
-            $lowerLimit->modify('-2 days');
+        $now = new DateTime();
+        $yearStart = new DateTime('first day of January this year');
+        $yearStart->setTime(0, 0);
+        $squareType = $view->option('subject.square.type');
 
-            $upperLimit = clone $now;
-            $upperLimit->modify('+28 days');
+        // Collect future bookings and count unpaid bookings in current year (#71)
+        $futureBookings = [];
+        $unpaidCount = 0;
 
-            $html = '';
+        foreach ($userBookings as $booking) {
+            $reservations = $booking->needExtra('reservations');
 
-            $html .= '<ul style=\'padding: 0px 16px 0px 28px;\'>';
-
-            $bookingsActuallyDisplayed = 0;
-            $hasUnpaid = false;
-
-            // Check for unpaid bookings in current year (beyond display window)
-            $yearStart = new DateTime('first day of January this year');
-            $yearStart->setTime(0, 0);
-
-            foreach ($userBookings as $b) {
-                $bStatusBilling = $b->get('status_billing');
-                $bBills = $b->getExtra('bills');
-                $bPrice = 0;
-                if ($bBills) {
-                    foreach ($bBills as $bill) {
-                        $bPrice += $bill->need('price');
-                    }
-                }
-                if ($bStatusBilling == 'pending' && $bPrice > 0) {
-                    $bReservations = $b->needExtra('reservations');
-                    foreach ($bReservations as $bRes) {
-                        $bDate = new DateTime($bRes->need('date'));
-                        if ($bDate >= $yearStart) {
-                            $hasUnpaid = true;
-                            break 2;
-                        }
-                    }
+            // Find earliest reservation date for this booking
+            $bookingDateTimeStart = null;
+            foreach ($reservations as $reservation) {
+                $tmpDateTimeStart = new DateTime($reservation->need('date') . ' ' . $reservation->need('time_start'));
+                if (is_null($bookingDateTimeStart) || $tmpDateTimeStart < $bookingDateTimeStart) {
+                    $bookingDateTimeStart = $tmpDateTimeStart;
                 }
             }
 
-            foreach ($userBookings as $booking) {
-                $reservations = $booking->needExtra('reservations');
+            if (! $bookingDateTimeStart) {
+                continue;
+            }
 
-                $bookingDateTimeStart = null;
-                $bookingDateTimeEnd = null;
+            // Calculate price
+            $bills = $booking->getExtra('bills');
+            $price = 0;
+            if ($bills) {
+                foreach ($bills as $bill) {
+                    $price += $bill->need('price');
+                }
+            }
 
-                foreach ($reservations as $reservation) {
-                    $tmpDateTimeStart = new DateTime($reservation->need('date') . ' ' . $reservation->need('time_start'));
-                    $tmpDateTimeEnd = new DateTime($reservation->need('date') . ' ' . $reservation->need('time_end'));
+            $statusBilling = $booking->get('status_billing');
 
-                    if (is_null($bookingDateTimeStart) || $tmpDateTimeStart < $bookingDateTimeStart) {
-                        $bookingDateTimeStart = $tmpDateTimeStart;
-                    }
+            // Count all unpaid bookings in current year (past + future, #71)
+            if ($statusBilling == 'pending' && $price > 0 && $bookingDateTimeStart >= $yearStart) {
+                $unpaidCount++;
+            }
 
-                    if (is_null($bookingDateTimeEnd) || $tmpDateTimeEnd < $bookingDateTimeStart) {
-                        $bookingDateTimeEnd = $tmpDateTimeEnd;
-                    }
+            if ($bookingDateTimeStart >= $now) {
+                // Future booking
+                $futureBookings[] = [
+                    'booking' => $booking,
+                    'dateTimeStart' => $bookingDateTimeStart,
+                    'price' => $price,
+                    'statusBilling' => $statusBilling,
+                ];
+            }
+        }
+
+        $this->unpaidCount = $unpaidCount;
+
+        // Sort future bookings by date ascending, take first 4
+        usort($futureBookings, function ($a, $b) {
+            return $a['dateTimeStart'] <=> $b['dateTimeStart'];
+        });
+        $futureBookings = array_slice($futureBookings, 0, 4);
+
+        // Build HTML
+        if (! $futureBookings && ! $unpaidCount) {
+            return '<div><em>' . $view->t('You have no imminent bookings.') . '</em></div>';
+        }
+
+        $html = '';
+
+        if ($futureBookings) {
+            $html .= '<ul style=\'padding: 0px 16px 0px 28px;\'>';
+
+            foreach ($futureBookings as $fb) {
+                $booking = $fb['booking'];
+                $square = $this->squareManager->get($booking->need('sid'));
+
+                $billingInfo = '';
+                if ($fb['statusBilling'] == 'pending' && $fb['price'] > 0) {
+                    $billingInfo = ' <span style=\'color: #d97706; font-size: 0.85em;\'>(' . $view->t('Pending') . ')</span>';
+                } elseif ($fb['statusBilling'] == 'paid') {
+                    $billingInfo = ' <span style=\'color: #16a34a; font-size: 0.85em;\'>(' . $view->t('Paid') . ')</span>';
                 }
 
-                if ($bookingDateTimeEnd >= $lowerLimit && $bookingDateTimeStart <= $upperLimit) {
-                    $square = $this->squareManager->get($booking->need('sid'));
-                    $squareType = $view->option('subject.square.type');
-
-                    // Billing status indicator
-                    $statusBilling = $booking->get('status_billing');
-                    $bills = $booking->getExtra('bills');
-                    $price = 0;
-                    if ($bills) {
-                        foreach ($bills as $bill) {
-                            $price += $bill->need('price');
-                        }
-                    }
-
-                    $billingInfo = '';
-                    if ($statusBilling == 'pending' && $price > 0) {
-                        $billingInfo = ' <span style=\'color: #d97706; font-size: 0.85em;\'>(' . $view->t('Pending') . ')</span>';
-                    } elseif ($statusBilling == 'paid') {
-                        $billingInfo = ' <span style=\'color: #16a34a; font-size: 0.85em;\'>(' . $view->t('Paid') . ')</span>';
-                    }
-
-                    if ($bookingDateTimeStart < $now) {
-                        $html .= sprintf('<li class=\'gray\'><s>%s %s &nbsp; %s</s>%s</li>',
-                            $squareType, $view->t($square->need('name')), $view->prettyDate($bookingDateTimeStart), $billingInfo);
-                    } else {
-                        $html .= sprintf('<li><span class=\'my-highlight\'>%s %s</span> &nbsp; %s%s</li>',
-                            $squareType, $view->t($square->need('name')), $view->prettyDate($bookingDateTimeStart), $billingInfo);
-                    }
-
-                    $bookingsActuallyDisplayed++;
-                }
+                $html .= sprintf('<li><span class=\'my-highlight\'>%s %s</span> &nbsp; %s%s</li>',
+                    $squareType, $view->t($square->need('name')), $view->prettyDate($fb['dateTimeStart']), $billingInfo);
             }
 
             $html .= '</ul>';
-
-            if (! $bookingsActuallyDisplayed) {
-                $html = '<div><em>' . $view->t('You have no imminent bookings.') . '</em></div>';
-            } elseif ($hasUnpaid) {
-                $html = '<div style=\'color: #d97706; font-weight: bold; margin-bottom: 4px;\'>' . $view->t('You have unpaid bookings') . '</div>' . $html;
-            }
-
-            return $html;
-        } else {
-            return '<div><em>' . sprintf($view->t('You have not booked any %s yet.'), $view->option('subject.square.type.plural')) . '</em></div>';
         }
+
+        if ($unpaidCount > 0) {
+            $unpaidText = ($unpaidCount == 1)
+                ? $view->t('1 unpaid booking')
+                : sprintf($view->t('%s unpaid bookings'), $unpaidCount);
+
+            $html .= '<div style=\'color: #dc2626; font-weight: bold; margin-top: 4px; font-size: 0.9em;\'>' . $unpaidText . '</div>';
+        }
+
+        return $html;
     }
 
 }

@@ -85,10 +85,18 @@
                     */ ?>
                     <?php $sessionUser = $this->sessionUser(); ?>
                     <?php if ($sessionUser): ?>
+                    <?php
+                        $lastBookingsHelper = $this->plugin('UserLastBookings');
+                        $lastBookingsHelper($sessionUser);
+                        $navUnpaidCount = $lastBookingsHelper->unpaidCount;
+                    ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= $this->url('user/bookings') ?>" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('My bookings') ?>">
+                        <a class="nav-link" href="<?= $this->url('user/bookings') ?>" style="position: relative;" data-bs-toggle="tooltip" data-bs-placement="bottom" title="<?= $this->t('My bookings') ?>">
                             <span class="fa fa-list"></span>
                             <span class="d-lg-none d-xl-inline"><?= $this->t('My bookings') ?></span>
+                            <?php if ($navUnpaidCount > 0): ?>
+                                <span class="notification-badge"><?= $navUnpaidCount ?></span>
+                            <?php endif; ?>
                         </a>
                     </li>
                     <li class="nav-item">
