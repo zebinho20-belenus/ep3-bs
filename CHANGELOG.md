@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
-- **Mobile squarebox layout (#97)**: Fixed mobile booking confirmation modal: close button top-right (was bottom, `append` → `prepend`); pricing table 2-column on mobile (duration/players hidden as columns, shown as compact `ps-meta` line in first cell — no scroll); rules text no height cap on mobile (squarebox scrolls itself).
+- **Mobile squarebox layout (#97)**: Fixed mobile booking confirmation modal: close button top-right (was bottom, `append` → `prepend`); pricing table 2-column on mobile (duration/players as `.ps-detail-col` hidden, shown as compact `.ps-meta` line in first cell — no scroll; total row `colspan` replaced with separate hidden cells); rules text no height cap on mobile (squarebox scrolls itself).
 - **Uniform email salutation (#81)**: All outgoing emails now use "Hallo Vorname Nachname" (fallback: alias). Removed gender-based "Sehr geehrter Herr/Sehr geehrte Frau" from all email-sending locations (Backend cancel/reactivate/edit/bulk, Square cancel/payment-failed, User MailService for booking confirmations).
 
 ### Features
