@@ -506,7 +506,9 @@ jQuery UI datepicker appeared behind event overlays (z-index conflict). Fix: `.u
 
 4. **z-index**: 128 → 256 (above `cc-conflict` at 256 — adjusted to ensure visibility)
 
-5. **SW cache**: `calendar/index.min.js` and `default.min.js` added to SW cache list → version bumps now invalidate ALL JS files. Version: `v3.15`.
+5. **SW cache**: `calendar/index.min.js` and `default.min.js` added to SW cache list → version bumps now invalidate ALL JS files. Version: `v3.16`.
+
+6. **Selector fix**: `$("[id$='-overlay-']")` never matched (IDs end with `-overlay-0`, not `-overlay-`). Overlays accumulated and were never hidden on resize. Fix: `overlay.addClass("calendar-event-overlay")` + `$(".calendar-event-overlay")` for hide/remove. This was the root cause for resize not working and overlays stacking.
 
 6. **Root cause for invisible labels**: `clone()` inherited `visibility: hidden` inline-style from original cell. `createOverlay()` now always sets `visibility: visible` on label.
 

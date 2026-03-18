@@ -4,7 +4,7 @@
 
 ### Bug Fixes
 
-- **Event overlay refactoring (#94)**: Complete rewrite of `updateCalendarEvents()` using `getBoundingClientRect()` for precise positioning, `tdRect()`/`createOverlay()` helpers, `setTimeout(0)` for label centering, z-index 256. `calendar/index.min.js` + `default.min.js` added to SW cache. SW `v3.10` → `v3.15`. Event name visible on desktop and mobile.
+- **Event overlay refactoring (#94)**: Complete rewrite of `updateCalendarEvents()` — `getBoundingClientRect()`, `tdRect()`/`createOverlay()` helpers, z-index 256, `.calendar-event-overlay` class. **Root cause fix:** `[id$='-overlay-']` selector never matched (IDs end with `-overlay-0`), so overlays accumulated and were never hidden on resize. SW `v3.10` → `v3.16`.
 - **Mobile squarebox layout (#97)**: Fixed mobile booking confirmation modal: close button top-right (was bottom, `append` → `prepend`); pricing table 2-column on mobile (duration/players as `.ps-detail-col` hidden, shown as compact `.ps-meta` line in first cell — no scroll; total row `colspan` replaced with separate hidden cells); rules text no height cap on mobile (squarebox scrolls itself).
 - **Uniform email salutation (#81)**: All outgoing emails now use "Hallo Vorname Nachname" (fallback: alias). Removed gender-based "Sehr geehrter Herr/Sehr geehrte Frau" from all email-sending locations (Backend cancel/reactivate/edit/bulk, Square cancel/payment-failed, User MailService for booking confirmations).
 
