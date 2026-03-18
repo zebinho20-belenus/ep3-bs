@@ -15,12 +15,17 @@ class ServiceController extends AbstractActionController
 
     public function statusAction()
     {
-        if ($this->option('service.maintenance', 'false') == 'true') {
+        $maintenanceMode = $this->option('service.maintenance', 'false');
+
+        if ($maintenanceMode == 'true') {
             $title = 'Maintenance';
             $status = 'maintenance';
 
             $response = $this->getResponse();
             $response->setStatusCode(503);
+        } elseif ($maintenanceMode == 'administration') {
+            $title = 'Administration';
+            $status = 'administration';
         } else {
             $title = 'System status';
             $status = 'default';

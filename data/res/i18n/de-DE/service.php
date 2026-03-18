@@ -4,6 +4,11 @@ return array(
 
     'System status' => 'Status des Systems',
     'Maintenance' => 'Wartungsarbeiten',
+    'Administration' => 'Verwaltungsmodus',
+
+    'The system is currently in administration mode' => 'Das System befindet sich derzeit im Verwaltungsmodus',
+    'Reservations are currently only possible for staff' => 'Buchungen sind derzeit nur für Mitarbeiter möglich',
+    'The system will be available for all users soon.' => 'Das System steht in Kürze allen Benutzern zur Verfügung.',
 
     'Help' => 'Hilfe',
 

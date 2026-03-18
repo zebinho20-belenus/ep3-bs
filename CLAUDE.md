@@ -653,6 +653,25 @@ JS triggers the pre-selected filter on load: `$('#bookings-filter input:checked'
 
 **Files changed:** `module/User/view/user/account/bookings.phtml`, `module/User/src/User/Controller/AccountController.php`, `public/js/controller/user/bookings.js` + `.min.js`, `public/js/default.min.js`, `public/css/app.css` + `.min.css`, `module/Base/view/layout/layout.phtml`, `module/Frontend/view/frontend/index/userpanel.online.phtml`
 
+### Administration Mode (Mar 2026, #98)
+
+New third system mode alongside "Enabled" and "Maintenance". Allows staff (Mitarbeiter) to log in and make bookings before the system opens to regular users.
+
+**Three modes** (stored in `bs_options` key `service.maintenance`):
+- `false` → Enabled: all users
+- `administration` → Administration: `admin` + `assist` users only
+- `true` → Maintenance: `admin` only (HTTP 503)
+
+**Implementation:** `module/Service/Module.php` — `onDispatch()` checks the new value and allows `status=assist` through in administration mode. `ServiceController::statusAction()` sets `$status='administration'` for the view. `status.phtml` shows a dedicated "Verwaltungsmodus" page.
+
+**Config UI:** Backend → Configuration → Behaviour → System dropdown (3 options). Notes updated to describe each mode.
+
+**Key files:**
+- `module/Service/Module.php` — enforcement (bootstrap hook)
+- `module/Service/src/Service/Controller/ServiceController.php` — status page logic
+- `module/Service/view/service/service/status.phtml` — status page view
+- `module/Backend/src/Backend/Form/Config/BehaviourForm.php` — config form
+
 ### Debugging Tips
 
 - Use `error_log()` for debug output — it goes to PHP error.log (`data/log/errors.txt` in Docker)

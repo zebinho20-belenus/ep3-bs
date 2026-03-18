@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.1.1 (2026-03-18)
+
+### Features
+
+- **Administration mode ([#98](https://github.com/zebinho20-belenus/ep3bs-payment/issues/98))**: New third system state "Administration" (between Enabled and Maintenance). Allows `admin` (Verwalter) and `assist` (Mitarbeiter) users to log in and make bookings while regular users are blocked. Configurable via Backend → Configuration → Behaviour. Shows dedicated status page with "Buchungen nur für Mitarbeiter" message.
+
+---
+
 ## v2.1.1 (2026-03-17)
 
 ### Bug Fixes

@@ -33,15 +33,23 @@ class Module implements AutoloaderProviderInterface, BootstrapListenerInterface,
         $serviceManager = $e->getApplication()->getServiceManager();
         $optionManager = $serviceManager->get('Base\Manager\OptionManager');
 
-        if ($optionManager->get('service.maintenance', 'false') == 'true') {
-            $userSessionManager = $serviceManager->get('User\Manager\UserSessionManager');
+        $maintenanceMode = $optionManager->get('service.maintenance', 'false');
 
-            /* If any non admin user is currently online, kick him off. */
+        if ($maintenanceMode == 'true' || $maintenanceMode == 'administration') {
+            $userSessionManager = $serviceManager->get('User\Manager\UserSessionManager');
 
             $user = $userSessionManager->getSessionUser();
 
             if ($user) {
-                if ($user->need('status') == 'admin') {
+                $userStatus = $user->need('status');
+
+                /* Admins always pass through. */
+                if ($userStatus == 'admin') {
+                    return;
+                }
+
+                /* In administration mode, assist users also pass through. */
+                if ($maintenanceMode == 'administration' && $userStatus == 'assist') {
                     return;
                 }
 

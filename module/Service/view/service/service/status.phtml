@@ -24,6 +24,16 @@ $this->setup(array(
         <p class="gray">
             <?= $this->t('We are back as fast as we can. Promised!') ?>
         </p>
+    <?php elseif ($this->status == 'administration'): ?>
+        <h2><?= $this->t('System status') ?></h2>
+        <h1><?= $this->t('The system is currently in administration mode') ?></h1>
+        <h3><?= $this->t('Reservations are currently only possible for staff') ?></h3>
+
+        <div class="separator"></div>
+
+        <p class="gray">
+            <?= $this->t('The system will be available for all users soon.') ?>
+        </p>
     <?php else: ?>
         <h2><?= $this->t('System status') ?></h2>
         <h1><?= $this->t('The system is available') ?></h1>

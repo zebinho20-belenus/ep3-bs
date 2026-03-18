@@ -227,6 +227,20 @@ Routes defined in each module's `config/module.config.php`:
 - Mobile: 90vw fixed overlay, stacked sections, touch-optimized
 - AJAX-loaded booking form with datepicker
 
+### System Modes
+
+The system supports three operating modes, configurable via Backend → Configuration → Behaviour (`service.maintenance` option):
+
+| Mode | Value | Who can access |
+|------|-------|----------------|
+| **Enabled** | `false` | All users (public) |
+| **Administration** | `administration` | Admins (`status=admin`) + Assist users (`status=assist`) |
+| **Maintenance** | `true` | Admins only (`status=admin`) |
+
+In **Administration mode**, regular users see a "Verwaltungsmodus" status page. Staff can log in, create bookings, and prepare the calendar before opening to the public. Maintenance mode is unchanged — only admins can access, shows HTTP 503.
+
+Key files: `module/Service/Module.php` (enforcement), `module/Service/src/Service/Controller/ServiceController.php`, `module/Backend/src/Backend/Form/Config/BehaviourForm.php`
+
 ### Auto-Registration with Member Recognition
 
 New "I am a club member" checkbox on registration form:

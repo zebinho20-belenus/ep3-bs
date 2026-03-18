@@ -22,9 +22,10 @@ class BehaviourForm extends Form
                 'label' => 'System',
                 'value_options' => array(
                     'false' => 'Enabled',
+                    'administration' => 'Administration',
                     'true' => 'Maintenance',
                 ),
-                'notes' => 'Essentially disables the system for the public,<br>but allows administrators to still login',
+                'notes' => 'Enabled: public access.<br>Administration: only admins and assist users can login.<br>Maintenance: only admins can login.',
             ),
         ));
 
