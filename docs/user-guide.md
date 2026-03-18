@@ -1,85 +1,89 @@
-# Benutzerhandbuch – Tennisplatzbuchung
+# Benutzerhandbuch – Tennisplatzbuchung TCN Kail
 
-Dieses Handbuch richtet sich an **Mitglieder und Gäste** des Buchungssystems.
-
----
-
-## Platz buchen
-
-1. Öffne die Startseite — der Kalender zeigt alle verfügbaren Zeitslots
-2. Klicke auf einen **freien Slot** (weißes/grünes Feld)
-3. Fülle das Buchungsformular aus:
-   - Name des Buchenden
-   - Mitspieler (optional)
-   - Dauer
-4. Klicke auf **Weiter** → Bestätigungsseite
-5. Wähle die Zahlungsart und schließe die Buchung ab
-6. Du erhältst eine **Bestätigungs-E-Mail** mit allen Details
+**System:** [platzbuchung.tcn-kail.de](https://platzbuchung.tcn-kail.de)
 
 ---
 
-## Kalenderfarben
+## 1. Startseite & Kalender
+
+Auf der Startseite siehst du den Buchungskalender mit allen Plätzen und Zeitslots.
+Um einen Platz zu buchen, musst du angemeldet sein.
+
+![Kalender](screenshots/01-kalender.png)
+
+---
+
+## 2. Anmelden
+
+Öffne [platzbuchung.tcn-kail.de/user/login](https://platzbuchung.tcn-kail.de/user/login) oder klicke auf **Anmelden** im Kalender.
+
+![Anmelden](screenshots/02-login.png)
+
+---
+
+## 3. Kalender nach dem Login
+
+Nach dem Login siehst du alle freien und belegten Slots. Freie Slots sind hell und klickbar.
+
+![Kalender eingeloggt](screenshots/03-kalender-eingeloggt.png)
+
+### Farblegende
 
 | Farbe | Bedeutung |
 |-------|-----------|
-| Weiß / Grün | Frei – buchbar |
+| Weiß (leer) | Frei – buchbar |
 | Grau | Belegt |
-| Orange | Temporär reserviert |
-| Blau | Deine eigene Buchung ✓ |
+| Rot / dunkel | Veranstaltung |
+| Blau-grün | Deine eigene Buchung |
 
 ---
 
-## Eigene Buchungen einsehen
+## 4. Platz buchen
 
-- Nach dem Login: **Meine Buchungen** (Button oben rechts)
+Klicke auf einen freien Slot. Es öffnet sich das Buchungsfenster mit Details zu Platz und Zeit. Lies die Regeln und klicke auf **Jetzt buchen**.
+
+![Buchungsformular](screenshots/04-buchungsformular.png)
+
+---
+
+## 5. Meine Buchungen
+
+Unter **Meine Buchungen** (oben in der Navigation) siehst du alle deine Reservierungen.
+
 - Ausstehende Zahlungen sind **gelb** hervorgehoben
-- Klick auf den Preis → direkt zur Zahlungsseite
+- Klick auf den Betrag öffnet die Zahlungsseite
 
-### Buchungsstatus
-
-| Status | Bedeutung |
-|--------|-----------|
-| Ausstehend | Buchung vorhanden, Zahlung noch offen |
-| Bezahlt | Zahlung erfolgreich |
-| Storniert | Buchung wurde abgesagt |
+![Meine Buchungen](screenshots/05-meine-buchungen.png)
 
 ---
 
-## Zahlung nachholen
-
-Wenn eine Buchung noch unbezahlt ist:
-
-1. **Meine Buchungen** aufrufen
-2. Gelb markierte Buchung anklicken
-3. Zahlungsart wählen (PayPal / Kreditkarte / SEPA) und bezahlen
-
----
-
-## Buchung stornieren
+## 6. Buchung stornieren
 
 1. **Meine Buchungen** aufrufen
 2. Gewünschte Buchung auswählen
 3. **Stornieren** klicken und bestätigen
-4. Ein bereits bezahltes Guthaben wird automatisch zurückgebucht
+
+> Gebuchte Plätze können bis **2h vorher** storniert werden.
+> Ein bereits bezahltes Guthaben wird automatisch zurückgebucht.
 
 ---
 
-## Budget (Guthaben)
+## 7. Mobil
 
-Wenn du ein Guthaben hast, wird es automatisch bei der Buchung angerechnet:
+Das System ist vollständig mobil nutzbar. Der Kalender passt sich automatisch an kleine Bildschirme an.
 
-- **Guthaben deckt den vollen Betrag** → Buchung direkt bestätigt, keine weitere Zahlung nötig
-- **Guthaben deckt Teilbetrag** → Restbetrag über PayPal / Kreditkarte bezahlen
+![Kalender mobil](screenshots/08-kalender-mobil.png)
 
 ---
 
 ## Häufige Fragen
 
-**Ich sehe keine freien Plätze.**
-Der Kalender zeigt nur Tage innerhalb des buchbaren Zeitraums. Versuche einen anderen Tag oder eine andere Uhrzeit.
+**Ich sehe keine freien Slots.**
+Der Kalender zeigt nur buchbare Tage. Versuche einen anderen Tag über den Pfeil oben rechts.
 
-**Die Zahlungsseite erscheint nicht.**
-Zahlungsoptionen erscheinen nur, wenn der Gesamtbetrag größer als 0 € ist. Kostenlose Buchungen (z. B. Mitglieder) werden direkt bestätigt.
+**Die Zahlung erscheint nicht.**
+Kostenlose Buchungen (z. B. Mitglieder) werden direkt bestätigt – keine Zahlung nötig.
 
-**Ich habe keine Bestätigungsmail erhalten.**
-Bitte prüfe deinen Spam-Ordner. Bei weiteren Problemen wende dich an den Verein.
+**Keine Bestätigungs-E-Mail erhalten.**
+Bitte Spam-Ordner prüfen. Bei weiteren Problemen den Verein kontaktieren:
+[platzbuchung.tcn-kail.de](https://platzbuchung.tcn-kail.de)

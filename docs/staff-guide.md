@@ -1,87 +1,90 @@
-# Mitarbeiter-Handbuch – Tennisplatzbuchung
+# Mitarbeiter-Handbuch – Tennisplatzbuchung TCN Kail
 
-Dieses Handbuch richtet sich an **Mitarbeiter** (Assist-Benutzer) des Buchungssystems.
-
----
-
-## Anmelden im Verwaltungsmodus
-
-Wenn das System im **Verwaltungsmodus** ist, können sich nur Admins und Mitarbeiter einloggen. Mitglieder und Gäste sehen eine Sperrseite.
-
-> **Login-URL:** `https://[domain]/user/login`
->
-> *(Kein Link auf der Sperrseite — URL direkt im Browser eingeben)*
-
-Nach dem Login gelangst du direkt zum Kalender und kannst Buchungen anlegen, bevor das System für alle geöffnet wird.
+**System:** [platzbuchung.tcn-kail.de](https://platzbuchung.tcn-kail.de)
 
 ---
 
-## Buchung für ein Mitglied anlegen
+## 1. Anmelden
 
-1. Kalender öffnen → freien Slot anklicken
-2. Im Buchungsformular den **Namen des Mitglieds** eintragen
-3. Dauer und ggf. Mitspieler auswählen
-4. **Weiter** → Bestätigungsseite → Buchung abschließen
-5. Das Mitglied erhält automatisch eine Bestätigungs-E-Mail
+Login-Seite: [platzbuchung.tcn-kail.de/user/login](https://platzbuchung.tcn-kail.de/user/login)
 
----
+![Anmelden](screenshots/02-login.png)
 
-## Backend-Zugriff (`/backend`)
-
-Mitarbeiter haben je nach Berechtigung Zugriff auf folgende Bereiche:
-
-| Bereich | Aktionen |
-|---------|----------|
-| **Buchungen** | Einsehen, bearbeiten, stornieren |
-| **Buchungen reaktivieren** | Nur mit Berechtigung `calendar.reactivate-bookings` |
-| **Veranstaltungen** | Anlegen, bearbeiten, löschen |
+> **Wichtig:** Im Verwaltungsmodus gibt es keinen sichtbaren Login-Link auf der Sperrseite.
+> Die Login-URL direkt im Browser eingeben: `platzbuchung.tcn-kail.de/user/login`
 
 ---
 
-## Buchung stornieren (Backend)
+## 2. Verwaltungsmodus
 
-1. Backend → **Buchungen**
-2. Gewünschte Buchung in der Liste suchen
-3. Klick auf **×** (Stornieren-Symbol)
-4. Bestätigungsseite: Stornierung mit **Ja** bestätigen
-5. Vorhandenes Budget wird automatisch zurückgebucht
+Wenn das System im **Verwaltungsmodus** ist, sehen normale Mitglieder und Gäste diese Seite:
 
----
+![Verwaltungsmodus Statusseite](screenshots/09-verwaltungsmodus-statusseite.png)
 
-## Buchung reaktivieren
-
-Stornierte Buchungen können reaktiviert werden, sofern der Zeitslot noch frei ist:
-
-1. Backend → Buchungen → stornierte Buchung suchen
-2. Klick auf **↺** (Reaktivieren-Symbol)
-3. Kollisionsprüfung erfolgt automatisch — Symbol erscheint nur, wenn der Slot frei ist
-
-> Reaktivierung erfordert die Berechtigung `calendar.reactivate-bookings`.
-> Wende dich an einen Admin, falls das Symbol nicht sichtbar ist.
+Mitarbeiter und Admins können sich trotzdem anmelden und Buchungen vornehmen.
 
 ---
 
-## Systemstatus (nur für Admins sichtbar)
+## 3. Kalender & Buchungen anlegen
 
-Das System kennt drei Betriebsmodi:
+Nach dem Login siehst du den Kalender. Freie Slots können direkt angeklickt und gebucht werden — auch für andere Mitglieder.
 
-| Modus | Wer kann sich anmelden |
-|-------|------------------------|
+![Kalender eingeloggt](screenshots/03-kalender-eingeloggt.png)
+
+**Buchung für ein Mitglied anlegen:**
+
+1. Freien Slot anklicken
+2. Namen des Mitglieds eintragen
+3. **Jetzt buchen** bestätigen
+4. Das Mitglied erhält automatisch eine Bestätigungs-E-Mail
+
+---
+
+## 4. Backend – Buchungs-Verwaltung
+
+Aufruf: [platzbuchung.tcn-kail.de/backend/booking](https://platzbuchung.tcn-kail.de/backend/booking)
+
+![Backend Buchungsliste](screenshots/06-backend-buchungen.png)
+
+| Symbol | Aktion |
+|--------|--------|
+| ✏️ (Stift) | Buchung bearbeiten |
+| ✕ (Kreuz) | Buchung stornieren |
+| ↺ (Pfeil) | Buchung reaktivieren *(nur wenn Slot frei + Berechtigung vorhanden)* |
+
+**Stornieren:**
+1. Buchung in der Liste suchen → **✕** klicken
+2. Bestätigungsseite: Stornierung bestätigen
+3. Guthaben wird automatisch zurückgebucht
+
+**Reaktivieren:**
+Erscheint nur bei stornierten Buchungen, wenn der Slot noch frei ist und die Berechtigung `calendar.reactivate-bookings` vorhanden ist.
+
+---
+
+## 5. Backend – Systemstatus konfigurieren
+
+Aufruf: [platzbuchung.tcn-kail.de/backend/config/behaviour](https://platzbuchung.tcn-kail.de/backend/config/behaviour)
+
+![Backend Konfiguration](screenshots/07-backend-konfiguration.png)
+
+**System-Dropdown:**
+
+| Einstellung | Wer kann sich anmelden |
+|-------------|------------------------|
 | **Aktiviert** | Alle Benutzer |
 | **Verwaltungsmodus** | Admins + Mitarbeiter |
 | **Wartungsarbeiten** | Nur Admins |
-
-Einstellung: Backend → **Konfiguration → Verhalten → System**
 
 ---
 
 ## Häufige Fragen
 
-**Ich kann mich nicht einloggen.**
-Prüfe, ob das System im Wartungsmodus ist. Im Wartungsmodus können sich nur Admins einloggen — wende dich an einen Admin.
+**Ich kann mich nicht anmelden.**
+Prüfe ob das System im Wartungsmodus ist. Im Wartungsmodus können sich nur Admins einloggen — Admin kontaktieren.
 
 **Das Reaktivieren-Symbol fehlt.**
-Entweder ist der Zeitslot bereits belegt, oder die Berechtigung `calendar.reactivate-bookings` fehlt. Admin fragen.
+Entweder ist der Slot bereits belegt, oder die Berechtigung `calendar.reactivate-bookings` fehlt. Admin fragen.
 
-**Eine Buchung zeigt kein Zahlungsbutton.**
-Zahlungsoptionen erscheinen nur, wenn der Gesamtbetrag > 0 € und eine gültige Preisregel für das Datum hinterlegt ist.
+**Kein Zahlungsbutton sichtbar.**
+Zahlungsoptionen erscheinen nur bei einem Gesamtbetrag > 0 € und gültiger Preisregel für das Datum.
