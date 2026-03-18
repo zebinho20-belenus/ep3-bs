@@ -239,6 +239,8 @@ The system supports three operating modes, configurable via Backend → Configur
 
 In **Administration mode**, regular users see a "Verwaltungsmodus" status page. Staff can log in, create bookings, and prepare the calendar before opening to the public. Maintenance mode is unchanged — only admins can access, shows HTTP 503.
 
+**Login in restricted modes:** The login page (`/user/login`) remains accessible in all modes — it is explicitly excluded from the status-page redirect. There is no visible login link on the status page; admins and staff must navigate to `/user/login` directly.
+
 Key files: `module/Service/Module.php` (enforcement), `module/Service/src/Service/Controller/ServiceController.php`, `module/Backend/src/Backend/Form/Config/BehaviourForm.php`
 
 ### Auto-Registration with Member Recognition

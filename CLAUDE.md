@@ -666,6 +666,8 @@ New third system mode alongside "Enabled" and "Maintenance". Allows staff (Mitar
 
 **Config UI:** Backend → Configuration → Behaviour → System dropdown (3 options). Notes updated to describe each mode.
 
+**Login in restricted modes:** The login route (`User\Controller\Session::login`) is explicitly excluded from the status-page redirect in `onDispatch()`. Users must navigate to `/user/login` directly — there is no visible link on the status page. After login, non-permitted users are immediately logged out again.
+
 **Key files:**
 - `module/Service/Module.php` — enforcement (bootstrap hook)
 - `module/Service/src/Service/Controller/ServiceController.php` — status page logic
