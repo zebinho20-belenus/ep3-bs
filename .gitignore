@@ -38,8 +38,6 @@ mycourt-pay.sql
 /.agents/skills/
 /.claude/skills/
 skills-lock.json
-/docs
-
 
 *~
 
