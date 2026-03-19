@@ -271,6 +271,11 @@ return array(
     'Display reserved time in Calendar' => 'Stelle die reservierte Zeit im Kalendar dar',
     'activate to show the calendar cells as blocked for members - otherwise as free' => 'aktivieren um die Kalender Zellen als blockiert für Mitglieder darzustellen - andererseits normal als frei',
 
+    'Email notifications' => 'E-Mail-Benachrichtigungen',
+    'No-email user statuses' => 'Benutzer-Status ohne E-Mail',
+    'Comma-separated list of user statuses that have no email address.<br>Email notifications will be skipped for these users.<br>Possible statuses: team, guestgroup, singleguest, placeholder'
+        => 'Komma-getrennte Liste von Benutzer-Status ohne E-Mail-Adresse.<br>Für diese Benutzer werden keine E-Mail-Benachrichtigungen versendet.<br>Mögliche Status: team, guestgroup, singleguest, placeholder',
+
     'Your name' => 'Ihr Name',
     'Will be shown as the operator of this site.<br>Displayed next to the logo, for example.'
         => 'Wird Ihren Besuchern als Betreiber angezeigt.<br>Erscheint z.B. ganz oben neben dem Logo.',

@@ -140,6 +140,20 @@ class BehaviourForm extends Form
         ));
 
         $this->add(array(
+            'name' => 'cf-no-email-statuses',
+            'type' => 'Text',
+            'attributes' => array(
+                'id' => 'cf-no-email-statuses',
+                'style' => 'width: 320px;',
+                'placeholder' => 'team,guestgroup',
+            ),
+            'options' => array(
+                'label' => 'No-email user statuses',
+                'notes' => 'Comma-separated list of user statuses that have no email address.<br>Email notifications will be skipped for these users.<br>Possible statuses: team, guestgroup, singleguest, placeholder',
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'cf-calendar-display-club-exceptions',
             'type' => 'Checkbox',
             'attributes' => array(

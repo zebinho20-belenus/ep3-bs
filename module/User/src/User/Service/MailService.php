@@ -24,6 +24,20 @@ class MailService extends AbstractService
 
     public function send(User $recipient, $subject, $text, array $attachments = array())
     {
+        // Skip email for user statuses configured as having no email
+        $noEmailStatuses = $this->optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($recipient->get('status'), $statuses)) {
+                return;
+            }
+        }
+
+        // Safety fallback: skip if user has no email address at all
+        if (!$recipient->get('email')) {
+            return;
+        }
+
         $fromAddress = $this->configManager->need('mail.address');
         $fromName = $this->optionManager->need('client.name.short') . ' ' . $this->optionManager->need('service.name.full');  
         $fromText = $this->t("team from") . ' ' . $fromName;

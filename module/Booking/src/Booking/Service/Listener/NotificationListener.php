@@ -255,7 +255,7 @@ class NotificationListener extends AbstractListenerAggregate
 			    $dateFormatHelper($reservationStart, \IntlDateFormatter::MEDIUM, \IntlDateFormatter::SHORT));
 
 		    $addendum = sprintf($this->t('Originally sent to %s (%s).'),
-	            $user->need('alias'), $user->need('email'));
+	            $user->need('alias'), $user->get('email', '-'));
 
 	        $this->backendMailService->send($backendSubject, $message, array(), $addendum);
         }
@@ -321,7 +321,7 @@ class NotificationListener extends AbstractListenerAggregate
 		        $user->need('alias'), $this->optionManager->get('subject.square.type'));
 
 		    $addendum = sprintf($this->t('Originally sent to %s (%s).'),
-	            $user->need('alias'), $user->need('email'));
+	            $user->need('alias'), $user->get('email', '-'));
 
 	        $this->backendMailService->send($backendSubject, $message, array(), $addendum);
         }

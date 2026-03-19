@@ -46,6 +46,11 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config/be
         <?= $this->formRowDefault($form, 'cf-calendar-club-exceptions') ?>
         <?= $this->formRowDefault($form, 'cf-calendar-display-club-exceptions') ?>
 
+        <div class="separator separator-line"></div>
+
+        <h3 class="mb-3"><?= $this->t('Email notifications') ?></h3>
+        <?= $this->formRowDefault($form, 'cf-no-email-statuses') ?>
+
         <hr class="my-3">
 
         <div class="d-flex flex-wrap gap-2 mb-3">

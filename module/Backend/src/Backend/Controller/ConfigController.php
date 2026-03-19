@@ -151,6 +151,7 @@ class ConfigController extends AbstractActionController
                 $calendarDayExceptions = $data['cf-calendar-day-exceptions'];
                 $calendarClubExceptions = $data['cf-calendar-club-exceptions'];
                 $calendarDisplayClubExceptions = $data['cf-calendar-display-club-exceptions'];
+                $noEmailStatuses = trim($data['cf-no-email-statuses']);
 
                 $locale = $this->config('i18n.locale');
 
@@ -163,6 +164,7 @@ class ConfigController extends AbstractActionController
                 $optionManager->set('service.calendar.day-exceptions', $calendarDayExceptions);
                 $optionManager->set('service.calendar.club-exceptions', $calendarClubExceptions);
                 $optionManager->set('service.calendar.display-club-exceptions', $calendarDisplayClubExceptions);
+                $optionManager->set('service.no-email-statuses', $noEmailStatuses);
 
                 $this->flashMessenger()->addSuccessMessage('Configuration has been saved');
             } else {
@@ -180,6 +182,7 @@ class ConfigController extends AbstractActionController
             $behaviourForm->get('cf-calendar-day-exceptions')->setValue($optionManager->get('service.calendar.day-exceptions'));
             $behaviourForm->get('cf-calendar-club-exceptions')->setValue($optionManager->get('service.calendar.club-exceptions'));
             $behaviourForm->get('cf-calendar-display-club-exceptions')->setValue($optionManager->get('service.calendar.display-club-exceptions'));
+            $behaviourForm->get('cf-no-email-statuses')->setValue($optionManager->get('service.no-email-statuses'));
         }
 
         return array(

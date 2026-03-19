@@ -326,7 +326,7 @@ class BookingService extends AbstractService
      */
     protected function sendCancellationNotification(Booking $booking, User $user, Square $square, $total)
     {
-        if (!$this->mailService) {
+        if (!$this->mailService || !$user->get('email')) {
             return;
         }
 
@@ -393,6 +393,10 @@ class BookingService extends AbstractService
      */
     protected function sendAdminBookingNotification($booking, $user, $square, DateTime $dateTimeStart, DateTime $dateTimeEnd)
     {
+        if (!$user->get('email')) {
+            return;
+        }
+
         try {
             $squareType = $this->optionManager->need('subject.square.type');
             $squareName = $this->t($square->need('name'));

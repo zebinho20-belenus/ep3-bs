@@ -1591,7 +1591,7 @@ class BookingController extends AbstractActionController
     public function sendAdminCancellationEmail(Booking $booking, User $user)
     {
         // Only send email if user has an email address
-        if (empty($user->need('email'))) {
+        if (!$user->get('email')) {
             return false;
         }
 
@@ -1941,7 +1941,7 @@ class BookingController extends AbstractActionController
      */
     public function sendReactivationEmail(Booking $booking, User $user, $sessionUser)
     {
-        if (empty($user->need('email'))) {
+        if (!$user->get('email')) {
             return false;
         }
 
@@ -2089,7 +2089,7 @@ class BookingController extends AbstractActionController
     public function sendAdminBookingCreationEmail(Booking $booking, User $user)
     {
         // Only send email if user has an email address
-        if (empty($user->need('email'))) {
+        if (!$user->get('email')) {
             return false;
         }
 
@@ -2404,7 +2404,7 @@ class BookingController extends AbstractActionController
      */
     public function sendAdminBookingEditEmail(Booking $booking, User $user, array $changes, $sessionUser, $squareManager = null)
     {
-        if (empty($user->need('email'))) {
+        if (!$user->get('email')) {
             return false;
         }
 
@@ -2887,7 +2887,7 @@ class BookingController extends AbstractActionController
             $ics .= "ORGANIZER;CN=\"" . $clientName . "\":MAILTO:" . $contactEmail . "\r\n";
             
             // Füge Teilnehmer hinzu, wenn Benutzer übergeben wurde
-            if ($user) {
+            if ($user && $user->get('email')) {
                 $ics .= "ATTENDEE;CN=\"" . $user->need('alias') . "\":MAILTO:" . $user->need('email') . "\r\n";
             }
             
