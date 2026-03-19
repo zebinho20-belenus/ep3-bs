@@ -242,6 +242,7 @@ return array(
     'Change the date range and/or interval of this booking:' => 'Zeitraum und/oder Wiederholungsinterval dieser Buchung ändern:',
 
     'Invalid date' => 'Ungültiges Datum',
+    'For recurring bookings the end date must be after the start date' => 'Bei wiederkehrenden Buchungen muss das Enddatum nach dem Startdatum liegen',
 
     'Essentially disables the system for the public,<br>but allows administrators to still login'
         => 'Hiermit kann das System in den Wartungsmodus versetzt werden.<br>Im Wartungsmodus ist der Kalender nicht mehr sichtbar und<br>außer Ihnen kann sich niemand anmelden',

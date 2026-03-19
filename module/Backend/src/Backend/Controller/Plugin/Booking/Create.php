@@ -122,6 +122,20 @@ class Create extends AbstractPlugin
             $dateStart = new \DateTime($dateStart);
             $dateEnd = new \DateTime($dateEnd);
 
+            /* Validate date range for subscription bookings */
+
+            if ($status == 'subscription' && $dateStart >= $dateEnd) {
+                if ($transaction) {
+                    $this->connection->rollback();
+                }
+
+                $controller->flashMessenger()->addErrorMessage(
+                    'For recurring bookings the end date must be after the start date'
+                );
+
+                return $controller->redirect()->toRoute('backend/booking');
+            }
+
             /* Determine booking meta */
 
             $bookingMeta = array();
