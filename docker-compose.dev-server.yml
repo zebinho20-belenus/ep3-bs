@@ -54,9 +54,9 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik_web"
 
-      # Secure Header Middleware
+      # Secure Header Middleware + BasicAuth (dev-auth defined in tls.yaml on server)
       - "traefik.http.middlewares.secure-headers-dev.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.court-dev.middlewares=secure-headers-dev"
+      - "traefik.http.routers.court-dev.middlewares=dev-auth-court@file,secure-headers-dev"
 
       # HTTP -> HTTPS Redirect
       - "traefik.http.routers.court-dev-redirect.entrypoints=web"
