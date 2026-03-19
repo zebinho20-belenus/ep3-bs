@@ -261,6 +261,8 @@ Email includes: booking details, player names, itemized bill, payment informatio
 
 **Salutation:** All outgoing emails use `Hallo Vorname Nachname` (fallback: alias). No gender-based forms. Applied in `User\MailService::send()` (booking confirmations) and directly in Backend/Square BookingControllers (cancel, reactivate, edit, bulk, payment-failed).
 
+**No-Email User Statuses:** Some user types (e.g. `team`/Verein, `guestgroup`) have no email address. Configurable via Backend → Configuration → Behaviour → "No-email user statuses" (comma-separated list in `bs_options` key `service.no-email-statuses`). Email notifications are silently skipped for these users — no errors, no exceptions.
+
 ### My Bookings Page (`/user/bookings`)
 
 **Smart-sort and default filter:**
@@ -606,6 +608,8 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Calendar mobile clean cells | Added Mar 2026 | "Frei" hidden, own=✓, pending=!, occupied/abo=color-only, color legend |
 | Datepicker behind squarebox (#96) | Fixed Mar 2026 | Raised datepicker z-index above squarebox (2048 > 1536) |
 | Mobile squarebox layout (#97) | Fixed Mar 2026 | Close button top-right (was bottom), pricing table 2-col on mobile (no scroll), rules text no height cap |
+| Email crash for no-email users (#99) | Fixed Mar 2026 | Configurable no-email statuses in `bs_options`, guards in MailService + NotificationListener + BookingController |
+| Recurring booking date validation | Fixed Mar 2026 | Friendly flash message instead of `InvalidArgumentException` when end date <= start date |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
