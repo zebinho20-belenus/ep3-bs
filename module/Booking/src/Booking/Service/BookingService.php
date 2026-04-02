@@ -330,6 +330,15 @@ class BookingService extends AbstractService
             return;
         }
 
+        // Skip email for user statuses configured as having no email
+        $noEmailStatuses = $this->optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return;
+            }
+        }
+
         $reservationManager = $this->serviceManager->get('Booking\Manager\ReservationManager');
         $reservations = $reservationManager->getBy(array('bid' => $booking->get('bid')), 'date ASC, time_start ASC');
         $reservation = current($reservations);
@@ -397,6 +406,15 @@ class BookingService extends AbstractService
             return;
         }
 
+        // Skip email for user statuses configured as having no email
+        $noEmailStatuses = $this->optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return;
+            }
+        }
+
         try {
             $squareType = $this->optionManager->need('subject.square.type');
             $squareName = $this->t($square->need('name'));
@@ -450,14 +468,7 @@ class BookingService extends AbstractService
             if (!$this->mailService) {
                 return;
             }
-            
-            // Try PHP mail function (as a fallback)
-            $headers = "From: $fromName <$fromAddress>\r\n";
-            $headers .= "Reply-To: $fromName <$fromAddress>\r\n";
-            $headers .= "X-Mailer: PHP/" . phpversion();
-            
-            mail($toAddress, $subject, $body, $headers);
-            
+
             // Send the email using MailService
             $this->mailService->sendPlain(
                 $fromAddress,    // fromAddress

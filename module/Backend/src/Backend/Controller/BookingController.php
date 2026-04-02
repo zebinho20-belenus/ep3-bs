@@ -1595,6 +1595,16 @@ class BookingController extends AbstractActionController
             return false;
         }
 
+        // Skip email for user statuses configured as having no email
+        $optionManager = $this->serviceLocator->get('Base\Manager\OptionManager');
+        $noEmailStatuses = $optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return false;
+            }
+        }
+
         try {
             // Daten aus den Reservierungen holen
             $square = null;
@@ -1945,6 +1955,16 @@ class BookingController extends AbstractActionController
             return false;
         }
 
+        // Skip email for user statuses configured as having no email
+        $optionManager = $this->serviceLocator->get('Base\Manager\OptionManager');
+        $noEmailStatuses = $optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return false;
+            }
+        }
+
         try {
             $squareName = 'nicht spezifiziert';
             $formattedDate = '[Datum nicht verfügbar]';
@@ -2091,6 +2111,16 @@ class BookingController extends AbstractActionController
         // Only send email if user has an email address
         if (!$user->get('email')) {
             return false;
+        }
+
+        // Skip email for user statuses configured as having no email
+        $optionManager = $this->serviceLocator->get('Base\Manager\OptionManager');
+        $noEmailStatuses = $optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return false;
+            }
         }
 
         try {
@@ -2406,6 +2436,16 @@ class BookingController extends AbstractActionController
     {
         if (!$user->get('email')) {
             return false;
+        }
+
+        // Skip email for user statuses configured as having no email
+        $optionManager = $this->serviceLocator->get('Base\Manager\OptionManager');
+        $noEmailStatuses = $optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return false;
+            }
         }
 
         try {
