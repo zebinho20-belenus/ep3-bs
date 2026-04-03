@@ -961,6 +961,16 @@ class BookingController extends AbstractActionController
                     $reservation->set('status', 'cancelled');
                     $reservationManager->save($reservation);
 
+                    // Append cancellation note to booking
+                    $existingNotes = $booking->getMeta('notes', '');
+                    $cancelNote = sprintf('[%s] %s: %s %s (%s)',
+                        date('d.m.Y H:i'), $sessionUser->get('alias'),
+                        $this->t('cancelled reservation'),
+                        date('d.m.Y', strtotime($reservation->get('date'))),
+                        substr($reservation->get('time_start'), 0, 5) . '-' . substr($reservation->get('time_end'), 0, 5));
+                    $booking->setMeta('notes', $existingNotes ? $existingNotes . "\n" . $cancelNote : $cancelNote);
+                    $bookingManager->save($booking);
+
                     // If no active reservations remain, cancel the booking too
                     $allReservations = $reservationManager->getBy(['bid' => $booking->get('bid')]);
                     $hasActiveReservations = false;
@@ -1001,6 +1011,16 @@ class BookingController extends AbstractActionController
                     } catch (\Exception $e) {
                         // Continue despite errors
                     }
+
+                    // Append deletion note to booking before removing reservation
+                    $existingNotes = $booking->getMeta('notes', '');
+                    $deleteNote = sprintf('[%s] %s: %s %s (%s)',
+                        date('d.m.Y H:i'), $sessionUser->get('alias'),
+                        $this->t('deleted reservation'),
+                        date('d.m.Y', strtotime($reservation->get('date'))),
+                        substr($reservation->get('time_start'), 0, 5) . '-' . substr($reservation->get('time_end'), 0, 5));
+                    $booking->setMeta('notes', $existingNotes ? $existingNotes . "\n" . $deleteNote : $deleteNote);
+                    $bookingManager->save($booking);
 
                     $reservationManager->delete($reservation);
 
