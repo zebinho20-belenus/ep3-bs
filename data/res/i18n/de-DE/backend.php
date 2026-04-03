@@ -114,7 +114,12 @@ return array(
     'Yes, delete this booking' => 'Ja, Buchung löschen',
 
     'Are you sure you want to delete this reservation?' => 'Sind Sie sicher, dass Sie diese Reservierung löschen möchten?',
+    'Are you sure you want to cancel or delete this reservation?' => 'Sind Sie sicher, dass Sie diese Reservierung stornieren oder löschen möchten?',
     'Yes, delete this reservation' => 'Ja, Reservierung löschen',
+    'Yes, cancel this reservation' => 'Ja, Reservierung stornieren',
+    'Reservation has been cancelled' => 'Die Reservierung wurde storniert',
+    'The booking itself will not be changed. Only the reservation at this date will be affected.' => 'Die Buchung selbst wird nicht geändert. Nur die Reservierung an diesem Datum wird betroffen.',
+    'If cancelled, it will disappear from the calendar but remain in the database.' => 'Bei Stornierung verschwindet sie aus dem Kalender, bleibt aber in der Datenbank erhalten.',
 
     'Are you sure you want to delete this square?' => 'Sind Sie sicher, dass Sie diesen Platz löschen möchten?',
     'Yes, delete this square' => 'Ja, Platz löschen',

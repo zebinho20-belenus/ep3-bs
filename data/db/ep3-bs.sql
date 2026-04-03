@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS `bs_reservations` (
   `date` date NOT NULL,
   `time_start` time NOT NULL,
   `time_end` time NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'confirmed',
   PRIMARY KEY (`rid`),
   KEY `bid` (`bid`),
   KEY `date` (`date`)

@@ -294,6 +294,9 @@ class SquareValidator extends AbstractService
 
         if ($bookings) {
             foreach ($possibleReservations as $rid => $reservation) {
+                if ($reservation->get('status', 'confirmed') == 'cancelled') {
+                    continue;
+                }
                 if (isset($bookings[$reservation->need('bid')])) {
                     $reservations[$rid] = $reservation;
                 }

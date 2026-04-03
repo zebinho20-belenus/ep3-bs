@@ -881,11 +881,40 @@ class BookingController extends AbstractActionController
             }
 
             if ($editMode == 'reservation') {
-                $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
+                if ($cancelParam == 'true') {
+                    // CANCEL: requires cancel privilege only
+                    $this->authorize(['calendar.cancel-single-bookings', 'calendar.cancel-subscription-bookings']);
 
-                $reservationManager->delete($reservation);
+                    $reservation->set('status', 'cancelled');
+                    $reservationManager->save($reservation);
 
-                $this->flashMessenger()->addSuccessMessage('Reservation has been deleted');
+                    // Send cancellation email
+                    try {
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+                        $user = $userManager->get($booking->get('uid'));
+                        $this->sendAdminCancellationEmail($booking, $user);
+                    } catch (\Exception $e) {
+                        // Continue despite errors
+                    }
+
+                    $this->flashMessenger()->addSuccessMessage('Reservation has been cancelled');
+                } else {
+                    // DELETE: requires delete privilege (admin)
+                    $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
+
+                    // Send email before deleting
+                    try {
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+                        $user = $userManager->get($booking->get('uid'));
+                        $this->sendAdminCancellationEmail($booking, $user);
+                    } catch (\Exception $e) {
+                        // Continue despite errors
+                    }
+
+                    $reservationManager->delete($reservation);
+
+                    $this->flashMessenger()->addSuccessMessage('Reservation has been deleted');
+                }
             } else {
 
                 if ($cancelParam == 'true') {

@@ -13,6 +13,10 @@ class ReservationsForCell extends AbstractHelper
         $reservationsForCell = array();
 
         foreach ($reservationsForCol as $rid => $reservation) {
+            if ($reservation->get('status', 'confirmed') == 'cancelled') {
+                continue;
+            }
+
             $booking = $reservation->needExtra('booking');
 
             if ($booking->need('sid') == $square->need('sid')) {

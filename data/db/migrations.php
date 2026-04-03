@@ -37,4 +37,9 @@ return [
         'check' => "SHOW TABLES LIKE 'bs_squares_opening_times'",
         'file' => 'data/db/migrations/005-opening-times.sql',
     ],
+    6 => [
+        'name' => 'reservation-status',
+        'check' => "SHOW COLUMNS FROM bs_reservations LIKE 'status'",
+        'file' => 'data/db/migrations/006-reservation-status.sql',
+    ],
 ];
