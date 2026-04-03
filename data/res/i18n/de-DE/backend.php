@@ -121,6 +121,11 @@ return array(
     'The booking itself will not be changed. Only the reservation at this date will be affected.' => 'Die Buchung selbst wird nicht geändert. Nur die Reservierung an diesem Datum wird betroffen.',
     'If cancelled, it will disappear from the calendar but remain in the database.' => 'Bei Stornierung verschwindet sie aus dem Kalender, bleibt aber in der Datenbank erhalten.',
 
+    'Reservations' => 'Reservierungen',
+    'Confirmed' => 'Bestätigt',
+    'Cancel reservation' => 'Reservierung stornieren',
+    '%s reservations total, %s active, %s cancelled' => '%s Reservierungen gesamt, %s aktiv, %s storniert',
+
     'Are you sure you want to delete this square?' => 'Sind Sie sicher, dass Sie diesen Platz löschen möchten?',
     'Yes, delete this square' => 'Ja, Platz löschen',
     'Since this square has already bookings, it will be set to disabled but kept in the database'

@@ -111,6 +111,58 @@ $this->setup(array(
             </div>
         </div>
 
+        <?php if ($this->booking && $this->booking->get('status') == 'subscription'
+                 && $this->editMode == 'booking' && $this->allReservations): ?>
+        <div class="col-12 mb-3">
+            <div class="sandbox">
+                <div class="mb-2"><strong><?= $this->t('Reservations') ?></strong></div>
+                <table class="table table-sm table-bordered mb-0">
+                    <thead>
+                        <tr>
+                            <th><?= $this->t('Date') ?></th>
+                            <th><?= $this->t('Day') ?></th>
+                            <th><?= $this->t('Time') ?></th>
+                            <th><?= $this->t('Status') ?></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($this->allReservations as $res): ?>
+                        <?php $isCancelled = ($res->get('status', 'confirmed') == 'cancelled'); ?>
+                        <tr class="<?= $isCancelled ? 'table-danger' : '' ?>">
+                            <td><?= date('d.m.Y', strtotime($res->get('date'))) ?></td>
+                            <td><?= $this->dateFormat(new \DateTime($res->get('date')), \IntlDateFormatter::FULL, \IntlDateFormatter::NONE) ?></td>
+                            <td><?= substr($res->get('time_start'), 0, 5) ?> - <?= substr($res->get('time_end'), 0, 5) ?></td>
+                            <td>
+                                <?php if ($isCancelled): ?>
+                                    <span class="badge bg-danger"><?= $this->t('Cancelled') ?></span>
+                                <?php else: ?>
+                                    <span class="badge bg-success"><?= $this->t('Confirmed') ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-end">
+                                <?php if (!$isCancelled): ?>
+                                    <a href="<?= $this->url('backend/booking/delete', ['rid' => $res->get('rid')], ['query' => ['edit-mode' => 'reservation']]) ?>" class="symbolic symbolic-cross gray small squarebox-internal-link" title="<?= $this->t('Cancel reservation') ?>"></a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <div class="small text-muted mt-1">
+                    <?php
+                    $total = count($this->allReservations);
+                    $cancelled = 0;
+                    foreach ($this->allReservations as $r) {
+                        if ($r->get('status', 'confirmed') == 'cancelled') $cancelled++;
+                    }
+                    ?>
+                    <?= sprintf($this->t('%s reservations total, %s active, %s cancelled'), $total, $total - $cancelled, $cancelled) ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="col-md-6 mb-3">
             <div class="sandbox">
                 <?= $this->formRowCompact($form, 'bf-sid') ?>

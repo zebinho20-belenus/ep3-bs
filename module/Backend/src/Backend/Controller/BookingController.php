@@ -638,6 +638,14 @@ class BookingController extends AbstractActionController
             }
         }
 
+        /* Load all reservations for subscription booking overview */
+        $allReservations = null;
+        if ($booking && $booking->get('status') == 'subscription') {
+            $allReservations = $reservationManager->getBy(
+                ['bid' => $booking->get('bid')], 'date ASC, time_start ASC'
+            );
+        }
+
         if (! $sessionUser->can(['calendar.create-subscription-bookings'])) {
             return $this->ajaxViewModel(array_merge($params, array(
             'editMode' => 'no_subscr',
@@ -647,6 +655,7 @@ class BookingController extends AbstractActionController
             'sessionUser' => $sessionUser,
             'playerNames' => $playerNamesForView,
             'billTotal' => $billTotal,
+            'allReservations' => $allReservations,
             )));
         }
 
@@ -657,6 +666,7 @@ class BookingController extends AbstractActionController
             'sessionUser' => $sessionUser,
             'playerNames' => $playerNamesForView,
             'billTotal' => $billTotal,
+            'allReservations' => $allReservations,
         )));
     }
 
