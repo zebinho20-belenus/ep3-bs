@@ -515,93 +515,87 @@ class BookingController extends AbstractActionController
                     }
 
                     if ($conflicts) {
-                        /* Conflict found — re-render form with warning */
+                        /* Conflict found — set force-create flag and fall through to form rendering */
                         $editForm->get('bf-force-create')->setValue('1');
-
-                        /* fall through to form rendering below with conflicts */
 
                     } else {
 
-                    /* Create booking/reservation */
+                        /* Create booking/reservation */
 
-                    $savedBooking = $this->backendBookingCreate($d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'], $d['bf-date-end'],
-                        $d['bf-repeat'], $d['bf-sid'], $d['bf-status-billing'], $d['bf-quantity'], $d['bf-notes'], $sessionUser->get('alias'));
-          
-                    // Get the user object for the booking
-                    $userManager = $serviceManager->get('User\Manager\UserManager');
-                    $user = $userManager->get($savedBooking->get('uid'));
-                    
-                    // Store the admin user information and guest player meta in the booking metadata
-                    $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
-                    $savedBooking->setMeta('creator', $sessionUser->get('alias'));
-                    $savedBooking->setMeta('created', date('Y-m-d H:i:s'));
-                    $savedBooking->setMeta('admin_created', 'true');
-                    $savedBooking->setMeta('gp', $d['bf-guest-player'] ? '1' : '0');
-                    $savedBooking->setMeta('guestPlayer', $d['bf-guest-player'] ? '1' : '0');
-                    $bookingManager->save($savedBooking);
+                        $savedBooking = $this->backendBookingCreate($d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'], $d['bf-date-end'],
+                            $d['bf-repeat'], $d['bf-sid'], $d['bf-status-billing'], $d['bf-quantity'], $d['bf-notes'], $sessionUser->get('alias'));
 
-                    /* Create bill with pricing (incl. guest player pricing) */
-                    $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
-                    $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
-                    $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+                        // Get the user object for the booking
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+                        $user = $userManager->get($savedBooking->get('uid'));
 
-                    $square = $squareManager->get($savedBooking->get('sid'));
-                    $squareType = $this->option('subject.square.type');
-                    $squareName = $this->t($square->need('name'));
-                    $dateRangeHelper = $serviceManager->get('ViewHelperManager')->get('DateRange');
+                        // Store the admin user information and guest player meta in the booking metadata
+                        $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+                        $savedBooking->setMeta('creator', $sessionUser->get('alias'));
+                        $savedBooking->setMeta('created', date('Y-m-d H:i:s'));
+                        $savedBooking->setMeta('admin_created', 'true');
+                        $savedBooking->setMeta('gp', $d['bf-guest-player'] ? '1' : '0');
+                        $savedBooking->setMeta('guestPlayer', $d['bf-guest-player'] ? '1' : '0');
+                        $bookingManager->save($savedBooking);
 
-                    $member = $user && $user->getMeta('member') ? 1 : 0;
-                    $guestPlayer = $d['bf-guest-player'] ? true : false;
+                        /* Create bill with pricing (incl. guest player pricing) */
+                        $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                        $squarePricingManager = $serviceManager->get('Square\Manager\SquarePricingManager');
+                        $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
 
-                    foreach ($reservationManager->getBy(['bid' => $savedBooking->need('bid')]) as $res) {
-                        $dtStart = new \DateTime($res->get('date') . ' ' . $res->get('time_start'));
-                        $dtEnd = new \DateTime($res->get('date') . ' ' . $res->get('time_end'));
+                        $square = $squareManager->get($savedBooking->get('sid'));
+                        $squareType = $this->option('subject.square.type');
+                        $squareName = $this->t($square->need('name'));
+                        $dateRangeHelper = $serviceManager->get('ViewHelperManager')->get('DateRange');
 
-                        if ($guestPlayer && $member) {
-                            // Member with guest: 50% of non-member price
-                            $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), 0);
-                            if ($pricing) {
-                                $pricing['price'] = intval($pricing['price'] / 2);
+                        $member = $user && $user->getMeta('member') ? 1 : 0;
+                        $guestPlayer = $d['bf-guest-player'] ? true : false;
+
+                        foreach ($reservationManager->getBy(['bid' => $savedBooking->need('bid')]) as $res) {
+                            $dtStart = new \DateTime($res->get('date') . ' ' . $res->get('time_start'));
+                            $dtEnd = new \DateTime($res->get('date') . ' ' . $res->get('time_end'));
+
+                            if ($guestPlayer && $member) {
+                                $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), 0);
+                                if ($pricing) {
+                                    $pricing['price'] = intval($pricing['price'] / 2);
+                                }
+                            } elseif ($guestPlayer) {
+                                $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), 0);
+                            } else {
+                                $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), $member);
                             }
-                        } elseif ($guestPlayer) {
-                            // Non-member with guest: full non-member price
-                            $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), 0);
+
+                            if ($pricing) {
+                                $description = sprintf('%s %s, %s', $squareType, $squareName, $dateRangeHelper($dtStart, $dtEnd));
+
+                                $bookingBillManager->save(new Booking\Bill(array(
+                                    'bid' => $savedBooking->need('bid'),
+                                    'description' => $description,
+                                    'quantity' => $savedBooking->get('quantity'),
+                                    'time' => $pricing['seconds'],
+                                    'price' => $pricing['price'],
+                                    'rate' => $pricing['rate'],
+                                    'gross' => $pricing['gross'],
+                                )));
+                            }
+                        }
+
+                        // Send booking creation email
+                        $this->sendAdminBookingCreationEmail($savedBooking, $user);
+
+                        $this->flashMessenger()->addSuccessMessage('Booking has been saved');
+
+                        if ($this->params()->fromPost('bf-edit-user')) {
+                            return $this->redirect()->toRoute('backend/user/edit', ['uid' => $savedBooking->get('uid')], ['query' => []]);
+                        } else if ($this->params()->fromPost('bf-edit-bills')) {
+                            return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $savedBooking->get('bid')], ['query' => []]);
                         } else {
-                            // Normal booking: member or non-member price from DB
-                            $pricing = $squarePricingManager->getFinalPricingInRange($dtStart, $dtEnd, $square, $savedBooking->get('quantity'), $member);
+                            return $this->redirect()->toRoute('frontend', [], ['query' => []]);
                         }
 
-                        if ($pricing) {
-                            $description = sprintf('%s %s, %s', $squareType, $squareName, $dateRangeHelper($dtStart, $dtEnd));
-
-                            $bookingBillManager->save(new Booking\Bill(array(
-                                'bid' => $savedBooking->need('bid'),
-                                'description' => $description,
-                                'quantity' => $savedBooking->get('quantity'),
-                                'time' => $pricing['seconds'],
-                                'price' => $pricing['price'],
-                                'rate' => $pricing['rate'],
-                                'gross' => $pricing['gross'],
-                            )));
-                        }
-                    }
-
-                    // Send booking creation email
-                    $this->sendAdminBookingCreationEmail($savedBooking, $user);
-
+                    } /* end: no conflict — create + redirect */
                 }
-
-                $this->flashMessenger()->addSuccessMessage('Booking has been saved');
-
-                if ($this->params()->fromPost('bf-edit-user')) {
-                    return $this->redirect()->toRoute('backend/user/edit', ['uid' => $savedBooking->get('uid')], ['query' => []]);
-                } else if ($this->params()->fromPost('bf-edit-bills')) {
-                    return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $savedBooking->get('bid')], ['query' => []]);
-                } else {
-                    return $this->redirect()->toRoute('frontend', [], ['query' => []]);
-                }
-
-                    } /* end: no conflict — create booking */
             }
         } else {
             if ($booking) {
