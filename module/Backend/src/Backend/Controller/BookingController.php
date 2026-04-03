@@ -641,6 +641,8 @@ class BookingController extends AbstractActionController
         /* Load all reservations for subscription booking overview */
         $allReservations = null;
         if ($booking && $booking->get('status') == 'subscription') {
+            $serviceManager = @$this->getServiceLocator();
+            $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
             $allReservations = $reservationManager->getBy(
                 ['bid' => $booking->get('bid')], 'date ASC, time_start ASC'
             );
