@@ -37,9 +37,11 @@ class BookingFormat extends AbstractHelper
         $html = '';
 
         $booking = $reservation->needExtra('booking');
+        $reservationCancelled = ($reservation->get('status', 'confirmed') == 'cancelled');
 
-        switch ($booking->need('status')) {
-            case 'cancelled':
+        switch (true) {
+            case $booking->need('status') == 'cancelled':
+            case $reservationCancelled:
                 $attr = ' class="gray"';
                 break;
             default:
@@ -60,7 +62,13 @@ class BookingFormat extends AbstractHelper
             'subscription' => array('label' => 'A', 'class' => 'status-icon status-subscription', 'title' => $view->t('Subscription')),
             'cancelled' => array('label' => 'S', 'class' => 'status-icon status-cancelled', 'title' => $view->t('Cancelled')),
         );
-        $statusKey = $booking->need('status');
+
+        // Show cancelled status if reservation is cancelled (even if booking is still active)
+        if ($reservationCancelled) {
+            $statusKey = 'cancelled';
+        } else {
+            $statusKey = $booking->need('status');
+        }
         $statusInfo = isset($statusMap[$statusKey]) ? $statusMap[$statusKey] : array('label' => '?', 'class' => 'status-icon', 'title' => $statusKey);
 
         $html .= sprintf('<td class="status-col centered-text"><span class="%s" title="%s">%s</span></td>',
