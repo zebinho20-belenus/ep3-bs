@@ -888,6 +888,24 @@ class BookingController extends AbstractActionController
                     $reservation->set('status', 'cancelled');
                     $reservationManager->save($reservation);
 
+                    // If no active reservations remain, cancel the booking too
+                    $allReservations = $reservationManager->getBy(['bid' => $booking->get('bid')]);
+                    $hasActiveReservations = false;
+                    foreach ($allReservations as $res) {
+                        if ($res->get('status', 'confirmed') != 'cancelled') {
+                            $hasActiveReservations = true;
+                            break;
+                        }
+                    }
+                    if (!$hasActiveReservations) {
+                        $booking->set('status', 'cancelled');
+                        $booking->setMeta('cancellor', $sessionUser->get('alias'));
+                        $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+                        $booking->setMeta('admin_cancelled', 'true');
+                        $booking->setMeta('backend_cancelled', 'true');
+                        $bookingManager->save($booking);
+                    }
+
                     // Send cancellation email
                     try {
                         $userManager = $serviceManager->get('User\Manager\UserManager');
@@ -912,6 +930,17 @@ class BookingController extends AbstractActionController
                     }
 
                     $reservationManager->delete($reservation);
+
+                    // If no active reservations remain, cancel the booking too
+                    $remainingReservations = $reservationManager->getBy(['bid' => $booking->get('bid')]);
+                    if (empty($remainingReservations)) {
+                        $booking->set('status', 'cancelled');
+                        $booking->setMeta('cancellor', $sessionUser->get('alias'));
+                        $booking->setMeta('cancelled', date('Y-m-d H:i:s'));
+                        $booking->setMeta('admin_cancelled', 'true');
+                        $booking->setMeta('backend_cancelled', 'true');
+                        $bookingManager->save($booking);
+                    }
 
                     $this->flashMessenger()->addSuccessMessage('Reservation has been deleted');
                 }
