@@ -64,6 +64,9 @@ return array(
     'This time slot is already occupied by another booking' => 'Dieser Zeitslot ist bereits durch eine andere Buchung belegt',
     'Warning: This time slot is also occupied by another booking (double booking)'
         => 'Achtung: Dieser Zeitslot ist auch durch eine andere Buchung belegt (Doppelbelegung)',
+    'Booking conflict detected' => 'Buchungskonflikt erkannt',
+    'The following bookings already exist at this time:' => 'Folgende Buchungen existieren bereits in diesem Zeitraum:',
+    'Click "Save" again to create the booking anyway.' => 'Klicken Sie erneut auf "Speichern" um die Buchung trotzdem zu erstellen.',
     'Reservation has been deleted' => 'Reservierung wurde gelöscht',
     'Event has been saved' => 'Veranstaltung wurde gespeichert',
     'Event has been deleted' => 'Veranstaltung wurde gelöscht',

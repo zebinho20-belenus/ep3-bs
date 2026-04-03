@@ -35,6 +35,15 @@ class EditForm extends Form
         ));
 
         $this->add(array(
+            'name' => 'bf-force-create',
+            'type' => 'Hidden',
+            'attributes' => array(
+                'id' => 'bf-force-create',
+                'value' => '',
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'bf-user',
             'type' => 'Text',
             'attributes' => array(

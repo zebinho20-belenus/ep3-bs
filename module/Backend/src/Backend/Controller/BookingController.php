@@ -464,6 +464,64 @@ class BookingController extends AbstractActionController
 
                 } else {
 
+                    /* Check for booking conflicts before creating */
+                    $conflicts = [];
+                    if (!$d['bf-force-create']) {
+                        $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                        $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+
+                        $checkDateStart = new \DateTime($d['bf-date-start']);
+                        $checkDateEnd = new \DateTime($d['bf-date-end'] ?: $d['bf-date-start']);
+                        list($h, $m) = explode(':', $d['bf-time-start']);
+                        $checkStart = clone $checkDateStart;
+                        $checkStart->setTime((int)$h, (int)$m);
+                        list($h, $m) = explode(':', $d['bf-time-end']);
+                        $checkEnd = clone $checkDateEnd;
+                        $checkEnd->setTime((int)$h, (int)$m);
+
+                        $existingReservations = $reservationManager->getInRange($checkStart, $checkEnd);
+                        if ($existingReservations) {
+                            $existingBookings = $bookingManager->getByReservations($existingReservations);
+
+                            foreach ($existingBookings as $eb) {
+                                if ($eb->get('sid') == $d['bf-sid']
+                                    && $eb->get('status') != 'cancelled'
+                                    && $eb->get('visibility') == 'public') {
+                                    // Check for active (non-cancelled) reservations
+                                    $hasActive = false;
+                                    foreach ($existingReservations as $er) {
+                                        if ($er->get('bid') == $eb->get('bid')
+                                            && $er->get('status', 'confirmed') != 'cancelled') {
+                                            $hasActive = true;
+                                            break;
+                                        }
+                                    }
+                                    if ($hasActive) {
+                                        $ebUser = $eb->getExtra('user');
+                                        $ebSquare = $squareManager->get($eb->get('sid'));
+                                        $ebRes = current($reservationManager->getBy(['bid' => $eb->get('bid')], 'date ASC', 1));
+                                        $conflicts[] = [
+                                            'user' => $ebUser ? $ebUser->get('alias') : '?',
+                                            'date' => $ebRes ? date('d.m.Y', strtotime($ebRes->get('date'))) : '-',
+                                            'time' => $d['bf-time-start'] . ' - ' . $d['bf-time-end'],
+                                            'square' => $ebSquare->get('name'),
+                                            'status' => $eb->get('status'),
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if ($conflicts) {
+                        /* Conflict found — re-render form with warning */
+                        $editForm->get('bf-force-create')->setValue('1');
+
+                        /* fall through to form rendering below with conflicts */
+
+                    } else {
+
                     /* Create booking/reservation */
 
                     $savedBooking = $this->backendBookingCreate($d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'], $d['bf-date-end'],
@@ -530,7 +588,7 @@ class BookingController extends AbstractActionController
 
                     // Send booking creation email
                     $this->sendAdminBookingCreationEmail($savedBooking, $user);
-                    
+
                 }
 
                 $this->flashMessenger()->addSuccessMessage('Booking has been saved');
@@ -542,6 +600,8 @@ class BookingController extends AbstractActionController
                 } else {
                     return $this->redirect()->toRoute('frontend', [], ['query' => []]);
                 }
+
+                    } /* end: no conflict — create booking */
             }
         } else {
             if ($booking) {
@@ -638,6 +698,11 @@ class BookingController extends AbstractActionController
             }
         }
 
+        /* Ensure conflicts variable exists for view */
+        if (!isset($conflicts)) {
+            $conflicts = [];
+        }
+
         /* Load all reservations for subscription booking overview */
         $allReservations = null;
         if ($booking && $booking->get('status') == 'subscription') {
@@ -658,6 +723,7 @@ class BookingController extends AbstractActionController
             'playerNames' => $playerNamesForView,
             'billTotal' => $billTotal,
             'allReservations' => $allReservations,
+            'conflicts' => $conflicts,
             )));
         }
 
@@ -669,6 +735,7 @@ class BookingController extends AbstractActionController
             'playerNames' => $playerNamesForView,
             'billTotal' => $billTotal,
             'allReservations' => $allReservations,
+            'conflicts' => $conflicts,
         )));
     }
 
