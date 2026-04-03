@@ -12,5 +12,6 @@ class Reservation extends AbstractEntity
     protected $date;
     protected $time_start;
     protected $time_end;
+    protected $status = 'confirmed';
 
 }
