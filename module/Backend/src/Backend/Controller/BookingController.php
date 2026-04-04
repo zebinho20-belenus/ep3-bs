@@ -989,11 +989,11 @@ class BookingController extends AbstractActionController
                         $bookingManager->save($booking);
                     }
 
-                    // Send cancellation email
+                    // Send reservation cancellation email
                     try {
                         $userManager = $serviceManager->get('User\Manager\UserManager');
                         $user = $userManager->get($booking->get('uid'));
-                        $this->sendAdminCancellationEmail($booking, $user);
+                        $this->sendReservationCancellationEmail($booking, $user, $reservation, 'cancelled');
                     } catch (\Exception $e) {
                         // Continue despite errors
                     }
@@ -1003,11 +1003,11 @@ class BookingController extends AbstractActionController
                     // DELETE: requires delete privilege (admin)
                     $this->authorize(['calendar.delete-single-bookings', 'calendar.delete-subscription-bookings']);
 
-                    // Send email before deleting
+                    // Send reservation deletion email before deleting
                     try {
                         $userManager = $serviceManager->get('User\Manager\UserManager');
                         $user = $userManager->get($booking->get('uid'));
-                        $this->sendAdminCancellationEmail($booking, $user);
+                        $this->sendReservationCancellationEmail($booking, $user, $reservation, 'deleted');
                     } catch (\Exception $e) {
                         // Continue despite errors
                     }
@@ -2091,6 +2091,158 @@ class BookingController extends AbstractActionController
                 $body                 // text
             );
             
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Send email when a single reservation from a subscription is cancelled or deleted.
+     * Shows all reservations with status markers.
+     */
+    public function sendReservationCancellationEmail(Booking $booking, User $user, $cancelledReservation, $action = 'cancelled')
+    {
+        if (!$user->get('email')) {
+            return false;
+        }
+
+        // Skip email for user statuses configured as having no email
+        $optionManager = $this->serviceLocator->get('Base\Manager\OptionManager');
+        $noEmailStatuses = $optionManager->get('service.no-email-statuses');
+        if ($noEmailStatuses) {
+            $statuses = array_map('trim', explode(',', $noEmailStatuses));
+            if (in_array($user->get('status'), $statuses)) {
+                return false;
+            }
+        }
+
+        try {
+            $squareManager = $this->serviceLocator->get('Square\Manager\SquareManager');
+            $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
+
+            $squareName = 'nicht spezifiziert';
+            if ($booking->get('sid')) {
+                $square = $squareManager->get($booking->need('sid'));
+                $squareName = $square->need('name');
+            }
+
+            // Personalisierte Anrede
+            $firstname = $user->getMeta('firstname');
+            $lastname  = $user->getMeta('lastname');
+            if ($firstname && $lastname) {
+                $anrede = 'Hallo ' . $firstname . ' ' . $lastname;
+            } elseif ($lastname) {
+                $anrede = 'Hallo ' . $lastname;
+            } else {
+                $anrede = 'Hallo ' . $user->need('alias');
+            }
+
+            // Subject
+            if ($action == 'deleted') {
+                $subject = sprintf($this->t('A reservation from your subscription booking has been deleted'));
+                $actionText = $this->t('eine Reservierung aus Ihrer Abo-Buchung wurde gelöscht.');
+                $detailsHeader = $this->t('Deleted reservation details:');
+            } else {
+                $subject = sprintf($this->t('A reservation from your subscription booking has been cancelled'));
+                $actionText = $this->t('eine Reservierung aus Ihrer Abo-Buchung wurde storniert.');
+                $detailsHeader = $this->t('Cancelled reservation details:');
+            }
+
+            // Cancelled reservation details
+            $formattedDate = date('d.m.Y', strtotime($cancelledReservation->get('date')));
+            $formattedTime = substr($cancelledReservation->get('time_start'), 0, 5);
+            $formattedEndTime = substr($cancelledReservation->get('time_end'), 0, 5);
+
+            $buchungsDetails = sprintf(
+                "%s\n\n- %s: %s\n- %s: %s\n- %s: %s - %s Uhr\n- %s: %s",
+                $detailsHeader,
+                $this->t('Court'), $squareName,
+                $this->t('Date'), $formattedDate,
+                $this->t('Time'), $formattedTime, $formattedEndTime,
+                $this->t('Booking ID'), $booking->need('bid')
+            );
+
+            // All reservations overview with status
+            $allReservations = $reservationManager->getBy(['bid' => $booking->get('bid')], 'date ASC, time_start ASC');
+            $reservationsOverview = "\n\n" . $this->t('All reservations overview:') . "\n";
+
+            // Also include the just-deleted reservation if action is 'deleted'
+            $cancelledRid = $cancelledReservation->get('rid');
+
+            foreach ($allReservations as $res) {
+                $resDate = date('d.m.Y', strtotime($res->get('date')));
+                $resTime = substr($res->get('time_start'), 0, 5) . '-' . substr($res->get('time_end'), 0, 5);
+                $isCancelled = ($res->get('status', 'confirmed') == 'cancelled');
+
+                $reservationsOverview .= sprintf("\n- %s, %s Uhr %s",
+                    $resDate, $resTime,
+                    $isCancelled ? $this->t('[CANCELLED]') : '');
+            }
+
+            // Bill block
+            $rechnungsInfo = '';
+            try {
+                $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
+                $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
+                $billTotal = 0;
+                if ($bills) {
+                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
+                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
+                    foreach ($bills as $bill) {
+                        $billTotal += $bill->get('price');
+                        $rechnungsInfo .= "\n- " . $bill->get('description');
+                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
+                    }
+                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
+                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
+                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
+                }
+            } catch (\Exception $e) {
+                // Bill info not available
+            }
+
+            // Contact info
+            $contactInfo = '';
+            $contactEmail = $this->option('client.website.contact', '');
+            $clientWebsite = $this->option('client.website', '');
+            if (!empty($contactEmail) || !empty($clientWebsite)) {
+                $contactInfo = $this->t('Diese Nachricht wurde automatisch gesendet. Sollten Sie noch Fragen bzw. Anregungen haben, informieren Sie bitte unser Supportteam');
+                if (!empty($contactEmail)) {
+                    $contactEmail = str_replace('mailto:', '', $contactEmail);
+                    $contactInfo .= sprintf($this->t(' unter %s'), $contactEmail);
+                }
+                if (!empty($clientWebsite)) {
+                    if (!empty($contactEmail)) {
+                        $contactInfo .= $this->t(' oder');
+                    }
+                    $contactInfo .= sprintf($this->t(' auf unserer Website %s'), $clientWebsite);
+                }
+                $contactInfo .= '.';
+            }
+
+            // Build and send email
+            $emailText = sprintf("%s,\n\n%s\n\n%s%s%s",
+                $anrede,
+                $actionText,
+                $buchungsDetails,
+                $reservationsOverview,
+                $rechnungsInfo
+            );
+
+            if ($this->serviceLocator->has('Backend\Service\MailService')) {
+                $backendMailService = $this->serviceLocator->get('Backend\Service\MailService');
+                $backendMailService->sendCustomEmail(
+                    $subject,
+                    $emailText,
+                    $user->need('email'),
+                    $user->need('alias'),
+                    [],
+                    $contactInfo,
+                    false
+                );
+            }
+
             return true;
         } catch (\Exception $e) {
             return false;
