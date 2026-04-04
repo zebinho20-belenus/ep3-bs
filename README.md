@@ -632,6 +632,7 @@ e| Subscription reactivation set single (#101) | Fixed Apr 2026 | Cancelled subs
 | Edit-mode dialog stale date range | Improved Apr 2026 | Shows actual reservation list with status instead of original subscription date range |
 | Cancelled abo-reservation not identifiable | Improved Apr 2026 | Dual badge `[A][S]` in booking list for cancelled reservations within active subscriptions |
 | Long subscription UI overflow | Fixed Apr 2026 | Edit-mode dialog, edit table, and email bills now compact for 50-120+ reservations |
+| Billing status in cancelled emails | Fixed Apr 2026 | Showed "Ausstehend" instead of "Storniert" for cancelled bookings |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -646,6 +647,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.2.5** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.2.6** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>

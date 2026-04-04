@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.2.6 Hotfix (2026-04-04)
+
+### Bug Fixes
+
+- **Billing status in cancelled booking emails**: Emails for cancelled bookings showed the technical billing status (e.g. "Ausstehend"/pending) instead of "Storniert". Now displays "Storniert" when `booking.status == cancelled`, regardless of the `status_billing` value. Applied to all 4 email methods via `formatBillsForEmail()`.
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Bugfix**: E-Mails fuer stornierte Buchungen zeigten den technischen Rechnungsstatus (z.B. "Ausstehend") statt "Storniert". Jetzt wird bei stornierten Buchungen immer "Storniert" angezeigt, unabhaengig vom `status_billing` Wert in der Datenbank.
+</details>
+
+---
+
 ## v2.2.5 Hotfix (2026-04-04)
 
 ### Improvements

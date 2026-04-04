@@ -118,7 +118,7 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 **Cancel/delete email**: `sendReservationCancellationEmail()` shows compact one-line summary + affected reservation marked with "← geloescht"/"← storniert" in the overview list. Previously cancelled reservations also marked.
 
-**Email bill formatting**: `formatBillsForEmail($bills, $billingStatus)` — for > 5 items shows first 2, "... (N weitere Termine)", last item. All 4 email methods use this helper. Never list 50-120 bill positions individually.
+**Email bill formatting**: `formatBillsForEmail($bills, $billingStatus, $bookingStatus)` — for > 5 items shows first 2, "... (N weitere Termine)", last item. Shows "Storniert" when `$bookingStatus == 'cancelled'`. All 4 email methods use this helper. Never list 50-120 bill positions individually.
 
 **Subscription edit table**: For > 15 reservations, wrapped in scrollable container (max-height 300px) with sticky thead. Summary count in header row, not below table.
 
