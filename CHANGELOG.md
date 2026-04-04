@@ -1,24 +1,29 @@
 # Changelog
 
-## v2.2.4 Hotfix (2026-04-04)
+## v2.2.5 Hotfix (2026-04-04)
 
 ### Improvements
 
-- **Edit-mode dialog**: Shows actual reservation list with status instead of original date range. Cancelled reservations displayed with strikethrough + red "← storniert" marker. Active/cancelled count summary at bottom.
-- **Booking list dual badge**: Cancelled reservations within active subscriptions now show dual badge `[A][S]` (blue + red) instead of just `[S]`. Makes it immediately clear that a cancelled row belongs to a subscription.
-- **Edit email formatting**: Time changes shown as combined range ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr") instead of separate "Start"/"Ende" lines. Context header shows which reservation was changed ("Geänderte Reservierung am DD.MM.YYYY:").
-- **Cancellation/deletion email formatting**: Compact one-line summary for affected reservation. Booking number in header. Affected reservation marked with arrow in overview list ("← gelöscht" / "← storniert"). Previously cancelled reservations also marked.
+- **Long subscription handling**: Subscriptions with many reservations (50-120+) no longer flood the UI or emails:
+  - **Edit-mode dialog**: Compact date range summary + count. Only cancelled reservations listed individually (was showing every single reservation)
+  - **Subscription edit table**: Scrollable container (max 300px) with sticky header for > 15 reservations. Summary count in header row
+  - **Email bill section**: New `formatBillsForEmail()` — shows first 2, "... (N weitere Termine)", last item for > 5 positions. Applied to all 4 email methods
+- **Booking list dual badge**: Cancelled reservations within active subscriptions show `[A][S]` (blue + red) instead of just `[S]`
+- **Edit email formatting**: Combined time range ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr"). Context header "Geänderte Reservierung am DD.MM.YYYY:"
+- **Cancel/delete email formatting**: Compact one-liner, booking number in header, affected reservation marked with "← gelöscht"/"← storniert" in overview
 
 ### Bug Fixes
 
-- **Edit email wrong reservation for subscriptions**: When editing a single reservation within a subscription booking, the change notification email showed data from the first reservation (earliest date) instead of the actually edited reservation. Fixed by loading the edited reservation via its `rid`.
+- **Edit email wrong reservation for subscriptions**: Email showed first reservation instead of actually edited one. Fixed by loading via `rid`.
 
 <details>
 <summary><b>Deutsche Zusammenfassung</b></summary>
 
-**Verbesserungen**: Edit-Mode-Dialog zeigt jetzt die tatsaechliche Reservierungsliste mit Status statt der originalen Datumsspanne. Stornierte Reservierungen durchgestrichen mit rotem Marker. Buchungsliste: stornierte Abo-Reservierungen zeigen Doppel-Badge `[A][S]` (blau+rot) statt nur `[S]` — sofort erkennbar dass die Zeile zu einem aktiven Abo gehoert. Aenderungs-E-Mail zeigt Zeitaenderungen als kombinierte Zeile mit Kontextzeile welche Reservierung geaendert wurde. Stornierungs-/Loesch-E-Mail: kompakte Zusammenfassung, betroffene Reservierung mit Pfeil markiert.
+**Lange Abos**: Abos mit vielen Reservierungen (50-120+) ueberfluten nicht mehr die Oberflaeche oder E-Mails. Edit-Mode-Dialog zeigt kompakte Zusammenfassung + nur stornierte Reservierungen. Abo-Reservierungstabelle scrollbar (max 300px) mit festem Header. E-Mail-Rechnung: erste 2 + "... (N weitere Termine)" + letzte Position statt alle einzeln.
 
-**Bugfix**: Edit-E-Mail zeigte bei Abo-Buchungen die Daten der ersten Reservierung statt der tatsaechlich bearbeiteten. Behoben durch Laden ueber `rid`.
+**Buchungsliste**: Stornierte Abo-Reservierungen zeigen Doppel-Badge `[A][S]` (blau+rot). **E-Mails**: Zeitaenderungen als kombinierte Zeile, Kontextzeile welche Reservierung geaendert wurde, Stornierungs-E-Mail mit Pfeil-Markierung.
+
+**Bugfix**: Edit-E-Mail zeigte bei Abo-Buchungen die Daten der ersten Reservierung statt der bearbeiteten.
 </details>
 
 ---
