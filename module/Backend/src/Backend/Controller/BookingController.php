@@ -510,7 +510,11 @@ class BookingController extends AbstractActionController
                                         }
                                     }
                                     if ($hasActive) {
-                                        $ebUser = $eb->getExtra('user');
+                                        try {
+                                            $ebUser = $userManager->get($eb->get('uid'));
+                                        } catch (\Exception $e) {
+                                            $ebUser = null;
+                                        }
                                         $ebSquare = $squareManager->get($eb->get('sid'));
                                         $ebRes = current($reservationManager->getBy(['bid' => $eb->get('bid')], 'date ASC', 1));
                                         $conflicts[] = [
