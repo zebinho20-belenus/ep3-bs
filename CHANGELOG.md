@@ -1,5 +1,54 @@
 # Changelog
 
+## v2.2.1 Hotfix (2026-04-04)
+
+### Security Hardening (10 OWASP Audit Fixes)
+
+- **SEC-001**: CSRF protection for booking cancellation (was missing, unlike confirmation form)
+- **SEC-002**: Removed legacy MD5 password hash fallback + migration to delete remaining `legacy-pw` entries
+- **SEC-003**: Session ID regeneration after login (prevents session fixation)
+- **SEC-004**: Atomic budget deduction/refund via SQL `UPDATE` (prevents double-spend race condition)
+- **SEC-006**: Booking ownership check in `doneAction` (defense-in-depth for leaked Payum tokens)
+- **SEC-007**: Replaced `syslog()` with `error_log()` in webhook handlers
+- **SEC-008**: Removed `unserialize()` fallback + migration to convert serialized player-names to JSON
+- **SEC-009**: Removed commented-out test code in webhook handler (hardcoded `bid=1443`)
+- **SEC-010**: Rate limiting on payment retries (max 5 attempts per booking per hour)
+
+### Performance Optimization
+
+- **OPcache** enabled (128MB bytecode cache) — 2-5x faster PHP responses
+- **APCu** for Composer classmap caching (32MB) — eliminates filesystem lookups
+- **MariaDB tuning**: `innodb_buffer_pool_size=256M`, `innodb_log_file_size=64M`, `O_DIRECT` flush
+- **Apache mod_deflate** (gzip compression) — 60-80% less transfer for text assets
+- **Apache mod_expires** + browser cache headers — static assets cached 1 year
+- **SQL indexes** (migration 009): `uid+status`, `reservation status`, meta UNIQUE, pricing date+priority
+- **`getByValidity()` SQL push-down**: Filters `cancelled`/`private` bookings in SQL instead of PHP (20-50% fewer rows loaded)
+- **SquarePricingManager**: Pre-parsed date boundaries to timestamps (avoids repeated `DateTime` creation)
+- **SquareManager**: Removed legacy `ALTER TABLE` checks from constructor
+- **Service Worker**: Network-first for HTML navigation (fixes stale pages after deploy), cache-first for static assets only
+
+### Features
+
+- **Backend booking list pagination**: Server-side pagination with 100 items per page. Bootstrap 5 pagination controls (top + bottom). `countInRange()` method for efficient total count. Compatible with existing date range filters and search.
+
+### Bug Fixes
+
+- **Booking/reservation edit redirect**: After saving changes to a booking or reservation in the backend edit form, the window stayed open instead of redirecting back. The controller fell through to form rendering after successful update. Now redirects to calendar with flash message.
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Sicherheit**: 10 Schwachstellen aus OWASP-Audit behoben — CSRF-Schutz fuer Stornierung, Session-Fixation-Schutz, atomare Budget-Operationen (verhindert Doppelabbuchung), Rate-Limiting bei Zahlungsversuchen, Legacy-MD5-Hashes entfernt, Booking-Ownership-Check bei Zahlungs-Callbacks.
+
+**Performance**: PHP OPcache (2-5x schnellere Antwortzeiten), APCu-Cache fuer Classloading, MariaDB-Tuning (256MB Buffer Pool), Gzip-Kompression, Browser-Caching fuer statische Dateien, zusaetzliche DB-Indexes, SQL-Filterung statt PHP-Filterung bei Buchungsabfragen, optimierte Preisberechnung, Service Worker mit Network-first fuer HTML.
+
+**Neue Funktionen**: Backend-Buchungsliste mit serverseitiger Paginierung (100 pro Seite) mit Bootstrap 5 Seitennavigation.
+
+**Bugfix**: Nach dem Speichern einer Buchungs-/Reservierungsaenderung im Backend blieb das Bearbeitungsfenster offen statt zum Kalender zurueckzuleiten.
+</details>
+
+---
+
 ## v2.2 (2026-04-04)
 
 ### Features
@@ -12,8 +61,6 @@
   - **Subscription reactivation**: Cancelled subscription bookings now restore to `subscription` status (was incorrectly set to `single`), with all cancelled reservations automatically reactivated
   - **Conflict detection**: Booking creation now checks for existing bookings in the time slot and shows a warning dialog with conflicting booking details (name, date, time, court, type). Users can override and create anyway
 
-- **Performance optimization**: OPcache preloading, MariaDB query cache tuning, SQL indexes for common queries, SW network-first strategy for API calls
-
 ### Bug Fixes
 
 - **Booking conflict name shows '?'**: Conflict dialog displayed '?' instead of user name because `getExtra('user')` was never populated by `getByReservations()`. Now loads user via `UserManager::get(uid)` ([#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101))
@@ -22,9 +69,13 @@
 - **Cancel booking when all reservations removed**: Booking status automatically set to `cancelled` when the last reservation is cancelled or deleted ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100))
 - **Reservation entity status property**: Added `status` field to Reservation entity for individual reservation lifecycle ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100))
 
-### Security
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
 
-- **10 OWASP audit fixes**: Payment flow hardening, auth token improvements, data integrity checks
+**Abo-Verwaltung komplett ueberarbeitet**: Reservierungsuebersicht mit Status/Datum/Uhrzeit und Stornieren/Reaktivieren pro Reservierung. Einzelne Abo-Reservierungen koennen jetzt bearbeitet (Platz, Rechnungsstatus, Spieleranzahl), storniert und reaktiviert werden. Stornierte Abos werden korrekt als `subscription` (nicht `single`) wiederhergestellt. Neue Kollisionserkennung bei Buchungserstellung mit Warnungsdialog.
+
+**Bugfixes**: Benutzername in Kollisionsdialog zeigte '?' statt Namen. Falsche Kollisionserkennung beim Bearbeiten eigener Buchung. Stornierte Einzelreservierungen zeigen korrekten Status in Buchungsliste. Buchung wird automatisch storniert wenn letzte Reservierung entfernt wird.
+</details>
 
 ---
 
@@ -33,6 +84,12 @@
 ### Features
 
 - **Administration mode ([#98](https://github.com/zebinho20-belenus/ep3bs-payment/issues/98))**: New third system state "Administration" (between Enabled and Maintenance). Allows `admin` (Verwalter) and `assist` (Mitarbeiter) users to log in and make bookings while regular users are blocked. Configurable via Backend → Configuration → Behaviour. Shows dedicated status page with "Buchungen nur für Mitarbeiter" message.
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Verwaltungsmodus**: Neuer dritter Systemstatus zwischen "Aktiviert" und "Wartung". Nur Verwalter und Mitarbeiter koennen sich einloggen und Buchungen vornehmen. Regulaere Benutzer sehen eine Statusseite mit "Buchungen nur fuer Mitarbeiter". Konfigurierbar unter Backend → Konfiguration → Verhalten.
+</details>
 
 ---
 
@@ -55,6 +112,14 @@
 - **Event overlay improvements (#94)**: Multi-column events show name only once (middle overlay). Fixed 1-hour multi-court events invisible (`< 2` → `< 1`). Debounced resize handler (150ms) prevents overlay flicker. Added `orientationchange` for mobile rotation.
 - **Calendar mobile UX**: Clean cell display — "Frei" hidden (color sufficient), own bookings show ✓, pending show !, occupied/abo color-only. Color legend below datepicker (mobile-only).
 - **Event admin search (#95)**: Default date range expanded to ±2 weeks. "New event" button always visible. Event datepicker inputs widened to 120px with centered date text.
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Bugfixes**: Veranstaltungs-Overlay komplett ueberarbeitet (Overlays wurden nicht korrekt entfernt). Mobile Buchungsbestaetigung: X-Button oben rechts, Preistabelle 2-spaltig ohne Scrollen, Regeltext ohne Hoehenlimit. Einheitliche E-Mail-Anrede "Hallo Vorname Nachname" in allen E-Mails.
+
+**Neue Funktionen**: Eigene Berechtigung fuer Reaktivierung stornierter Buchungen. "Meine Buchungen" mit Smart-Sort (unbezahlt zuerst), Benachrichtigungsbadge (orange/gruen), Filter-Buttons. Offene Buchungen als Karte klickbar. Mobile Rechnungsansicht. Datepicker ueber Squarebox. Verbesserte Veranstaltungs-Overlays. Kalender-Mobilansicht (kompakter). Veranstaltungssuche mit erweitertem Datumsbereich.
+</details>
 
 ---
 
@@ -113,6 +178,18 @@
 - Removed dead links (MIGRATION-PLAN.md, FEATURE-CHECKLIST.md).
 - Shortened Laravel migration section.
 
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+61 Commits seit v2.0. **Neue Funktionen**: Zahlungsmethode wird pro Buchung gespeichert und im Backend angezeigt. Individuelles Buchungslimit pro Benutzer. Oeffnungszeiten-Tabelle (Migration 005).
+
+**Bugfixes**: Verbesserte Payum-Token-Behandlung, sessionsunabhaengige Erfolgsmeldungen. Doppelte Stornierungs-E-Mails beseitigt. Squarebox-Formular konsolidiert. Datepicker-Pfeile sichtbar. Buchungslimit zaehlt Zeitslots statt Reservierungen. Veranstaltungs-Overlay komplett neu geschrieben. PHP 8.4 Deprecation-Warnungen behoben. Config-Cache deaktiviert (Payum nicht serialisierbar).
+
+**UI/UX**: Veranstaltungssuche erweitert, Squarebox scrollbar, neues Logo, Regeltext scrollbar, mobile Header, modernisierte Login-Seite.
+
+**Sicherheit**: CSRF-Schutz fuer alle Backend-Formulare, destruktive Aktionen nur per POST.
+</details>
+
 ---
 
 ## v2.0 (2026-03-07)
@@ -128,3 +205,9 @@ Initial release of the extended EP3-BS fork with:
 - Comprehensive OWASP Top 10 security hardening
 - Bootstrap 5.3.8 UI, jQuery 3.7.1, TinyMCE 6.8.5
 - Auto-migration system (MigrationManager)
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+Erster Release des erweiterten EP3-BS Forks: PHP 8.4, Docker-Setup (Traefik + MariaDB + MailHog), Zahlungsintegration (PayPal, Stripe mit SCA, Klarna), Guthaben-/Gutscheinsystem, Mitglieder-/Gastpreise mit 50% Gastrabatt, Loxone-Tuersteuerung, PWA-Unterstuetzung, Auto-Registrierung mit Mitglieder-E-Mail-Verifizierung, umfassende OWASP Top 10 Sicherheitshaertung, Bootstrap 5.3.8, jQuery 3.7.1, TinyMCE 6.8.5, Auto-Migrationssystem.
+</details>

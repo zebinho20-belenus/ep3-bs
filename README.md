@@ -363,7 +363,7 @@ Access: `/backend` (requires authentication + admin permission)
 
 ### Booking Management
 
-- **List View:** Sortable table, per-column filters, 13 columns (responsive: 13 -> 5 on mobile)
+- **List View:** Sortable table, per-column filters, 13 columns (responsive: 13 -> 5 on mobile), server-side pagination (100 per page)
 - **Actions:** Edit, Cancel (active), Reactivate (cancelled bookings + individual cancelled reservations, if slot free + permission), Delete (cancelled, admin only)
 - **Reactivate:** Requires `calendar.reactivate-bookings` privilege + collision check via `getInRange()`. Works for whole cancelled bookings AND individual cancelled reservations within active subscriptions (bulk + per-row icon)
 - **Subscription Edit:** Two modes -- "Booking" (whole subscription overview + reservation table) and "Reservation" (individual occurrence with court/billing/player edits)
@@ -383,7 +383,7 @@ All backend forms use Bootstrap 5 grid (`row`/`col-md-6`), NOT `<table>` wrapper
 
 ## Docker Setup
 
-Single `Dockerfile` (PHP 8.4-apache) for DEV and PROD. Three compose files:
+Single `Dockerfile` (PHP 8.4-apache) for DEV and PROD. Includes **OPcache** (128MB), **APCu** (32MB), **mod_deflate** (gzip), **mod_expires** (browser caching). MariaDB tuned with `innodb_buffer_pool_size=256M`. Three compose files:
 
 | File | Purpose |
 |------|---------|
@@ -453,6 +453,10 @@ All subsequent migrations run **automatically on app startup**. The `MigrationMa
 | `003-cleanup-interval.sql` | Unpaid booking cleanup interval (test) | Auto |
 | `004-cleanup-interval-reset.sql` | Reset cleanup to production values | Auto |
 | `005-opening-times.sql` | Opening times table (`bs_squares_opening_times`) | Auto |
+| `006-reservation-status.sql` | Reservation status column | Auto |
+| `007-remove-legacy-md5.sql` | Remove legacy MD5 password hashes | Auto |
+| `008-convert-serialized-player-names.sql` | Convert serialized player-names to JSON | Auto |
+| `009-add-performance-indexes.sql` | Performance indexes (uid+status, reservation status, meta UNIQUE) | Auto |
 
 Registry: `data/db/migrations.php`
 
@@ -511,9 +515,15 @@ Comprehensive OWASP Top 10 security audit applied:
 
 ### Hardening
 
-- `unserialize()` with `['allowed_classes' => false]` everywhere
+- `unserialize()` fallback removed — all player-names data migrated to JSON (migration 008)
 - Removed `@` error suppression from `getServiceLocator()` and `file_get_contents()`
 - `$_SERVER` guard for `HTTP_STRIPE_SIGNATURE` in webhook handler
+- **CSRF** on booking cancellation form (was missing unlike confirmation form)
+- **Session regeneration** after login (prevents session fixation)
+- **Atomic budget operations** via SQL `UPDATE` (prevents double-spend race condition)
+- **Payment retry rate limiting** (max 5 attempts per booking per hour)
+- **Booking ownership check** in payment `doneAction` (defense-in-depth)
+- **Legacy MD5 hashes** removed (migration 007) — users must use password reset
 
 ### Frontend Library Upgrades
 
@@ -615,6 +625,7 @@ e| Subscription reactivation set single (#101) | Fixed Apr 2026 | Cancelled subs
 | Cancelled abo reservation no reactivate (#101) | Fixed Apr 2026 | Individual cancelled reservations within active subscriptions could not be reactivated from booking list or edit view. Added per-row icon + bulk support + confirmation dialog |
 | Subscription reservation fields disabled (#101) | Fixed Apr 2026 | Court/billing/quantity fields were disabled in reservation edit mode for subscriptions. JS disabling removed |
 | Booking conflict name shows '?' (#101) | Fixed Apr 2026 | Conflict dialog showed '?' instead of user name. `getExtra('user')` was null -- now loads via `UserManager::get(uid)` |
+| Booking edit redirect missing | Fixed Apr 2026 | Backend edit form stayed open after saving — missing `return redirect()` after update path |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -629,6 +640,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.2** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.2.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>

@@ -80,6 +80,8 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 
 **Refund**: `BookingService::refundBudget($booking)` — checks `status_billing==paid` and `refunded!=true`. Call from Square/Backend BookingController + PaymentController webhook.
 
+**Atomic operations**: Budget deduction/refund uses `UserManager::deductBudgetAtomic()` / `addBudgetAtomic()` — single SQL `UPDATE` to prevent double-spend race conditions. Never use read-modify-write pattern for budget.
+
 ### Member/Guest Pricing
 
 `bs_squares_pricing.member`: 0=non-member, 1=member.
@@ -113,7 +115,7 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 ### Backend Booking List
 
-Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
+Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Server-side pagination (100 per page). Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
 
 ### Administration Mode
 
@@ -147,7 +149,7 @@ Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pas
 
 ## Docker
 
-Single `Dockerfile` (PHP 8.4-apache). `INSTALL_XDEBUG=true` → Xdebug 3 (port 9003). `vendor/` committed to git — not built into image.
+Single `Dockerfile` (PHP 8.4-apache). OPcache (128MB) + APCu (32MB) + mod_deflate + mod_expires enabled. MariaDB tuned (`innodb_buffer_pool_size=256M`). `INSTALL_XDEBUG=true` → Xdebug 3 (port 9003). `vendor/` committed to git — not built into image.
 
 ```bash
 docker compose up -d                                   # local dev (override auto-loaded)
