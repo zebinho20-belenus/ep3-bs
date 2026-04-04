@@ -2285,46 +2285,45 @@ class BookingController extends AbstractActionController
                 $anrede = 'Hallo ' . $user->need('alias');
             }
 
-            // Subject
-            if ($action == 'deleted') {
-                $subject = sprintf($this->t('A reservation from your subscription booking has been deleted'));
-                $actionText = $this->t('eine Reservierung aus Ihrer Abo-Buchung wurde gelöscht.');
-                $detailsHeader = $this->t('Deleted reservation details:');
-            } else {
-                $subject = sprintf($this->t('A reservation from your subscription booking has been cancelled'));
-                $actionText = $this->t('eine Reservierung aus Ihrer Abo-Buchung wurde storniert.');
-                $detailsHeader = $this->t('Cancelled reservation details:');
-            }
-
-            // Cancelled reservation details
+            // Subject and action text
             $formattedDate = date('d.m.Y', strtotime($cancelledReservation->get('date')));
             $formattedTime = substr($cancelledReservation->get('time_start'), 0, 5);
             $formattedEndTime = substr($cancelledReservation->get('time_end'), 0, 5);
+            $actionMarker = '';
 
-            $buchungsDetails = sprintf(
-                "%s\n\n- %s: %s\n- %s: %s\n- %s: %s - %s Uhr\n- %s: %s",
-                $detailsHeader,
-                $this->t('Court'), $squareName,
-                $this->t('Date'), $formattedDate,
-                $this->t('Time'), $formattedTime, $formattedEndTime,
-                $this->t('Booking ID'), $booking->need('bid')
-            );
+            if ($action == 'deleted') {
+                $subject = sprintf($this->t('A reservation from your subscription booking has been deleted'));
+                $actionText = sprintf($this->t('eine Reservierung aus Ihrer Abo-Buchung (Nr. %s) wurde gelöscht.'), $booking->need('bid'));
+                $actionMarker = $this->t('deleted');
+            } else {
+                $subject = sprintf($this->t('A reservation from your subscription booking has been cancelled'));
+                $actionText = sprintf($this->t('eine Reservierung aus Ihrer Abo-Buchung (Nr. %s) wurde storniert.'), $booking->need('bid'));
+                $actionMarker = $this->t('cancelled');
+            }
 
-            // All reservations overview with status
+            // Compact one-line summary of affected reservation
+            $buchungsDetails = sprintf("%s: %s %s, %s, %s - %s Uhr",
+                ucfirst($actionMarker), $this->t('Square'), $squareName, $formattedDate, $formattedTime, $formattedEndTime);
+
+            // All reservations overview — mark affected reservation with arrow
             $allReservations = $reservationManager->getBy(['bid' => $booking->get('bid')], 'date ASC, time_start ASC');
             $reservationsOverview = "\n\n" . $this->t('All reservations overview:') . "\n";
-
-            // Also include the just-deleted reservation if action is 'deleted'
             $cancelledRid = $cancelledReservation->get('rid');
 
             foreach ($allReservations as $res) {
                 $resDate = date('d.m.Y', strtotime($res->get('date')));
                 $resTime = substr($res->get('time_start'), 0, 5) . '-' . substr($res->get('time_end'), 0, 5);
                 $isCancelled = ($res->get('status', 'confirmed') == 'cancelled');
+                $isAffected = ($res->get('rid') == $cancelledRid);
 
-                $reservationsOverview .= sprintf("\n- %s, %s Uhr %s",
-                    $resDate, $resTime,
-                    $isCancelled ? $this->t('[CANCELLED]') : '');
+                $marker = '';
+                if ($isAffected) {
+                    $marker = '  ← ' . $actionMarker;
+                } elseif ($isCancelled) {
+                    $marker = '  ← ' . $this->t('cancelled');
+                }
+
+                $reservationsOverview .= sprintf("\n- %s, %s Uhr%s", $resDate, $resTime, $marker);
             }
 
             // Bill block
@@ -2957,8 +2956,16 @@ class BookingController extends AbstractActionController
                 $anrede = 'Hallo ' . $user->need('alias');
             }
 
-            // Build changes text
-            $changesText = $this->t('Changes') . ":\n";
+            // Build changes text — combine time_start/time_end into single "Uhrzeit" line
+            $hasTimeChange = isset($changes['time_start']) || isset($changes['time_end']);
+            $oldTimeStart = isset($changes['time_start']) ? substr($changes['time_start']['old'], 0, 5) : substr($formattedTime, 0, 5);
+            $newTimeStart = isset($changes['time_start']) ? substr($changes['time_start']['new'], 0, 5) : substr($formattedTime, 0, 5);
+            $oldTimeEnd = isset($changes['time_end']) ? substr($changes['time_end']['old'], 0, 5) : substr($formattedEndTime, 0, 5);
+            $newTimeEnd = isset($changes['time_end']) ? substr($changes['time_end']['new'], 0, 5) : substr($formattedEndTime, 0, 5);
+
+            // Context line: show which reservation was changed (especially useful for subscriptions)
+            $changesText = sprintf($this->t('Modified reservation on %s') . ":\n", $formattedDate);
+
             foreach ($changes as $field => $change) {
                 $label = '';
                 $oldFormatted = $change['old'];
@@ -2985,26 +2992,16 @@ class BookingController extends AbstractActionController
                         try {
                             $oldDate = new \DateTime($change['old']);
                             $oldFormatted = $oldDate->format('d.m.Y');
-                        } catch (\Exception $e) {
-                            error_log('Date format error in booking edit email: ' . $e->getMessage());
-                        }
+                        } catch (\Exception $e) { /* fallback */ }
                         try {
                             $newDate = new \DateTime($change['new']);
                             $newFormatted = $newDate->format('d.m.Y');
-                        } catch (\Exception $e) {
-                            error_log('Date format error in booking edit email: ' . $e->getMessage());
-                        }
+                        } catch (\Exception $e) { /* fallback */ }
                         break;
                     case 'time_start':
-                        $label = $this->t('Time (Start)');
-                        $oldFormatted = substr($change['old'], 0, 5) . ' ' . $this->t('Clock');
-                        $newFormatted = substr($change['new'], 0, 5) . ' ' . $this->t('Clock');
-                        break;
                     case 'time_end':
-                        $label = $this->t('Time (End)');
-                        $oldFormatted = substr($change['old'], 0, 5) . ' ' . $this->t('Clock');
-                        $newFormatted = substr($change['new'], 0, 5) . ' ' . $this->t('Clock');
-                        break;
+                        // Skip individual time fields — handled as combined "Uhrzeit" below
+                        continue 2;
                     case 'quantity':
                         $label = $this->t('Number of players');
                         break;
@@ -3022,13 +3019,18 @@ class BookingController extends AbstractActionController
                         $newFormatted = $change['new'] === '1' ? $this->t('Yes') : $this->t('No');
                         break;
                     case 'uid':
-                        // Skip user change in customer email
                         continue 2;
                     default:
                         $label = $field;
                 }
 
                 $changesText .= sprintf("\n- %s: %s → %s", $label, $oldFormatted, $newFormatted);
+            }
+
+            // Append combined time change as single "Uhrzeit" line
+            if ($hasTimeChange) {
+                $changesText .= sprintf("\n- %s: %s - %s → %s - %s %s",
+                    $this->t('Time'), $oldTimeStart, $oldTimeEnd, $newTimeStart, $newTimeEnd, $this->t('Clock'));
             }
 
             $buchungsDetails = sprintf(
