@@ -557,4 +557,5 @@ return array(
     'Invalid security token. Please try again.' => 'Ungültiges Sicherheitstoken. Bitte versuchen Sie es erneut.',
     'CSV file is too large (max 1 MB)' => 'CSV-Datei ist zu groß (max. 1 MB)',
     'Invalid file type' => 'Ungültiger Dateityp',
+    '%s results, page %s of %s' => '%s Ergebnisse, Seite %s von %s',
 );

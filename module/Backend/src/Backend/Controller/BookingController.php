@@ -32,6 +32,11 @@ class BookingController extends AbstractActionController
         $dateEnd = $this->params()->fromQuery('date-end');
         $search = $this->params()->fromQuery('search');
 
+        // Pagination parameters
+        $page = max(1, (int) $this->params()->fromQuery('page', 1));
+        $pageSize = 100;
+        $totalCount = 0;
+
         if ($dateStart) {
             $dateStart = new \DateTime($dateStart);
         }
@@ -54,14 +59,19 @@ class BookingController extends AbstractActionController
             $filters = $this->backendBookingDetermineFilters($search);
 
             try {
-                // $limit = 10000;
-                $limit = null;
+                $offset = ($page - 1) * $pageSize;
 
                 if ($dateStart && $dateEnd) {
-                    $reservations = $reservationManager->getInRange($dateStart, $dateEnd, $limit);
+                    $totalCount = $reservationManager->countInRange($dateStart, $dateEnd);
+                    $reservations = $reservationManager->getInRange($dateStart, $dateEnd, $pageSize, $offset);
                     $bookings = $bookingManager->getByReservations($reservations, $filters['filters']);
                 } else {
-                    $bookings = $bookingManager->getBy($filters['filters'], null, $limit);
+                    $bookings = $bookingManager->getBy($filters['filters'], null, $pageSize, $offset);
+                    $totalCount = count($bookings) + $offset;
+                    if (count($bookings) >= $pageSize) {
+                        // There may be more — estimate higher
+                        $totalCount = $offset + $pageSize + 1;
+                    }
                 }
 
                 $bookings = $this->complexFilterBookings($bookings, $filters);
@@ -84,6 +94,8 @@ class BookingController extends AbstractActionController
             }
         }
 
+        $totalPages = max(1, (int) ceil($totalCount / $pageSize));
+
         return array(
             'bookings' => $bookings,
             'reservations' => $reservations,
@@ -91,6 +103,10 @@ class BookingController extends AbstractActionController
             'dateEnd' => $dateEnd,
             'search' => $search,
             'sessionUser' => $sessionUser,
+            'page' => $page,
+            'pageSize' => $pageSize,
+            'totalCount' => $totalCount,
+            'totalPages' => $totalPages,
         );
     }
 

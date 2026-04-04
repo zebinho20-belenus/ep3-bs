@@ -573,6 +573,48 @@ class ReservationManager extends AbstractManager
     }
 
     /**
+     * Counts distinct bookings that have reservations in the given date range.
+     *
+     * @param DateTime $dateTimeStart
+     * @param DateTime $dateTimeEnd
+     * @return int
+     */
+    public function countInRange(DateTime $dateTimeStart, DateTime $dateTimeEnd)
+    {
+        $where = new Where();
+
+        if ($dateTimeStart->format('Y-m-d') == $dateTimeEnd->format('Y-m-d')) {
+            $where->equalTo('date', $dateTimeStart->format('Y-m-d'));
+        } else {
+            $nested = $where->nest();
+            $nested->equalTo('date', $dateTimeStart->format('Y-m-d'));
+            $nested->greaterThan('time_end', $dateTimeStart->format('H:i'));
+            $nested->unnest();
+
+            $where->or;
+
+            $nested = $where->nest();
+            $nested->greaterThan('date', $dateTimeStart->format('Y-m-d'));
+            $nested->lessThan('date', $dateTimeEnd->format('Y-m-d'));
+            $nested->unnest();
+
+            $where->or;
+
+            $nested = $where->nest();
+            $nested->equalTo('date', $dateTimeEnd->format('Y-m-d'));
+            $nested->lessThan('time_start', $dateTimeEnd->format('H:i'));
+            $nested->unnest();
+        }
+
+        $select = $this->reservationTable->getSql()->select();
+        $select->columns(['count' => new \Zend\Db\Sql\Expression('COUNT(*)')]);
+        $select->where($where);
+
+        $result = $this->reservationTable->selectWith($select)->current();
+        return $result ? (int) $result->count : 0;
+    }
+
+    /**
      * Gets reservations by bookings.
      *
      * Reservations will be added to the bookings under the extra key 'reservations'.
