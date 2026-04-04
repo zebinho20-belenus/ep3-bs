@@ -1,10 +1,12 @@
 # Changelog
 
-## v2.2.3 Hotfix (2026-04-04)
+## v2.2.4 Hotfix (2026-04-04)
 
 ### Improvements
 
-- **Edit email formatting**: Time changes now shown as combined range ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr") instead of separate "Start"/"Ende" lines. Context header shows which reservation was changed ("Geänderte Reservierung am DD.MM.YYYY:").
+- **Edit-mode dialog**: Shows actual reservation list with status instead of original date range. Cancelled reservations displayed with strikethrough + red "← storniert" marker. Active/cancelled count summary at bottom.
+- **Booking list dual badge**: Cancelled reservations within active subscriptions now show dual badge `[A][S]` (blue + red) instead of just `[S]`. Makes it immediately clear that a cancelled row belongs to a subscription.
+- **Edit email formatting**: Time changes shown as combined range ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr") instead of separate "Start"/"Ende" lines. Context header shows which reservation was changed ("Geänderte Reservierung am DD.MM.YYYY:").
 - **Cancellation/deletion email formatting**: Compact one-line summary for affected reservation. Booking number in header. Affected reservation marked with arrow in overview list ("← gelöscht" / "← storniert"). Previously cancelled reservations also marked.
 
 ### Bug Fixes
@@ -14,7 +16,7 @@
 <details>
 <summary><b>Deutsche Zusammenfassung</b></summary>
 
-**Verbesserungen**: Aenderungs-E-Mail zeigt Zeitaenderungen als kombinierte Zeile ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr") statt einzelner Start/Ende-Zeilen. Kontextzeile zeigt welche Reservierung geaendert wurde. Stornierungs-/Loesch-E-Mail: kompakte Einzeiler-Zusammenfassung, Buchungsnummer im Header, betroffene Reservierung mit Pfeil markiert ("← geloescht"/"← storniert") in der Uebersicht.
+**Verbesserungen**: Edit-Mode-Dialog zeigt jetzt die tatsaechliche Reservierungsliste mit Status statt der originalen Datumsspanne. Stornierte Reservierungen durchgestrichen mit rotem Marker. Buchungsliste: stornierte Abo-Reservierungen zeigen Doppel-Badge `[A][S]` (blau+rot) statt nur `[S]` — sofort erkennbar dass die Zeile zu einem aktiven Abo gehoert. Aenderungs-E-Mail zeigt Zeitaenderungen als kombinierte Zeile mit Kontextzeile welche Reservierung geaendert wurde. Stornierungs-/Loesch-E-Mail: kompakte Zusammenfassung, betroffene Reservierung mit Pfeil markiert.
 
 **Bugfix**: Edit-E-Mail zeigte bei Abo-Buchungen die Daten der ersten Reservierung statt der tatsaechlich bearbeiteten. Behoben durch Laden ueber `rid`.
 </details>

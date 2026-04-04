@@ -104,6 +104,7 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 - `editMode=booking`: Time/date fields disabled; shows subscription reservations table with cancel/reactivate per reservation.
 - `editMode=reservation`: User field disabled; Platz/Rechnungsstatus/Anzahl Spieler/Notizen editable. Time/date/court changes apply to single reservation only.
+- `editModeAction` dialog: Shows actual reservation list with status (cancelled = strikethrough + marker) instead of original date range. All reservations loaded in controller via `allReservations` param.
 
 **Reactivation**: `calendar.reactivate-bookings` privilege required.
 - Whole cancelled subscription: restores `status=subscription` (checks `getMeta('repeat')`), reactivates all cancelled reservations.
@@ -119,7 +120,7 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 ### Backend Booking List
 
-Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Server-side pagination (100 per page). Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
+Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Server-side pagination (100 per page). Status badges: `[E]`=single, `[A]`=subscription, `[S]`=cancelled, `[A][S]`=cancelled reservation within active subscription. Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
 
 ### Administration Mode
 
