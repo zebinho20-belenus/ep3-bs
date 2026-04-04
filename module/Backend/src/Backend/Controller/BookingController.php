@@ -1345,7 +1345,8 @@ class BookingController extends AbstractActionController
                 $bookingManager->delete($booking);
                 $deleteCount++;
 
-            } elseif ($action === 'reactivate' && $booking->get('status') === 'cancelled') {
+            } elseif ($action === 'reactivate'
+                && ($booking->get('status') === 'cancelled' || $reservation->get('status', 'confirmed') === 'cancelled')) {
                 $this->authorize('calendar.reactivate-bookings');
 
                 // Collision check
@@ -1373,21 +1374,48 @@ class BookingController extends AbstractActionController
                     continue;
                 }
 
-                $booking->set('status', 'single');
-                $booking->setMeta('cancellor', null);
-                $booking->setMeta('cancelled', null);
-                $booking->setMeta('admin_cancelled', null);
-                $booking->setMeta('backend_cancelled', null);
-                $booking->setMeta('reactivated_by', $sessionUser->get('alias'));
-                $booking->setMeta('reactivated', date('Y-m-d H:i:s'));
-                $bookingManager->save($booking);
+                if ($booking->get('status') === 'cancelled') {
+                    // Whole booking cancelled — reactivate booking + all reservations
+                    $originalStatus = $booking->getMeta('repeat') ? 'subscription' : 'single';
+                    $booking->set('status', $originalStatus);
+                    $booking->setMeta('cancellor', null);
+                    $booking->setMeta('cancelled', null);
+                    $booking->setMeta('admin_cancelled', null);
+                    $booking->setMeta('backend_cancelled', null);
+                    $booking->setMeta('reactivated_by', $sessionUser->get('alias'));
+                    $booking->setMeta('reactivated', date('Y-m-d H:i:s'));
+                    $bookingManager->save($booking);
 
-                // Send reactivation email
-                try {
-                    $user = $userManager->get($booking->get('uid'));
-                    $this->sendReactivationEmail($booking, $user, $sessionUser);
-                } catch (\Exception $e) {
-                    // Continue despite errors
+                    if ($originalStatus == 'subscription') {
+                        $allRes = $reservationManager->getBy(['bid' => $booking->get('bid')]);
+                        foreach ($allRes as $res) {
+                            if ($res->get('status', 'confirmed') == 'cancelled') {
+                                $res->set('status', 'confirmed');
+                                $reservationManager->save($res);
+                            }
+                        }
+                    }
+
+                    // Send reactivation email
+                    try {
+                        $user = $userManager->get($booking->get('uid'));
+                        $this->sendReactivationEmail($booking, $user, $sessionUser);
+                    } catch (\Exception $e) {
+                        // Continue despite errors
+                    }
+                } else {
+                    // Individual cancelled reservation within active booking
+                    $reservation->set('status', 'confirmed');
+                    $reservationManager->save($reservation);
+
+                    $existingNotes = $booking->getMeta('notes', '');
+                    $reactivateNote = sprintf('[%s] %s: %s %s (%s)',
+                        date('d.m.Y H:i'), $sessionUser->get('alias'),
+                        $this->t('reactivated reservation'),
+                        date('d.m.Y', strtotime($reservation->get('date'))),
+                        substr($reservation->get('time_start'), 0, 5) . '-' . substr($reservation->get('time_end'), 0, 5));
+                    $booking->setMeta('notes', $existingNotes ? $existingNotes . "\n" . $reactivateNote : $reactivateNote);
+                    $bookingManager->save($booking);
                 }
 
                 $reactivateCount++;

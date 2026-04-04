@@ -51,11 +51,12 @@ class BookingFormat extends AbstractHelper
 
         $html .= sprintf('<tr %s>', $attr);
 
+        $checkboxStatus = $reservationCancelled ? 'cancelled' : $booking->need('status');
         $html .= sprintf('<td class="centered-text no-print bulk-check-col">'
             . '<input type="checkbox" name="bulk-rids[]" value="%s" class="form-check-input bulk-check" data-status="%s">'
             . '</td>',
             $reservation->get('rid'),
-            $booking->need('status'));
+            $checkboxStatus);
 
         $statusMap = array(
             'single' => array('label' => 'E', 'class' => 'status-icon status-single', 'title' => $view->t('Single')),
@@ -214,7 +215,9 @@ class BookingFormat extends AbstractHelper
 
         $deleteUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')]);
 
-        if ($booking->get('status') == 'cancelled') {
+        $isCancelledBookingOrReservation = ($booking->get('status') == 'cancelled' || $reservationCancelled);
+
+        if ($isCancelledBookingOrReservation) {
 
             // Check if user has reactivation permission
             $sessionUser = $this->getView()->sessionUser();
@@ -240,9 +243,16 @@ class BookingFormat extends AbstractHelper
                 }
             }
 
-            if ($canReactivate && $canReactivatePermission) {
+            // For cancelled reservations within active bookings, use reservation-level reactivation
+            if ($reservationCancelled && $booking->get('status') != 'cancelled') {
+                $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['edit-mode' => 'reservation', 'reactivate' => 'true']]);
+                $deleteActionLabel = $view->t('Delete');
+            } else {
                 $reactivateUrl = $view->url('backend/booking/delete', ['rid' => $reservation->get('rid')], ['query' => ['confirmed' => 'true', 'reactivate' => 'true']]);
+                $deleteActionLabel = $view->t('Delete');
+            }
 
+            if ($canReactivate && $canReactivatePermission) {
                 $html .= sprintf('<td class="actions-col no-print">'
                     . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-edit"></a> '
                     . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-reload"></a> '
@@ -250,14 +260,14 @@ class BookingFormat extends AbstractHelper
                     . '</td>',
                     $editUrl, $view->t('Edit'), $view->t('Edit'),
                     $reactivateUrl, $view->t('Reactivate'), $view->t('Reactivate'),
-                    $deleteUrl, $view->t('Delete'), $view->t('Delete'));
+                    $deleteUrl, $deleteActionLabel, $deleteActionLabel);
             } else {
                 $html .= sprintf('<td class="actions-col no-print">'
                     . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-edit"></a> '
                     . '<a href="%s" title="%s" aria-label="%s" class="unlined gray symbolic symbolic-cross"></a>'
                     . '</td>',
                     $editUrl, $view->t('Edit'), $view->t('Edit'),
-                    $deleteUrl, $view->t('Delete'), $view->t('Delete'));
+                    $deleteUrl, $deleteActionLabel, $deleteActionLabel);
             }
 
         } else {
