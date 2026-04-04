@@ -52,4 +52,9 @@ return [
         'check' => "SELECT 1 FROM bs_bookings_meta WHERE `key` = 'player-names' AND value LIKE 'a:%' HAVING COUNT(*) = 0",
         'file' => 'data/db/migrations/008-convert-serialized-player-names.sql',
     ],
+    9 => [
+        'name' => 'add-performance-indexes',
+        'check' => "SHOW INDEX FROM bs_bookings WHERE Key_name = 'idx_uid_status'",
+        'file' => 'data/db/migrations/009-add-performance-indexes.sql',
+    ],
 ];

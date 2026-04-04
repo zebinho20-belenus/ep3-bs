@@ -35,6 +35,9 @@ class SquarePricingManager extends AbstractManager
         $select->order('priority ASC');
 
         foreach ($squarePricingTable->selectWith($select) as $result) {
+            // Pre-parse date boundaries to timestamps to avoid repeated DateTime creation
+            $result->_dateStartTs = strtotime($result->date_start);
+            $result->_dateEndTs = strtotime($result->date_end . ' 23:59:59');
             $this->rules[] = $result;
         }
     }
@@ -144,34 +147,41 @@ class SquarePricingManager extends AbstractManager
             throw new InvalidArgumentException('The passed square is invalid');
         }
 
+        $dateTimeTs = $dateTime->getTimestamp();
+        $dateTimeDay = ($dateTime->format('w') + 6) % 7;
+
         foreach ($this->rules as $rule) {
-            $dateStart = new DateTime($rule['date_start']);
-            $dateEnd = new DateTime($rule['date_end']);
-            $dateEnd->setTime(23, 59, 59);
+            // Use pre-parsed timestamps for date-range check (avoids creating DateTime objects)
+            if ($dateTimeTs > $rule->_dateEndTs || $dateTimeTs < $rule->_dateStartTs) {
+                continue;
+            }
 
-            if ($dateTime <= $dateEnd && $dateTime >= $dateStart) {
-                $dateTimeDay = ($dateTime->format('w') + 6) % 7;
+            if ($dateTimeDay > $rule['day_end'] || $dateTimeDay < $rule['day_start']) {
+                continue;
+            }
 
-                if ($dateTimeDay <= $rule['day_end'] && $dateTimeDay >= $rule['day_start']) {
-                    $ruleDateTime = clone $dateTime;
+            $ruleDateTime = clone $dateTime;
 
-                    $timeStart = explode(':', $rule['time_start']);
-                    $ruleDateTime->setTime($timeStart[0], $timeStart[1]);
+            $timeStart = explode(':', $rule['time_start']);
+            $ruleDateTime->setTime($timeStart[0], $timeStart[1]);
 
-                    if ($dateTime >= $ruleDateTime) {
-                        $timeEnd = explode(':', $rule['time_end']);
-                        $ruleDateTime->setTime($timeEnd[0], $timeEnd[1]);
+            if ($dateTime < $ruleDateTime) {
+                continue;
+            }
 
-                        if ($dateTime < $ruleDateTime) {
-                            if (is_null($rule['sid']) || $rule['sid'] == $square) {
+            $timeEnd = explode(':', $rule['time_end']);
+            $ruleDateTime->setTime($timeEnd[0], $timeEnd[1]);
 
-                                if ($rule['member'] == $member) {
-                                   $matchedRule = $rule;
-                                }   
-                            }
-                        }
-                    }
-                }
+            if ($dateTime >= $ruleDateTime) {
+                continue;
+            }
+
+            if (!is_null($rule['sid']) && $rule['sid'] != $square) {
+                continue;
+            }
+
+            if ($rule['member'] == $member) {
+                $matchedRule = $rule;
             }
         }
 

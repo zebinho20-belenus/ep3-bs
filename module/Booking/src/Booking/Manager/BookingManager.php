@@ -12,6 +12,7 @@ use Exception;
 use InvalidArgumentException;
 use RuntimeException;
 use Zend\Db\Sql\Predicate\In;
+use Zend\Db\Sql\Predicate\NotIn;
 
 class BookingManager extends AbstractManager
 {
@@ -318,19 +319,20 @@ class BookingManager extends AbstractManager
      */
     public function getByValidity($where, $order = null, $limit = null, $offset = null, $loadMeta = true)
     {
-        $bookings = $this->getBy($where, $order, $limit, $offset, $loadMeta);
-
-        $validBookings = array();
-
-        foreach ($bookings as $booking) {
-            if ($booking->need('status') != 'cancelled') {
-                if ($booking->need('visibility') == 'public') {
-                    $validBookings[$booking->need('bid')] = $booking;
-                }
-            }
+        // Push validity filters into SQL to avoid loading rows that get discarded
+        if (is_array($where)) {
+            $where = array_merge($where, [
+                new NotIn('status', ['cancelled']),
+                'visibility' => 'public',
+            ]);
+        } else {
+            $where = [
+                new NotIn('status', ['cancelled']),
+                'visibility' => 'public',
+            ];
         }
 
-        return $validBookings;
+        return $this->getBy($where, $order, $limit, $offset, $loadMeta);
     }
 
     /**

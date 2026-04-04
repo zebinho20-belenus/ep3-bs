@@ -15,6 +15,17 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: >
+      --innodb-buffer-pool-size=256M
+      --innodb-log-file-size=64M
+      --innodb-flush-log-at-trx-commit=2
+      --innodb-flush-method=O_DIRECT
+      --max-connections=50
+      --join-buffer-size=512K
+      --sort-buffer-size=512K
+      --table-open-cache=400
+      --tmp-table-size=32M
+      --max-heap-table-size=32M
     volumes:
       - ./db:/var/lib/mysql
     healthcheck:

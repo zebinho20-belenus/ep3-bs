@@ -58,6 +58,26 @@ RUN cp /usr/local/etc/php/php.ini-production /usr/local/etc/php/php.ini \
     && sed -i -e "s/^ *memory_limit.*/memory_limit = 256M/g" /usr/local/etc/php/php.ini \
     && sed -i -e "s/^ *expose_php.*/expose_php = Off/g" /usr/local/etc/php/php.ini
 
+# OPcache: caches compiled PHP bytecode — biggest single performance win
+RUN docker-php-ext-enable opcache
+COPY <<'EOF' /usr/local/etc/php/conf.d/opcache-settings.ini
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=10000
+opcache.validate_timestamps=1
+opcache.revalidate_freq=60
+opcache.enable_cli=0
+opcache.enable=1
+EOF
+
+# APCu: in-memory key-value cache for Composer classmap + application data
+RUN pecl install apcu && docker-php-ext-enable apcu
+COPY <<'EOF' /usr/local/etc/php/conf.d/apcu-settings.ini
+apc.enabled=1
+apc.shm_size=32M
+apc.enable_cli=0
+EOF
+
 # Apache security: hide server version, enable mod_headers for security headers
 RUN echo "ServerTokens Prod" >> /etc/apache2/conf-available/security.conf \
     && echo "ServerSignature Off" >> /etc/apache2/conf-available/security.conf \
@@ -75,7 +95,7 @@ RUN echo "RemoteIPHeader X-Forwarded-For" >> /etc/apache2/conf-available/remotei
     && echo "RemoteIPInternalProxy 127.0.0.0/8" >> /etc/apache2/conf-available/remoteip.conf \
     && a2enconf remoteip
 
-RUN a2enmod rewrite headers remoteip
+RUN a2enmod rewrite headers remoteip deflate expires
 
 # Use %a (mod_remoteip resolved IP) instead of %h (connection IP) in Apache log format
 RUN sed -i 's/%h/%a/g' /etc/apache2/apache2.conf
