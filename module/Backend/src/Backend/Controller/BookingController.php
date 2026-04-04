@@ -437,8 +437,8 @@ class BookingController extends AbstractActionController
                     /* Detect changes and send edit notification email */
 
                     $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
-                    $reservations = $reservationManager->getBy(['bid' => $savedBooking->need('bid')], 'date ASC', 1);
-                    $currentReservation = !empty($reservations) ? current($reservations) : null;
+                    // Load the actually edited reservation (not the first one of the booking)
+                    $editedReservation = $reservationManager->get($d['bf-rid']);
 
                     $newData = array(
                         'sid' => $savedBooking->get('sid'),
@@ -446,9 +446,9 @@ class BookingController extends AbstractActionController
                         'status_billing' => $savedBooking->get('status_billing'),
                         'quantity' => $savedBooking->get('quantity'),
                         'notes' => $savedBooking->getMeta('notes', ''),
-                        'date' => $currentReservation ? $currentReservation->get('date') : $oldData['date'],
-                        'time_start' => $currentReservation ? $currentReservation->get('time_start') : $oldData['time_start'],
-                        'time_end' => $currentReservation ? $currentReservation->get('time_end') : $oldData['time_end'],
+                        'date' => $editedReservation ? $editedReservation->get('date') : $oldData['date'],
+                        'time_start' => $editedReservation ? $editedReservation->get('time_start') : $oldData['time_start'],
+                        'time_end' => $editedReservation ? $editedReservation->get('time_end') : $oldData['time_end'],
                         'gp' => $savedBooking->getMeta('gp', '0'),
                     );
 
@@ -463,7 +463,7 @@ class BookingController extends AbstractActionController
                         try {
                             $userManager = $serviceManager->get('User\Manager\UserManager');
                             $bookingUser = $userManager->get($savedBooking->get('uid'));
-                            $this->sendAdminBookingEditEmail($savedBooking, $bookingUser, $changes, $sessionUser, $squareManager);
+                            $this->sendAdminBookingEditEmail($savedBooking, $bookingUser, $changes, $sessionUser, $squareManager, $d['bf-rid']);
                         } catch (\Exception $e) {
                             // Continue despite errors
                         }
@@ -2882,7 +2882,7 @@ class BookingController extends AbstractActionController
      * @param mixed $squareManager
      * @return boolean
      */
-    public function sendAdminBookingEditEmail(Booking $booking, User $user, array $changes, $sessionUser, $squareManager = null)
+    public function sendAdminBookingEditEmail(Booking $booking, User $user, array $changes, $sessionUser, $squareManager = null, $rid = null)
     {
         if (!$user->get('email')) {
             return false;
@@ -2921,9 +2921,16 @@ class BookingController extends AbstractActionController
 
             try {
                 $reservationManager = $this->serviceLocator->get('Booking\Manager\ReservationManager');
-                $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
-                if (!empty($reservations)) {
-                    $reservation = current($reservations);
+                // Load the actually edited reservation (not the first one of the booking)
+                $reservation = null;
+                if ($rid) {
+                    $reservation = $reservationManager->get($rid);
+                }
+                if (!$reservation) {
+                    $reservations = $reservationManager->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+                    $reservation = !empty($reservations) ? current($reservations) : null;
+                }
+                if ($reservation) {
                     if ($reservation->get('date')) {
                         $date = new \DateTime($reservation->need('date'));
                         $formattedDate = $date->format('d.m.Y');
