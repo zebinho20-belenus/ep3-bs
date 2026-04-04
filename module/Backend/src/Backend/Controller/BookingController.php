@@ -2018,19 +2018,9 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
-                $billTotal = 0;
-                if ($bills) {
-                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
-                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
-                    foreach ($bills as $bill) {
-                        $billTotal += $bill->get('price');
-                        $rechnungsInfo .= "\n- " . $bill->get('description');
-                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
-                    }
-                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
-                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
-                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
-                }
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $rechnungsInfo = $billResult['text'];
+                $billTotal = $billResult['total'];
             } catch (\Exception $e) {
                 // Bill info not available
             }
@@ -2340,19 +2330,9 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
-                $billTotal = 0;
-                if ($bills) {
-                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
-                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
-                    foreach ($bills as $bill) {
-                        $billTotal += $bill->get('price');
-                        $rechnungsInfo .= "\n- " . $bill->get('description');
-                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
-                    }
-                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
-                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
-                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
-                }
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $rechnungsInfo = $billResult['text'];
+                $billTotal = $billResult['total'];
             } catch (\Exception $e) {
                 // Bill info not available
             }
@@ -2681,18 +2661,9 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(array('bid' => $booking->need('bid')), 'bbid ASC');
-                if ($bills) {
-                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
-                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
-                    foreach ($bills as $bill) {
-                        $total += $bill->get('price');
-                        $rechnungsInfo .= "\n- " . $bill->get('description');
-                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
-                    }
-                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($total / 100, 2, ',', '.') . " €";
-                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
-                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
-                }
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $rechnungsInfo = $billResult['text'];
+                $total = $billResult['total'];
             } catch (\Exception $e) {
                 // Continue despite errors
             }
@@ -3079,19 +3050,9 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
-                $billTotal = 0;
-                if ($bills) {
-                    $rechnungsInfo .= "\n\n" . str_repeat('-', 40);
-                    $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
-                    foreach ($bills as $bill) {
-                        $billTotal += $bill->get('price');
-                        $rechnungsInfo .= "\n- " . $bill->get('description');
-                        $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
-                    }
-                    $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($billTotal / 100, 2, ',', '.') . " €";
-                    $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($booking->get('status_billing')));
-                    $rechnungsInfo .= "\n" . str_repeat('-', 40);
-                }
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $rechnungsInfo = $billResult['text'];
+                $billTotal = $billResult['total'];
 
                 // Budget deduction info
                 if ($booking->getMeta('budgetpayment') === 'true') {
@@ -3292,6 +3253,52 @@ class BookingController extends AbstractActionController
      * @param User $user
      * @return array|null Der Anhang oder null bei Fehlern
      */
+
+    /**
+     * Format bill items for email. For subscriptions with many items (>5),
+     * shows a compact summary instead of listing every single position.
+     */
+    protected function formatBillsForEmail($bills, $billingStatus)
+    {
+        if (!$bills || count($bills) == 0) {
+            return ['text' => '', 'total' => 0];
+        }
+
+        $total = 0;
+        foreach ($bills as $bill) {
+            $total += $bill->get('price');
+        }
+
+        $rechnungsInfo = "\n\n" . str_repeat('-', 40);
+        $rechnungsInfo .= "\n" . $this->t('Bill') . ":\n";
+
+        $billCount = count($bills);
+        if ($billCount <= 5) {
+            // Short list: show all items
+            foreach ($bills as $bill) {
+                $rechnungsInfo .= "\n- " . $bill->get('description');
+                $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
+            }
+        } else {
+            // Long list (subscription): show first 2, count, last 1
+            $billsArray = array_values(is_array($bills) ? $bills : iterator_to_array($bills));
+            $rechnungsInfo .= "\n- " . $billsArray[0]->get('description')
+                . " → " . number_format($billsArray[0]->get('price') / 100, 2, ',', '.') . " €";
+            $rechnungsInfo .= "\n- " . $billsArray[1]->get('description')
+                . " → " . number_format($billsArray[1]->get('price') / 100, 2, ',', '.') . " €";
+            $rechnungsInfo .= sprintf("\n  ... (%s " . $this->t('further dates') . ")", $billCount - 3);
+            $last = end($billsArray);
+            $rechnungsInfo .= "\n- " . $last->get('description')
+                . " → " . number_format($last->get('price') / 100, 2, ',', '.') . " €";
+        }
+
+        $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($total / 100, 2, ',', '.') . " €";
+        $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($billingStatus));
+        $rechnungsInfo .= "\n" . str_repeat('-', 40);
+
+        return ['text' => $rechnungsInfo, 'total' => $total];
+    }
+
     protected function createICalendarAttachment($booking, $squareName, $formattedDate, $formattedTime, $formattedEndTime, $user = null)
     {
         try {

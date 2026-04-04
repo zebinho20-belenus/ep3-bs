@@ -566,4 +566,5 @@ return array(
     '%s active, %s cancelled' => '%s aktiv, %s storniert',
     '%s reservations (%s active, %s cancelled)' => '%s Reservierungen (%s aktiv, %s storniert)',
     'Cancelled reservations:' => 'Stornierte Reservierungen:',
+    'further dates' => 'weitere Termine',
 );
