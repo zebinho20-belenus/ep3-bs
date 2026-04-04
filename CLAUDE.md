@@ -96,6 +96,21 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 **No-email user statuses**: `bs_options` key `service.no-email-statuses` (comma-separated, e.g. `team,guestgroup`). Configurable via Backend → Konfiguration → Verhalten. `User\MailService::send()` skips sending for matching statuses. All direct `need('email')` calls guarded with `get('email')` fallback. Backend BookingController email methods return early if no email.
 
+### Subscription Booking Management
+
+**Edit modes**: Clicking a subscription booking opens `editModeAction` — choose between `booking` (whole subscription) or `reservation` (individual occurrence).
+
+- `editMode=booking`: Time/date fields disabled; shows subscription reservations table with cancel/reactivate per reservation.
+- `editMode=reservation`: User field disabled; Platz/Rechnungsstatus/Anzahl Spieler/Notizen editable. Time/date/court changes apply to single reservation only.
+
+**Reactivation**: `calendar.reactivate-bookings` privilege required.
+- Whole cancelled subscription: restores `status=subscription` (checks `getMeta('repeat')`), reactivates all cancelled reservations.
+- Individual cancelled reservation: `deleteAction` with `editMode=reservation&reactivate=true` → confirmation dialog → sets reservation `status=confirmed`.
+- Conflict check (`getInRange()`) before any reactivation.
+- Both booking list (bulk + per-row icon) and edit view (subscription table) support reactivation.
+
+**Booking list**: `BookingFormat` checkbox `data-status` reflects reservation status (not just booking status) — enables bulk reactivation of cancelled reservations within active subscriptions.
+
 ### Backend Booking List
 
 Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
@@ -126,6 +141,8 @@ Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pas
 | Table sort JS | `public/js/controller/backend/table-sort.js` + `table-sort.min.js` |
 | Service worker | `public/js/sw.js` |
 | Translations | `data/res/i18n/de-DE/booking.php`, `square.php`, `backend.php` |
+| Booking list helper | `module/Backend/src/Backend/View/Helper/Booking/BookingFormat.php` |
+| Booking update plugin | `module/Backend/src/Backend/Controller/Plugin/Booking/Update.php` |
 | Migrations | `data/db/migrations.php` (registry), `data/db/migrations/*.sql` |
 
 ## Docker

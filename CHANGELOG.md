@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.2 (2026-04-04)
+
+### Features
+
+- **Subscription booking management ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100), [#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101))**: Complete overhaul of subscription (Abo) booking management:
+  - **Reservation overview table**: Subscription edit view now shows all reservations with status, date, day, time, and cancel/reactivate actions
+  - **Individual reservation editing**: Court, billing status, player count, and notes now editable per-reservation (previously disabled)
+  - **Individual reservation cancel/delete**: Single reservations within a subscription can be cancelled or deleted independently, with separate email notifications and automatic booking cancellation when all reservations are removed
+  - **Individual reservation reactivation**: Cancelled reservations within active subscriptions can be reactivated from both the subscription edit table and the backend booking list (per-row icon + bulk action)
+  - **Subscription reactivation**: Cancelled subscription bookings now restore to `subscription` status (was incorrectly set to `single`), with all cancelled reservations automatically reactivated
+  - **Conflict detection**: Booking creation now checks for existing bookings in the time slot and shows a warning dialog with conflicting booking details (name, date, time, court, type). Users can override and create anyway
+
+- **Performance optimization**: OPcache preloading, MariaDB query cache tuning, SQL indexes for common queries, SW network-first strategy for API calls
+
+### Bug Fixes
+
+- **Booking conflict name shows '?'**: Conflict dialog displayed '?' instead of user name because `getExtra('user')` was never populated by `getByReservations()`. Now loads user via `UserManager::get(uid)` ([#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101))
+- **False conflict detection**: Conflict check incorrectly flagged the booking being edited as a conflict with itself. Fixed by excluding current booking from overlap check ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100))
+- **Reservation status in booking list**: Cancelled individual reservations within active subscriptions now show cancelled status icon and grey styling in booking list ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100))
+- **Cancel booking when all reservations removed**: Booking status automatically set to `cancelled` when the last reservation is cancelled or deleted ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100))
+- **Reservation entity status property**: Added `status` field to Reservation entity for individual reservation lifecycle ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100))
+
+### Security
+
+- **10 OWASP audit fixes**: Payment flow hardening, auth token improvements, data integrity checks
+
+---
+
 ## v2.1.1 (2026-03-18)
 
 ### Features

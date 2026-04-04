@@ -209,7 +209,7 @@ Routes defined in each module's `config/module.config.php`:
 
 **Single Bookings:** One-time court reservations with time slot selection, player name input, collision detection, email confirmation with iCal attachment, and door codes (if Loxone enabled).
 
-**Subscription Bookings (Serienbuchungen):** Recurring bookings -- weekly or biweekly frequency, date range selection, collision detection per occurrence, group management, bulk cancellation.
+**Subscription Bookings (Serienbuchungen):** Recurring bookings -- weekly or biweekly frequency, date range selection, collision detection per occurrence, group management, bulk cancellation. Individual reservations editable (court, billing, player count, time, date). Cancelled reservations reactivatable from subscription table and booking list. Cancelled subscriptions restore to `subscription` status (not `single`).
 
 **Booking Range (Multi-Buchungen):** Admin feature for creating multiple bookings at once -- multiple dates and time slots, collision detection for all combinations. Useful for events, tournaments, training camps.
 
@@ -364,8 +364,9 @@ Access: `/backend` (requires authentication + admin permission)
 ### Booking Management
 
 - **List View:** Sortable table, per-column filters, 13 columns (responsive: 13 -> 5 on mobile)
-- **Actions:** Edit, Cancel (active), Reactivate (cancelled, if slot free + permission), Delete (cancelled, admin only)
-- **Reactivate:** Requires `calendar.reactivate-bookings` privilege + collision check via `getInRange()`
+- **Actions:** Edit, Cancel (active), Reactivate (cancelled bookings + individual cancelled reservations, if slot free + permission), Delete (cancelled, admin only)
+- **Reactivate:** Requires `calendar.reactivate-bookings` privilege + collision check via `getInRange()`. Works for whole cancelled bookings AND individual cancelled reservations within active subscriptions (bulk + per-row icon)
+- **Subscription Edit:** Two modes -- "Booking" (whole subscription overview + reservation table) and "Reservation" (individual occurrence with court/billing/player edits)
 - **Edit View:** BS5 grid layout (2x2, 4 sandboxes)
 - **Delete/Cancel:** Confirmation page with `<form method="post">`, budget refund
 
@@ -610,6 +611,10 @@ Types: `Feat`, `Fix`, `Refactor`, `Docs`, `UI`, `Security`, `Upgrade`
 | Mobile squarebox layout (#97) | Fixed Mar 2026 | Close button top-right (was bottom), pricing table 2-col on mobile (no scroll), rules text no height cap |
 | Email crash for no-email users (#99) | Fixed Mar 2026 | Configurable no-email statuses in `bs_options`, guards in MailService + NotificationListener + BookingController |
 | Recurring booking date validation | Fixed Mar 2026 | Friendly flash message instead of `InvalidArgumentException` when end date <= start date |
+e| Subscription reactivation set single (#101) | Fixed Apr 2026 | Cancelled subscription bookings were reactivated as `single` instead of `subscription`. Now checks `getMeta('repeat')` to restore original status |
+| Cancelled abo reservation no reactivate (#101) | Fixed Apr 2026 | Individual cancelled reservations within active subscriptions could not be reactivated from booking list or edit view. Added per-row icon + bulk support + confirmation dialog |
+| Subscription reservation fields disabled (#101) | Fixed Apr 2026 | Court/billing/quantity fields were disabled in reservation edit mode for subscriptions. JS disabling removed |
+| Booking conflict name shows '?' (#101) | Fixed Apr 2026 | Conflict dialog showed '?' instead of user name. `getExtra('user')` was null -- now loads via `UserManager::get(uid)` |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -624,6 +629,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.1.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.2** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>
