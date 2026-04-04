@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.2.2 Hotfix (2026-04-04)
+
+### Bug Fixes
+
+- **Edit email wrong reservation for subscriptions**: When editing a single reservation within a subscription booking, the change notification email showed data from the first reservation (earliest date) instead of the actually edited reservation. Both the "Changes" section (old/new values) and the "Current booking details" section were affected. Fixed by loading the edited reservation via its `rid` instead of `getBy(['bid' => ...], 'date ASC', 1)`.
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Bugfix**: Beim Bearbeiten einer einzelnen Abo-Reservierung zeigte die Aenderungs-E-Mail die Daten der ersten Reservierung (fruehestes Datum) statt der tatsaechlich bearbeiteten Reservierung. Sowohl der Aenderungsabschnitt (alte/neue Werte) als auch die "Aktuelle Buchungsdetails" waren betroffen. Behoben durch Laden der bearbeiteten Reservierung ueber ihre `rid`.
+</details>
+
+---
+
 ## v2.2.1 Hotfix (2026-04-04)
 
 ### Security Hardening (10 OWASP Audit Fixes)

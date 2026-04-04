@@ -113,6 +113,8 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 **Booking list**: `BookingFormat` checkbox `data-status` reflects reservation status (not just booking status) — enables bulk reactivation of cancelled reservations within active subscriptions.
 
+**Edit email**: `sendAdminBookingEditEmail()` accepts `$rid` parameter to load the correct reservation. Without `rid`, it falls back to the first reservation of the booking. Always pass `$d['bf-rid']` when calling from editAction.
+
 ### Backend Booking List
 
 Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Server-side pagination (100 per page). Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).

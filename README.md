@@ -626,6 +626,7 @@ e| Subscription reactivation set single (#101) | Fixed Apr 2026 | Cancelled subs
 | Subscription reservation fields disabled (#101) | Fixed Apr 2026 | Court/billing/quantity fields were disabled in reservation edit mode for subscriptions. JS disabling removed |
 | Booking conflict name shows '?' (#101) | Fixed Apr 2026 | Conflict dialog showed '?' instead of user name. `getExtra('user')` was null -- now loads via `UserManager::get(uid)` |
 | Booking edit redirect missing | Fixed Apr 2026 | Backend edit form stayed open after saving — missing `return redirect()` after update path |
+| Edit email wrong subscription reservation | Fixed Apr 2026 | Change notification email showed first reservation data instead of actually edited reservation for subscription bookings |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -640,6 +641,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.2.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.2.2** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>
