@@ -490,6 +490,16 @@ class BookingController extends AbstractActionController
                         }
                     }
 
+                    $this->flashMessenger()->addSuccessMessage('Booking has been saved');
+
+                    if ($this->params()->fromPost('bf-edit-user')) {
+                        return $this->redirect()->toRoute('backend/user/edit', ['uid' => $savedBooking->get('uid')], ['query' => []]);
+                    } else if ($this->params()->fromPost('bf-edit-bills')) {
+                        return $this->redirect()->toRoute('backend/booking/bills', ['bid' => $savedBooking->get('bid')], ['query' => []]);
+                    } else {
+                        return $this->redirect()->toRoute('frontend', [], ['query' => []]);
+                    }
+
                 } else {
 
                     /* Check for booking conflicts before creating */
