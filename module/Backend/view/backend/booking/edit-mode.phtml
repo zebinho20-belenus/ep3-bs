@@ -16,30 +16,48 @@ $booking = $reservation->getExtra('booking');
 <div class="padded centered-text">
     <p><?= $this->t('This booking consists of multiple reservations:') ?></p>
 
-    <div class="sandbox" style="margin-bottom: 16px; text-align: left;">
+    <div class="sandbox" style="margin-bottom: 16px;">
         <?php
         // All reservations loaded by editModeAction
         $allReservations = $this->allReservations ?? $reservations;
 
         $activeCount = 0;
         $cancelledCount = 0;
-        foreach ($allReservations as $res):
+        $cancelledList = [];
+        foreach ($allReservations as $res) {
             $isCancelled = ($res->get('status', 'confirmed') == 'cancelled');
-            if ($isCancelled) { $cancelledCount++; } else { $activeCount++; }
-            $dayName = $this->dateFormat(new \DateTime($res->get('date')), IntlDateFormatter::RELATIVE_SHORT);
-            $time = substr($res->get('time_start'), 0, 5) . ' - ' . substr($res->get('time_end'), 0, 5);
+            if ($isCancelled) {
+                $cancelledCount++;
+                $cancelledList[] = $res;
+            } else {
+                $activeCount++;
+            }
+        }
+        $totalCount = $activeCount + $cancelledCount;
+
+        // Compact summary: repeat pattern + date range
+        $dateStart = new \DateTime($booking->getMeta('date_start'));
+        $dateEnd = new \DateTime($booking->getMeta('date_end'));
+
+        echo sprintf('<b>%s</b> ', $this->t($booking->getRepeat()));
+        echo sprintf($this->t('from %s to %s'),
+            '<b>' . $this->dateFormat($dateStart, IntlDateFormatter::FULL) . '</b>',
+            '<b>' . $this->dateFormat($dateEnd, IntlDateFormatter::FULL) . '</b>');
         ?>
-            <div style="padding: 2px 8px; <?= $isCancelled ? 'color: #999; text-decoration: line-through;' : '' ?>">
-                <?= date('d.m.Y', strtotime($res->get('date'))) ?> &nbsp; <?= $time ?> Uhr
-                <?php if ($isCancelled): ?>
-                    <span style="text-decoration: none; color: #DC2626; font-size: 0.85em;">&larr; <?= $this->t('cancelled') ?></span>
-                <?php endif; ?>
-            </div>
-        <?php endforeach; ?>
+
+        <div style="margin-top: 6px; font-size: 0.9em; color: #666;">
+            <?= sprintf($this->t('%s reservations (%s active, %s cancelled)'), $totalCount, $activeCount, $cancelledCount) ?>
+        </div>
 
         <?php if ($cancelledCount > 0): ?>
-            <div style="margin-top: 6px; font-size: 0.85em; color: #666;">
-                <?= sprintf($this->t('%s active, %s cancelled'), $activeCount, $cancelledCount) ?>
+            <div style="margin-top: 8px; text-align: left; border-top: 1px solid #eee; padding-top: 8px;">
+                <div style="font-size: 0.85em; color: #999; margin-bottom: 4px;"><?= $this->t('Cancelled reservations:') ?></div>
+                <?php foreach ($cancelledList as $res): ?>
+                    <div style="padding: 1px 8px; color: #999; text-decoration: line-through; font-size: 0.9em;">
+                        <?= date('d.m.Y', strtotime($res->get('date'))) ?> &nbsp;
+                        <?= substr($res->get('time_start'), 0, 5) ?> - <?= substr($res->get('time_end'), 0, 5) ?> Uhr
+                    </div>
+                <?php endforeach; ?>
             </div>
         <?php endif; ?>
     </div>
