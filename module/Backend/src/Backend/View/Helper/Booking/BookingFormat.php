@@ -65,15 +65,23 @@ class BookingFormat extends AbstractHelper
         );
 
         // Show cancelled status if reservation is cancelled (even if booking is still active)
-        if ($reservationCancelled) {
+        // For cancelled reservations within active subscriptions: show "A/S" to link back to the subscription
+        if ($reservationCancelled && $booking->need('status') == 'subscription') {
+            $statusHtml = sprintf(
+                '<span class="status-icon status-subscription" title="%s" style="margin-right: 2px;">A</span>'
+                . '<span class="status-icon status-cancelled" title="%s">S</span>',
+                $view->t('Subscription'), $view->t('Cancelled'));
+        } elseif ($reservationCancelled) {
             $statusKey = 'cancelled';
+            $statusInfo = $statusMap[$statusKey];
+            $statusHtml = sprintf('<span class="%s" title="%s">%s</span>', $statusInfo['class'], $statusInfo['title'], $statusInfo['label']);
         } else {
             $statusKey = $booking->need('status');
+            $statusInfo = isset($statusMap[$statusKey]) ? $statusMap[$statusKey] : array('label' => '?', 'class' => 'status-icon', 'title' => $statusKey);
+            $statusHtml = sprintf('<span class="%s" title="%s">%s</span>', $statusInfo['class'], $statusInfo['title'], $statusInfo['label']);
         }
-        $statusInfo = isset($statusMap[$statusKey]) ? $statusMap[$statusKey] : array('label' => '?', 'class' => 'status-icon', 'title' => $statusKey);
 
-        $html .= sprintf('<td class="status-col centered-text"><span class="%s" title="%s">%s</span></td>',
-            $statusInfo['class'], $statusInfo['title'], $statusInfo['label']);
+        $html .= sprintf('<td class="status-col centered-text">%s</td>', $statusHtml);
 
         $html .= sprintf('<td class="nr-col responsive-pass-5">%s</td>',
             $booking->need('bid'));

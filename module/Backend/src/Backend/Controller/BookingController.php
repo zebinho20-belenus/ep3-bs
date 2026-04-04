@@ -798,6 +798,15 @@ class BookingController extends AbstractActionController
     {
         $params = $this->getEvent()->getRouteMatch()->getParam('params');
 
+        // Load all reservations for this booking so the view can show actual state
+        $reservation = current($params['reservations']);
+        $booking = $reservation->getExtra('booking');
+        if ($booking) {
+            $serviceManager = @$this->getServiceLocator();
+            $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+            $params['allReservations'] = $reservationManager->getBy(['bid' => $booking->get('bid')], 'date ASC, time_start ASC');
+        }
+
         return $this->ajaxViewModel($params);
     }
 

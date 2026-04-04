@@ -563,4 +563,5 @@ return array(
     'cancelled' => 'storniert',
     'eine Reservierung aus Ihrer Abo-Buchung (Nr. %s) wurde gelöscht.' => 'eine Reservierung aus Ihrer Abo-Buchung (Nr. %s) wurde gelöscht.',
     'eine Reservierung aus Ihrer Abo-Buchung (Nr. %s) wurde storniert.' => 'eine Reservierung aus Ihrer Abo-Buchung (Nr. %s) wurde storniert.',
+    '%s active, %s cancelled' => '%s aktiv, %s storniert',
 );

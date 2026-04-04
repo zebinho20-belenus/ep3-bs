@@ -16,20 +16,32 @@ $booking = $reservation->getExtra('booking');
 <div class="padded centered-text">
     <p><?= $this->t('This booking consists of multiple reservations:') ?></p>
 
-    <div class="sandbox" style="margin-bottom: 16px;">
+    <div class="sandbox" style="margin-bottom: 16px; text-align: left;">
         <?php
+        // All reservations loaded by editModeAction
+        $allReservations = $this->allReservations ?? $reservations;
 
-        $dateStart = new \DateTime($booking->getMeta('date_start'));
-        $dateEnd = new \DateTime($booking->getMeta('date_end'));
-
-        echo sprintf('<b>%s</b> ',
-            $this->t($booking->getRepeat()));
-
-        echo sprintf($this->t('from %s to %s'),
-            '<b>' . $this->dateFormat($dateStart, IntlDateFormatter::FULL) . '</b>',
-            '<b>' . $this->dateFormat($dateEnd, IntlDateFormatter::FULL) . '</b>');
-
+        $activeCount = 0;
+        $cancelledCount = 0;
+        foreach ($allReservations as $res):
+            $isCancelled = ($res->get('status', 'confirmed') == 'cancelled');
+            if ($isCancelled) { $cancelledCount++; } else { $activeCount++; }
+            $dayName = $this->dateFormat(new \DateTime($res->get('date')), IntlDateFormatter::RELATIVE_SHORT);
+            $time = substr($res->get('time_start'), 0, 5) . ' - ' . substr($res->get('time_end'), 0, 5);
         ?>
+            <div style="padding: 2px 8px; <?= $isCancelled ? 'color: #999; text-decoration: line-through;' : '' ?>">
+                <?= date('d.m.Y', strtotime($res->get('date'))) ?> &nbsp; <?= $time ?> Uhr
+                <?php if ($isCancelled): ?>
+                    <span style="text-decoration: none; color: #DC2626; font-size: 0.85em;">&larr; <?= $this->t('cancelled') ?></span>
+                <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+
+        <?php if ($cancelledCount > 0): ?>
+            <div style="margin-top: 6px; font-size: 0.85em; color: #666;">
+                <?= sprintf($this->t('%s active, %s cancelled'), $activeCount, $cancelledCount) ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <p><?= $this->t('What do you want to edit?') ?></p>
