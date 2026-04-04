@@ -1,0 +1,30 @@
+<?php
+
+$this->setup(array(
+    'title' => 'Reactivate this reservation',
+    'panel' => 'centered-panel',
+    'back' => true
+));
+
+?>
+
+<div class="padded centered-text">
+    <p><span class="symbolic symbolic-info"><?= $this->t('Do you want to reactivate this cancelled reservation?') ?></span></p>
+
+    <div class="edit-actions">
+        <form method="post" action="<?= $this->url('backend/booking/delete', ['rid' => $this->rid], ['query' => ['edit-mode' => 'reservation']]) ?>" style="display:inline">
+            <?= $this->csrfToken() ?>
+            <input type="hidden" name="confirmed" value="true">
+            <input type="hidden" name="reactivate" value="true">
+            <button type="submit" class="default-button">
+                <span class="symbolic symbolic-reload"><?= $this->t('Yes, reactivate this reservation') ?></span>
+            </button>
+        </form>
+
+        <a href="<?= $this->url('frontend') ?>" class="default-button default-button-outline squarebox-close-link"><?= $this->t('No, go back') ?></a>
+    </div>
+
+    <p class="small-text gray mt-3">
+        <?= $this->t('The reservation will be restored and appear in the calendar again.') ?>
+    </p>
+</div>

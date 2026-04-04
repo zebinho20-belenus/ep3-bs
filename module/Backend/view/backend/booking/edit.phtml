@@ -180,7 +180,11 @@ $this->setup(array(
                                 <?php endif; ?>
                             </td>
                             <td class="text-end">
-                                <?php if (!$isCancelled): ?>
+                                <?php if ($isCancelled): ?>
+                                    <?php if ($this->sessionUser->can('calendar.reactivate-bookings')): ?>
+                                        <a href="<?= $this->url('backend/booking/delete', ['rid' => $res->get('rid')], ['query' => ['edit-mode' => 'reservation', 'reactivate' => 'true']]) ?>" class="symbolic symbolic-reload gray small squarebox-internal-link" title="<?= $this->t('Reactivate reservation') ?>"></a>
+                                    <?php endif; ?>
+                                <?php else: ?>
                                     <a href="<?= $this->url('backend/booking/delete', ['rid' => $res->get('rid')], ['query' => ['edit-mode' => 'reservation']]) ?>" class="symbolic symbolic-cross gray small squarebox-internal-link" title="<?= $this->t('Cancel reservation') ?>"></a>
                                 <?php endif; ?>
                             </td>

@@ -213,7 +213,8 @@ class BookingController extends AbstractActionController
                             }
                         }
 
-                        $reactivateBooking->set('status', 'single');
+                        $originalStatus = $reactivateBooking->getMeta('repeat') ? 'subscription' : 'single';
+                        $reactivateBooking->set('status', $originalStatus);
                         $reactivateBooking->setMeta('cancellor', null);
                         $reactivateBooking->setMeta('cancelled', null);
                         $reactivateBooking->setMeta('admin_cancelled', null);
@@ -221,6 +222,17 @@ class BookingController extends AbstractActionController
                         $reactivateBooking->setMeta('reactivated_by', $sessionUser->get('alias'));
                         $reactivateBooking->setMeta('reactivated', date('Y-m-d H:i:s'));
                         $bookingManager->save($reactivateBooking);
+
+                        // Reactivate all cancelled reservations for subscription bookings
+                        if ($originalStatus == 'subscription') {
+                            $allReservations = $reservationManager->getBy(['bid' => $reactivateBooking->get('bid')]);
+                            foreach ($allReservations as $res) {
+                                if ($res->get('status', 'confirmed') == 'cancelled') {
+                                    $res->set('status', 'confirmed');
+                                    $reservationManager->save($res);
+                                }
+                            }
+                        }
 
                         // Send reactivation email to user and admin
                         try {
@@ -944,7 +956,8 @@ class BookingController extends AbstractActionController
                         }
                     }
 
-                    $booking->set('status', 'single');
+                    $originalStatus = $booking->getMeta('repeat') ? 'subscription' : 'single';
+                    $booking->set('status', $originalStatus);
                     $booking->setMeta('cancellor', null);
                     $booking->setMeta('cancelled', null);
                     $booking->setMeta('admin_cancelled', null);
@@ -952,6 +965,17 @@ class BookingController extends AbstractActionController
                     $booking->setMeta('reactivated_by', $sessionUser->get('alias'));
                     $booking->setMeta('reactivated', date('Y-m-d H:i:s'));
                     $bookingManager->save($booking);
+
+                    // Reactivate all cancelled reservations for subscription bookings
+                    if ($originalStatus == 'subscription') {
+                        $allReservations = $reservationManager->getBy(['bid' => $booking->get('bid')]);
+                        foreach ($allReservations as $res) {
+                            if ($res->get('status', 'confirmed') == 'cancelled') {
+                                $res->set('status', 'confirmed');
+                                $reservationManager->save($res);
+                            }
+                        }
+                    }
 
                     // Send reactivation email
                     try {
@@ -967,6 +991,58 @@ class BookingController extends AbstractActionController
                         'date' => $reservation->get('date'),
                     ]]);
                 }
+            }
+
+            if ($editMode == 'reservation' && $reactivateParam == 'true') {
+                // Reactivate individual cancelled reservation
+                $this->authorize('calendar.reactivate-bookings');
+
+                if ($reservation->get('status', 'confirmed') == 'cancelled') {
+                    // Check if time slot is still free
+                    $dateTimeStart = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_start'));
+                    $dateTimeEnd = new \DateTime($reservation->get('date') . ' ' . $reservation->get('time_end'));
+                    $overlapping = $reservationManager->getInRange($dateTimeStart, $dateTimeEnd);
+
+                    if ($overlapping) {
+                        $hasConflict = false;
+                        $bookingManager->getByReservations($overlapping);
+                        foreach ($overlapping as $overlapRes) {
+                            $overlapBooking = $overlapRes->getExtra('booking');
+                            if ($overlapBooking
+                                && $overlapBooking->get('bid') != $booking->get('bid')
+                                && $overlapBooking->get('sid') == $booking->get('sid')
+                                && $overlapBooking->get('status') != 'cancelled') {
+                                $hasConflict = true;
+                                break;
+                            }
+                        }
+                        if ($hasConflict) {
+                            $this->flashMessenger()->addErrorMessage('This time slot is already occupied by another booking');
+                            return $this->redirect()->toRoute('frontend', [], ['query' => [
+                                'date' => $reservation->get('date'),
+                            ]]);
+                        }
+                    }
+
+                    $reservation->set('status', 'confirmed');
+                    $reservationManager->save($reservation);
+
+                    // Append reactivation note to booking
+                    $existingNotes = $booking->getMeta('notes', '');
+                    $reactivateNote = sprintf('[%s] %s: %s %s (%s)',
+                        date('d.m.Y H:i'), $sessionUser->get('alias'),
+                        $this->t('reactivated reservation'),
+                        date('d.m.Y', strtotime($reservation->get('date'))),
+                        substr($reservation->get('time_start'), 0, 5) . '-' . substr($reservation->get('time_end'), 0, 5));
+                    $booking->setMeta('notes', $existingNotes ? $existingNotes . "\n" . $reactivateNote : $reactivateNote);
+                    $bookingManager->save($booking);
+
+                    $this->flashMessenger()->addSuccessMessage('Reservation has been reactivated');
+                }
+
+                return $this->redirect()->toRoute('frontend', [], ['query' => [
+                    'date' => $reservation->get('date'),
+                ]]);
             }
 
             if ($editMode == 'reservation') {
@@ -1137,13 +1213,20 @@ class BookingController extends AbstractActionController
         }
 
         if ($editMode == 'reservation') {
-            $template = 'backend/booking/delete.reservation.phtml';
+            $reactivateQuery = $this->params()->fromQuery('reactivate');
+            if ($reactivateQuery == 'true' && $reservation->get('status', 'confirmed') == 'cancelled') {
+                $template = 'backend/booking/delete.reservation.reactivate.phtml';
+            } else {
+                $template = 'backend/booking/delete.reservation.phtml';
+            }
         } else {
             $template = null;
         }
 
         return $this->ajaxViewModel(array(
             'rid' => $rid,
+            'reservation' => $reservation,
+            'booking' => $booking,
             'sessionUser' => $sessionUser,
         ), null, $template);
     }

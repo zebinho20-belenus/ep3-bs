@@ -145,7 +145,7 @@ macOS: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't 
 ## Gotchas
 
 - **JS/CSS sync**: `.js` + `.min.js` and `app.css` + `app.min.css` always kept in sync — no build tool.
-- **SW cache bump required** after CSS/JS changes: `cacheName` in `public/js/sw.js` (`ep3bs_vX.XX:static`). Current: **v3.16**.
+- **SW cache bump required** after CSS/JS changes: `cacheName` in `public/js/sw.js` (`ep3bs_vX.XX:static`). Current: **v3.20**.
 - **Event overlay**: use `.calendar-event-overlay` class for hide/remove — `[id$='-overlay-']` never matches (IDs end with `-overlay-0`).
 - **`composer update` broken**: `payum/payum-module` conflicts with our forked ZF packages. Vendor changes manual only. Use `--ignore-platform-reqs` if needed.
 - **Translation file scope**: key must be in correct module file (e.g. `booking.php` for NotificationListener). `$this->t(ucfirst($slug))` works for status slugs.
