@@ -2018,7 +2018,7 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
-                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'), $booking->get('status'));
                 $rechnungsInfo = $billResult['text'];
                 $billTotal = $billResult['total'];
             } catch (\Exception $e) {
@@ -2330,7 +2330,7 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
-                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'), $booking->get('status'));
                 $rechnungsInfo = $billResult['text'];
                 $billTotal = $billResult['total'];
             } catch (\Exception $e) {
@@ -2661,7 +2661,7 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(array('bid' => $booking->need('bid')), 'bbid ASC');
-                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'), $booking->get('status'));
                 $rechnungsInfo = $billResult['text'];
                 $total = $billResult['total'];
             } catch (\Exception $e) {
@@ -3050,7 +3050,7 @@ class BookingController extends AbstractActionController
             try {
                 $bookingBillManager = $this->serviceLocator->get('Booking\Manager\Booking\BillManager');
                 $bills = $bookingBillManager->getBy(['bid' => $booking->need('bid')], 'bbid ASC');
-                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'));
+                $billResult = $this->formatBillsForEmail($bills, $booking->get('status_billing'), $booking->get('status'));
                 $rechnungsInfo = $billResult['text'];
                 $billTotal = $billResult['total'];
 
@@ -3258,7 +3258,7 @@ class BookingController extends AbstractActionController
      * Format bill items for email. For subscriptions with many items (>5),
      * shows a compact summary instead of listing every single position.
      */
-    protected function formatBillsForEmail($bills, $billingStatus)
+    protected function formatBillsForEmail($bills, $billingStatus, $bookingStatus = null)
     {
         if (!$bills || count($bills) == 0) {
             return ['text' => '', 'total' => 0];
@@ -3274,13 +3274,11 @@ class BookingController extends AbstractActionController
 
         $billCount = count($bills);
         if ($billCount <= 5) {
-            // Short list: show all items
             foreach ($bills as $bill) {
                 $rechnungsInfo .= "\n- " . $bill->get('description');
                 $rechnungsInfo .= " → " . number_format($bill->get('price') / 100, 2, ',', '.') . " €";
             }
         } else {
-            // Long list (subscription): show first 2, count, last 1
             $billsArray = array_values(is_array($bills) ? $bills : iterator_to_array($bills));
             $rechnungsInfo .= "\n- " . $billsArray[0]->get('description')
                 . " → " . number_format($billsArray[0]->get('price') / 100, 2, ',', '.') . " €";
@@ -3293,7 +3291,14 @@ class BookingController extends AbstractActionController
         }
 
         $rechnungsInfo .= "\n\n" . $this->t('Total') . ": " . number_format($total / 100, 2, ',', '.') . " €";
-        $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($billingStatus));
+
+        // Show "Storniert" if booking is cancelled, regardless of billing status
+        if ($bookingStatus == 'cancelled') {
+            $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t('Cancelled');
+        } else {
+            $rechnungsInfo .= "\n" . $this->t('Billing status') . ": " . $this->t(ucfirst($billingStatus));
+        }
+
         $rechnungsInfo .= "\n" . str_repeat('-', 40);
 
         return ['text' => $rechnungsInfo, 'total' => $total];
