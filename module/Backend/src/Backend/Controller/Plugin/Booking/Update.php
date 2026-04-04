@@ -65,7 +65,7 @@ class Update extends AbstractPlugin
 
             /* Update booking */
 
-            if ($mode == null || $mode == 'booking') {
+            if ($mode == null || $mode == 'booking' || $mode == 'reservation') {
 
                 /* Determine or create user */
 

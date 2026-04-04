@@ -481,6 +481,18 @@ class BookingController extends AbstractActionController
                         $checkEnd->setTime((int)$h, (int)$m);
 
                         $existingReservations = $reservationManager->getInRange($checkStart, $checkEnd);
+
+                        // Filter by actual time overlap (getInRange returns all reservations in date range for multi-day spans)
+                        $requestedTimeStart = $d['bf-time-start'];
+                        $requestedTimeEnd = $d['bf-time-end'];
+                        foreach ($existingReservations as $rid => $er) {
+                            $erTimeStart = substr($er->get('time_start'), 0, 5);
+                            $erTimeEnd = substr($er->get('time_end'), 0, 5);
+                            if ($erTimeEnd <= $requestedTimeStart || $erTimeStart >= $requestedTimeEnd) {
+                                unset($existingReservations[$rid]);
+                            }
+                        }
+
                         if ($existingReservations) {
                             $existingBookings = $bookingManager->getByReservations($existingReservations);
 
