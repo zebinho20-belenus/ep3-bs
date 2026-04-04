@@ -401,6 +401,55 @@ class UserManager extends AbstractManager
     }
 
     /**
+     * Atomically add an amount to a user's budget (e.g. refund).
+     *
+     * @param int $uid User ID
+     * @param float $amountEur Amount to add in EUR
+     * @return float|false New budget value on success, false if no budget row exists
+     */
+    public function addBudgetAtomic($uid, $amountEur)
+    {
+        $adapter = $this->userMetaTable->getAdapter();
+
+        $sql = "UPDATE bs_users_meta SET value = CAST(CAST(value AS DECIMAL(10,2)) + ? AS CHAR) WHERE uid = ? AND `key` = 'budget'";
+        $result = $adapter->query($sql, [$amountEur, $uid]);
+
+        if ($result->getAffectedRows() === 0) {
+            // No budget row exists — create one
+            $this->userMetaTable->insert(['uid' => $uid, 'key' => 'budget', 'value' => (string) $amountEur]);
+            return $amountEur;
+        }
+
+        $row = $this->userMetaTable->select(['uid' => $uid, 'key' => 'budget'])->current();
+        return $row ? (float) $row->value : false;
+    }
+
+    /**
+     * Atomically deduct an amount from a user's budget.
+     * Uses a single UPDATE query to prevent race conditions (double-spend).
+     *
+     * @param int $uid User ID
+     * @param float $amountEur Amount to deduct in EUR
+     * @return float|false New budget value on success, false if insufficient funds or no budget
+     */
+    public function deductBudgetAtomic($uid, $amountEur)
+    {
+        $adapter = $this->userMetaTable->getAdapter();
+
+        // Atomic: only deducts if sufficient balance exists
+        $sql = "UPDATE bs_users_meta SET value = CAST(CAST(value AS DECIMAL(10,2)) - ? AS CHAR) WHERE uid = ? AND `key` = 'budget' AND CAST(value AS DECIMAL(10,2)) >= ?";
+        $result = $adapter->query($sql, [$amountEur, $uid, $amountEur]);
+
+        if ($result->getAffectedRows() === 0) {
+            return false;
+        }
+
+        // Read back the new value
+        $row = $this->userMetaTable->select(['uid' => $uid, 'key' => 'budget'])->current();
+        return $row ? (float) $row->value : false;
+    }
+
+    /**
      * Deletes one user and all respective meta properties (through database foreign keys).
      *
      * @param int|User $user

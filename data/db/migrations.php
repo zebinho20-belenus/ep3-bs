@@ -42,4 +42,14 @@ return [
         'check' => "SHOW COLUMNS FROM bs_reservations LIKE 'status'",
         'file' => 'data/db/migrations/006-reservation-status.sql',
     ],
+    7 => [
+        'name' => 'remove-legacy-md5',
+        'check' => "SELECT 1 FROM bs_users_meta WHERE `key` = 'legacy-pw' HAVING COUNT(*) = 0",
+        'file' => 'data/db/migrations/007-remove-legacy-md5.sql',
+    ],
+    8 => [
+        'name' => 'convert-serialized-player-names',
+        'check' => "SELECT 1 FROM bs_bookings_meta WHERE `key` = 'player-names' AND value LIKE 'a:%' HAVING COUNT(*) = 0",
+        'file' => 'data/db/migrations/008-convert-serialized-player-names.sql',
+    ],
 ];

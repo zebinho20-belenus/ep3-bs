@@ -279,7 +279,7 @@ class BookingController extends AbstractActionController
                         /* Update player names: add/remove "Gastspieler" suffix */
                         $storedNames = $savedBooking->getMeta('player-names');
                         if ($storedNames) {
-                            $namesList = json_decode($storedNames, true) ?: @unserialize($storedNames, ['allowed_classes' => false]);
+                            $namesList = json_decode($storedNames, true);
                             if (is_array($namesList)) {
                                 foreach ($namesList as &$entry) {
                                     if (isset($entry['value'])) {
@@ -671,7 +671,7 @@ class BookingController extends AbstractActionController
             $playerNames = $booking->getMeta('player-names');
 
             if ($playerNames) {
-                $playerNamesUnserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'), ['allowed_classes' => false]);
+                $playerNamesUnserialized = json_decode($booking->getMeta('player-names'), true);
 
                 if ($playerNamesUnserialized && is_array($playerNamesUnserialized)) {
                     foreach ($playerNamesUnserialized as $i => $playerName) {
@@ -687,7 +687,7 @@ class BookingController extends AbstractActionController
         /* Extract player names for view */
         $playerNamesForView = [];
         if ($booking && $booking->getMeta('player-names')) {
-            $unserialized = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'), ['allowed_classes' => false]);
+            $unserialized = json_decode($booking->getMeta('player-names'), true);
             if (is_array($unserialized)) {
                 foreach ($unserialized as $i => $entry) {
                     $playerNamesForView[$i + 2] = $entry['value'];
@@ -1580,7 +1580,7 @@ class BookingController extends AbstractActionController
             throw new \RuntimeException('This booking has no additional player names');
         }
 
-        $playerNames = json_decode($booking->getMeta('player-names'), true) ?: @unserialize($booking->getMeta('player-names'), ['allowed_classes' => false]);
+        $playerNames = json_decode($booking->getMeta('player-names'), true);
 
         if (! $playerNames) {
             throw new \RuntimeException('Invalid player names data stored in database');
@@ -1674,12 +1674,6 @@ class BookingController extends AbstractActionController
             return false;
         }
 
-        // test
-        // $bid='1443';
-        // $event->type="payment_intent.payment_failed";
-        // end test
-
-        // syslog(LOG_EMERG, '|'.$bid.'|');  
 
         if (! (is_numeric($bid) && $bid > 0)) {
             // syslog(LOG_EMERG, 'This bid does not exist');
@@ -1740,7 +1734,7 @@ class BookingController extends AbstractActionController
             } 
 
         } catch(RuntimeException $e) {
-            syslog(LOG_EMERG, $e->getMessage());
+            error_log('Webhook error: ' . $e->getMessage());
             http_response_code(400);
             return false;
         }

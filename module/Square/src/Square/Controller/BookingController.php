@@ -489,16 +489,20 @@ class BookingController extends AbstractActionController
             } else {
                 # no paymentservice
                
-                # redefine user budget
+                # redefine user budget (atomic to prevent double-spend race condition)
                 if ($budgetpayment) {
                     $userManager = $serviceManager->get('User\Manager\UserManager');
-                    $user->setMeta('budget', $newbudget);
-                    $userManager->save($user);
+                    $budgetDeductAmount = $budget - $newbudget;
+                    $actualNewBudget = $userManager->deductBudgetAtomic($user->need('uid'), $budgetDeductAmount);
+                    if ($actualNewBudget === false) {
+                        throw new RuntimeException($this->t('Insufficient budget. Please try again.'));
+                    }
+                    $user->setMeta('budget', $actualNewBudget);
                     $booking->setMeta('budget', $budget);
-                    $booking->setMeta('newbudget', $newbudget);
+                    $booking->setMeta('newbudget', $actualNewBudget);
                     # set booking to paid
                     $booking->set('status_billing', 'paid');
-                    $notes = $notes . " payment with user budget | budget: " . $budget . " -> " . $newbudget;
+                    $notes = $notes . " payment with user budget | budget: " . $budget . " -> " . $actualNewBudget;
                     $booking->setMeta('notes', $notes);
                     $bookingManager->save($booking);
                 }
@@ -574,6 +578,14 @@ class BookingController extends AbstractActionController
 
         if ($confirmed == 'true') {
 
+            // CSRF validation
+            $session = new \Zend\Session\Container('csrf_cancel');
+            $csrfToken = $this->params()->fromPost('csrf_token', '');
+            if (!isset($session->token) || !hash_equals($session->token, $csrfToken)) {
+                throw new RuntimeException('Invalid security token. Please try again.');
+            }
+            $session->token = null;
+
             $bookingService = $serviceManager->get('Booking\Service\BookingService');
 
             $userManager = $serviceManager->get('User\Manager\UserManager');
@@ -597,9 +609,14 @@ class BookingController extends AbstractActionController
             return $this->redirectBack()->toOrigin();
         }
 
+        // Generate CSRF token for cancellation form
+        $session = new \Zend\Session\Container('csrf_cancel');
+        $session->token = bin2hex(random_bytes(32));
+
         return $this->ajaxViewModel(array(
             'bid' => $bid,
             'origin' => $origin,
+            'csrfToken' => $session->token,
         ));
     }
 
@@ -1045,6 +1062,22 @@ class BookingController extends AbstractActionController
             throw new RuntimeException('This booking has already been paid');
         }
 
+        // Rate limit: max 5 payment attempts per booking per hour
+        $payAttempts = (int) $booking->getMeta('payAttempts', 0);
+        $payAttemptsReset = $booking->getMeta('payAttemptsReset', '');
+        $now = time();
+        if ($payAttemptsReset && ($now - (int) $payAttemptsReset) > 3600) {
+            $payAttempts = 0;
+        }
+        if ($payAttempts >= 5) {
+            throw new RuntimeException($this->t('Too many payment attempts. Please try again later.'));
+        }
+        $booking->setMeta('payAttempts', $payAttempts + 1);
+        if ($payAttempts === 0) {
+            $booking->setMeta('payAttemptsReset', $now);
+        }
+        $bookingManager->save($booking);
+
         $bills = $bookingBillManager->getBy(array('bid' => $bid), 'bbid ASC');
         $total = 0;
         foreach ($bills as $bill) {
@@ -1137,6 +1170,14 @@ class BookingController extends AbstractActionController
         }
 
         $booking = $bookingManager->get($bid);
+
+        // SEC-006: Verify booking belongs to the current session user (defense-in-depth)
+        $userSessionManager = $serviceManager->get('User\Manager\UserSessionManager');
+        $sessionUser = $userSessionManager->getSessionUser();
+        if ($sessionUser && $booking->get('uid') != $sessionUser->get('uid')) {
+            throw new RuntimeException('You have no permission for this booking');
+        }
+
         $notes = $booking->getMeta('notes');
 
         $notes = $notes . $paymentNotes;
@@ -1204,14 +1245,20 @@ class BookingController extends AbstractActionController
                 $booking->setMeta('directpay_pending', 'false');
             }
 
-            # redefine user budget
+            # redefine user budget (atomic to prevent double-spend race condition)
             if ($booking->getMeta('hasBudget') == 'true') {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
-                $user = $userManager->get($booking->get('uid'));
-                $user->setMeta('budget', $booking->getMeta('newbudget'));
-                $userManager->save($user);
-                # set booking to paid
-                $notes = $notes . " payment with user budget (budget: " . $booking->getMeta('budget') . " -> " . $booking->getMeta('newbudget') . ") | ";
+                $oldBudget = (float) $booking->getMeta('budget');
+                $targetNewBudget = (float) $booking->getMeta('newbudget');
+                $deductAmount = $oldBudget - $targetNewBudget;
+                if ($deductAmount > 0) {
+                    $actualNewBudget = $userManager->deductBudgetAtomic($booking->get('uid'), $deductAmount);
+                    if ($actualNewBudget !== false) {
+                        $notes = $notes . " payment with user budget (budget: " . $oldBudget . " -> " . $actualNewBudget . ") | ";
+                    } else {
+                        $notes = $notes . " budget deduction failed (insufficient funds) | ";
+                    }
+                }
             }
 
             if ($booking->getMeta('payLater') == 'true') {

@@ -253,16 +253,8 @@ class BookingService extends AbstractService
         }
 
         $userManager = $this->serviceManager->get('User\Manager\UserManager');
-        $user = $userManager->get($booking->get('uid'));
-
-        $olduserbudget = $user->getMeta('budget');
-        if ($olduserbudget == null || $olduserbudget == '') {
-            $olduserbudget = 0;
-        }
-
-        $newbudget = ($olduserbudget * 100 + $total) / 100;
-        $user->setMeta('budget', $newbudget);
-        $userManager->save($user);
+        $refundEur = $total / 100;
+        $userManager->addBudgetAtomic($booking->get('uid'), $refundEur);
 
         return $total;
     }

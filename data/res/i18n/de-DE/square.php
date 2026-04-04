@@ -156,4 +156,7 @@ return array(
     '%sPayment successful!%s' => '%sZahlung erfolgreich!%s',
     '%sPayment failed. Please try again.%s' => '%sZahlung fehlgeschlagen. Bitte erneut versuchen.%s',
     'Please select a payment method' => 'Bitte wählen Sie eine Zahlungsmethode',
+    'Too many payment attempts. Please try again later.' => 'Zu viele Zahlungsversuche. Bitte versuchen Sie es später erneut.',
+    'Insufficient budget. Please try again.' => 'Unzureichendes Guthaben. Bitte versuchen Sie es erneut.',
+    'Please enter first and last name (min. 2 characters each)' => 'Bitte Vor- und Nachname eingeben (je min. 2 Zeichen)',
 );

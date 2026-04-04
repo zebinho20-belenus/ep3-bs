@@ -27,6 +27,7 @@ function showHide() {
     <p class="no-wrap">
         <form method="post" action="<?= $this->url('square/booking/cancellation', [], ['query' => ['bid' => $this->bid]]) ?>" style="display:inline" onsubmit="showHide();">
             <input type="hidden" name="confirmed" value="true">
+            <input type="hidden" name="csrf_token" value="<?= $this->csrfToken ?>">
             <button type="submit" class="default-button" id="cancel-button">
                 <span class="symbolic symbolic-cross"><?= $this->t('Yes, cancel this booking') ?></span>
             </button>

@@ -136,17 +136,6 @@ class UserSessionManager extends AbstractManager
         $bcrypt = new Bcrypt();
         $bcrypt->setCost(10);
 
-        /* If legacy password is detected, use it for login and then delete it */
-
-        if ($user->getMeta('legacy-pw')) {
-            $legacyPw = $user->getMeta('legacy-pw');
-
-            if (hash_equals($legacyPw, md5($pw))) {
-                $user->set('pw', $bcrypt->create($pw));
-                $user->setMeta('legacy-pw', null);
-            }
-        }
-
         /* Check original credentials */
 
         if ($bcrypt->verify($pw, $user->need('pw'))) {
@@ -161,8 +150,9 @@ class UserSessionManager extends AbstractManager
                     return new Result(Result::FAILURE_USER_STATUS, $user);
             }
 
-            /* Create the session */
+            /* Create the session — regenerate ID to prevent session fixation */
 
+            $this->sessionManager->regenerateId(true);
             $container = $this->getSessionContainer();
             $container->uid = $user->need('uid');
 	        $container->status = $user->need('status');

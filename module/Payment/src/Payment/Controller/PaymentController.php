@@ -461,7 +461,7 @@ class PaymentController extends AbstractActionController
             }
 
         } catch(RuntimeException $e) {
-            syslog(LOG_EMERG, $e->getMessage());
+            error_log('Payment webhook error: ' . $e->getMessage());
             http_response_code(400);
             return false;
         }
