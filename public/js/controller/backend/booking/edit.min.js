@@ -111,10 +111,6 @@
                     disableFormElement($scope.find("#bf-date-end"));
                 } else if (editMode == "reservation") {
                     disableFormElement($scope.find("#bf-user"));
-                    disableFormElement($scope.find("#bf-sid"));
-                    disableFormElement($scope.find("#bf-status-billing"));
-                    disableFormElement($scope.find("#bf-quantity"));
-                    disableFormElement($scope.find("#bf-notes"));
                 }
             }
         }
