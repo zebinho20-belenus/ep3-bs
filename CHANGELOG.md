@@ -1,15 +1,22 @@
 # Changelog
 
-## v2.2.2 Hotfix (2026-04-04)
+## v2.2.3 Hotfix (2026-04-04)
+
+### Improvements
+
+- **Edit email formatting**: Time changes now shown as combined range ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr") instead of separate "Start"/"Ende" lines. Context header shows which reservation was changed ("Geänderte Reservierung am DD.MM.YYYY:").
+- **Cancellation/deletion email formatting**: Compact one-line summary for affected reservation. Booking number in header. Affected reservation marked with arrow in overview list ("← gelöscht" / "← storniert"). Previously cancelled reservations also marked.
 
 ### Bug Fixes
 
-- **Edit email wrong reservation for subscriptions**: When editing a single reservation within a subscription booking, the change notification email showed data from the first reservation (earliest date) instead of the actually edited reservation. Both the "Changes" section (old/new values) and the "Current booking details" section were affected. Fixed by loading the edited reservation via its `rid` instead of `getBy(['bid' => ...], 'date ASC', 1)`.
+- **Edit email wrong reservation for subscriptions**: When editing a single reservation within a subscription booking, the change notification email showed data from the first reservation (earliest date) instead of the actually edited reservation. Fixed by loading the edited reservation via its `rid`.
 
 <details>
 <summary><b>Deutsche Zusammenfassung</b></summary>
 
-**Bugfix**: Beim Bearbeiten einer einzelnen Abo-Reservierung zeigte die Aenderungs-E-Mail die Daten der ersten Reservierung (fruehestes Datum) statt der tatsaechlich bearbeiteten Reservierung. Sowohl der Aenderungsabschnitt (alte/neue Werte) als auch die "Aktuelle Buchungsdetails" waren betroffen. Behoben durch Laden der bearbeiteten Reservierung ueber ihre `rid`.
+**Verbesserungen**: Aenderungs-E-Mail zeigt Zeitaenderungen als kombinierte Zeile ("Uhrzeit: 13:00 - 14:00 → 13:00 - 15:00 Uhr") statt einzelner Start/Ende-Zeilen. Kontextzeile zeigt welche Reservierung geaendert wurde. Stornierungs-/Loesch-E-Mail: kompakte Einzeiler-Zusammenfassung, Buchungsnummer im Header, betroffene Reservierung mit Pfeil markiert ("← geloescht"/"← storniert") in der Uebersicht.
+
+**Bugfix**: Edit-E-Mail zeigte bei Abo-Buchungen die Daten der ersten Reservierung statt der tatsaechlich bearbeiteten. Behoben durch Laden ueber `rid`.
 </details>
 
 ---

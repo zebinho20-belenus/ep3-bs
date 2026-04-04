@@ -113,7 +113,9 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 **Booking list**: `BookingFormat` checkbox `data-status` reflects reservation status (not just booking status) — enables bulk reactivation of cancelled reservations within active subscriptions.
 
-**Edit email**: `sendAdminBookingEditEmail()` accepts `$rid` parameter to load the correct reservation. Without `rid`, it falls back to the first reservation of the booking. Always pass `$d['bf-rid']` when calling from editAction.
+**Edit email**: `sendAdminBookingEditEmail()` accepts `$rid` parameter to load the correct reservation. Without `rid`, it falls back to the first reservation of the booking. Always pass `$d['bf-rid']` when calling from editAction. Time changes are combined into a single "Uhrzeit" line showing old/new range. Context header shows "Geaenderte Reservierung am DD.MM.YYYY:".
+
+**Cancel/delete email**: `sendReservationCancellationEmail()` shows compact one-line summary + affected reservation marked with "← geloescht"/"← storniert" in the overview list. Previously cancelled reservations also marked.
 
 ### Backend Booking List
 
