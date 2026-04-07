@@ -173,71 +173,75 @@ $actionLabels = [
     }
     ?>
 
-    <!-- Unified list: responsive, minimal, accordion -->
-    <div class="list-group list-group-flush">
-        <?php foreach ($processedEntries as $entry): $i = $entry['_index'];
-            $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
-            $msg = $entry['message'];
-            if (isset($d['changes_readable']) && !empty($d['changes_readable'])) {
-                if (($pos = strpos($msg, ' — ')) !== false) { $msg = substr($msg, 0, $pos); }
-                elseif (strpos($msg, 'Uhr:') !== false) { $msg = substr($msg, 0, strpos($msg, 'Uhr:') + 3); }
-            }
-            $ts = strtotime($entry['created']);
-            $dateStr = (date('Y', $ts) == date('Y')) ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
+    <!-- Unified: responsive cards with accordion detail -->
+    <?php foreach ($processedEntries as $entry): $i = $entry['_index'];
+        $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
+        $msg = $entry['message'];
+        if (isset($d['changes_readable']) && !empty($d['changes_readable'])) {
+            if (($pos = strpos($msg, ' — ')) !== false) { $msg = substr($msg, 0, $pos); }
+            elseif (strpos($msg, 'Uhr:') !== false) { $msg = substr($msg, 0, strpos($msg, 'Uhr:') + 3); }
+        }
+        $ts = strtotime($entry['created']);
+        $dateStr = (date('Y', $ts) == date('Y')) ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
+        $userName = $entry['user_name'] ?: (isset($d['user_name_full']) ? $d['user_name_full'] : '');
 
-            // Build detail lines
-            $detailLines = [];
-            if ($entry['user_name']) { $detailLines[] = 'von ' . $entry['user_name']; }
-            if (isset($d['changes_readable']) && is_array($d['changes_readable'])) {
-                foreach ($d['changes_readable'] as $cr) { $detailLines[] = $cr; }
-            } elseif (isset($d['changes']) && is_array($d['changes'])) {
-                foreach ($d['changes'] as $ck => $cv) {
-                    if (is_array($cv) && isset($cv['old']) && isset($cv['new'])) {
-                        $detailLines[] = $ck . ': ' . $cv['old'] . ' &rarr; ' . $cv['new'];
-                    }
+        // Build detail lines
+        $detailLines = [];
+        if (isset($d['changes_readable']) && is_array($d['changes_readable'])) {
+            foreach ($d['changes_readable'] as $cr) { $detailLines[] = $cr; }
+        } elseif (isset($d['changes']) && is_array($d['changes'])) {
+            foreach ($d['changes'] as $ck => $cv) {
+                if (is_array($cv) && isset($cv['old']) && isset($cv['new'])) {
+                    $detailLines[] = $ck . ': ' . $cv['old'] . ' &rarr; ' . $cv['new'];
                 }
             }
-            if (isset($d['square_name']) && $d['square_name']) { $detailLines[] = $d['square_name']; }
-            if (isset($d['user_name_full']) && $d['user_name_full']) { $detailLines[] = $d['user_name_full']; }
-            if (isset($d['player_names']) && is_array($d['player_names'])) { $detailLines[] = implode(', ', $d['player_names']); }
-            if (isset($d['paymentMethod']) && $d['paymentMethod']) { $detailLines[] = ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']); }
-            if (isset($d['budget']) && $d['budget']) { $detailLines[] = 'Budget: ' . $d['budget'] . ' &rarr; ' . ($d['newbudget'] ?? '0'); }
-            if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) { $detailLines[] = 'Budget: ' . ($d['budget_old'] ?: '0') . ' &rarr; ' . $d['budget_new']; }
-            if ($entry['ip'] && ($entry['action'] == 'login' || $entry['action'] == 'login_failed')) {
-                $ipLine = $entry['ip'];
-                if (isset($d['countryCode']) && $d['countryCode']) { $ipLine .= ' (' . $d['countryCode'] . ')'; }
-                $detailLines[] = $ipLine;
-            }
-        ?>
-        <div class="list-group-item list-group-item-action px-2 py-2" style="cursor:pointer;" onclick="var b=document.getElementById('audit-body-<?= $i ?>');b.style.display=b.style.display=='none'?'block':'none';">
-            <div class="d-flex justify-content-between align-items-center">
-                <div style="font-size: 0.84rem; min-width: 0;">
-                    <span class="badge bg-<?= $entry['_badge'][1] ?> bg-opacity-75" style="font-size: 0.7rem;"><?= $entry['_badge'][0] ?></span>
-                    <span class="text-dark"><?= $this->escapeHtml($entry['_action_label']) ?></span>
-                    <span class="text-muted d-none d-md-inline">&middot;</span>
-                    <span class="text-muted text-truncate d-none d-md-inline" style="font-size: 0.82rem;"><?= $this->escapeHtml($msg) ?></span>
+        }
+        if (isset($d['square_name']) && $d['square_name']) { $detailLines[] = $d['square_name']; }
+        if (isset($d['user_name_full']) && $d['user_name_full'] && $d['user_name_full'] != $userName) { $detailLines[] = $d['user_name_full']; }
+        if (isset($d['player_names']) && is_array($d['player_names'])) { $detailLines[] = implode(', ', $d['player_names']); }
+        if (isset($d['paymentMethod']) && $d['paymentMethod']) { $detailLines[] = ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']); }
+        if (isset($d['budget']) && $d['budget']) { $detailLines[] = 'Budget: ' . $d['budget'] . ' &rarr; ' . ($d['newbudget'] ?? '0'); }
+        if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) { $detailLines[] = 'Budget: ' . ($d['budget_old'] ?: '0') . ' &rarr; ' . $d['budget_new']; }
+        if ($entry['ip'] && ($entry['action'] == 'login' || $entry['action'] == 'login_failed')) {
+            $ipLine = $entry['ip'];
+            if (isset($d['countryCode']) && $d['countryCode']) { $ipLine .= ' (' . $d['countryCode'] . ')'; }
+            $detailLines[] = $ipLine;
+        }
+        $hasDetails = !empty($detailLines) || $entry['detail'];
+    ?>
+    <div class="card mb-2 <?= $hasDetails ? '' : 'border-0 bg-transparent' ?>" <?= $hasDetails ? 'style="cursor:pointer;" onclick="var b=document.getElementById(\'audit-body-' . $i . '\');b.style.display=b.style.display==\'none\'?\'block\':\'none\';"' : '' ?>>
+        <div class="card-body p-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="badge bg-<?= $entry['_badge'][1] ?> bg-opacity-75" style="font-size: 0.68rem;"><?= $entry['_badge'][0] ?></span>
+                    <strong style="font-size: 0.82rem;"><?= $this->escapeHtml($entry['_action_label']) ?></strong>
+                    <?php if ($userName): ?>
+                        <span class="text-muted" style="font-size: 0.8rem;">&middot; <?= $this->escapeHtml($userName) ?></span>
+                    <?php endif; ?>
                 </div>
-                <small class="text-muted text-nowrap ms-2"><?= $dateStr ?></small>
+                <small class="text-muted text-nowrap ms-2" style="font-size: 0.75rem;"><?= $dateStr ?></small>
             </div>
-            <div class="text-muted text-truncate d-md-none" style="font-size: 0.82rem;"><?= $this->escapeHtml($msg) ?></div>
+            <div class="text-muted" style="font-size: 0.82rem; margin-top: 0.15rem;"><?= $this->escapeHtml($msg) ?></div>
         </div>
-        <div id="audit-body-<?= $i ?>" class="list-group-item px-2 py-2 bg-light" style="display:none; border-top:none;">
+        <?php if ($hasDetails): ?>
+        <div id="audit-body-<?= $i ?>" class="card-footer bg-light p-2" style="display:none;">
             <?php if ($detailLines): ?>
-            <ul class="list-unstyled mb-1" style="font-size: 0.8rem; padding-left: 0.75rem; border-left: 2px solid #dee2e6;">
+            <ul class="list-unstyled mb-1" style="font-size: 0.78rem; padding-left: 0.6rem; border-left: 2px solid #ced4da;">
                 <?php foreach ($detailLines as $line): ?>
-                <li class="text-muted"><?= $line ?></li>
+                <li class="py-0 text-secondary"><?= $line ?></li>
                 <?php endforeach; ?>
             </ul>
             <?php endif; ?>
             <?php if ($entry['detail']): ?>
-            <a href="#" class="text-muted" style="font-size: 0.72rem;" onclick="event.stopPropagation();var j=document.getElementById('audit-json-<?= $i ?>');j.style.display=j.style.display=='none'?'block':'none';return false;">
+            <a href="#" class="text-secondary" style="font-size: 0.7rem; text-decoration: none;" onclick="event.stopPropagation();var j=document.getElementById('audit-json-<?= $i ?>');j.style.display=j.style.display=='none'?'block':'none';return false;">
                 <span class="fa fa-code"></span> JSON
             </a>
-            <pre id="audit-json-<?= $i ?>" class="mb-0 mt-1 p-2 bg-white border rounded" style="display:none; font-size: 0.7rem; white-space: pre-wrap; max-height: 200px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+            <pre id="audit-json-<?= $i ?>" class="mb-0 mt-1 p-2 bg-white border rounded" style="display:none; font-size: 0.68rem; white-space: pre-wrap; max-height: 180px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
             <?php endif; ?>
         </div>
-        <?php endforeach; ?>
+        <?php endif; ?>
     </div>
+    <?php endforeach; ?>
 
     <?php endif; ?>
 </div>
