@@ -468,6 +468,28 @@ German translations (primary) in `data/res/i18n/de-DE/`:
 
 ---
 
+## Audit-Log System (Apr 2026)
+
+Comprehensive audit logging for all system actions with dual output (DB + file).
+
+- **Table**: `bs_audit_log` (auto-migration on startup)
+- **File**: `data/log/audit.log` (JSON-per-line, 5 MB rotation)
+- **DB Cleanup**: MySQL event, retention configurable under Backend → Verhalten
+- **Backend UI**: `/backend/audit` — modern card-style, filterable by date/category/search
+- **Change History**: Per-booking audit trail in edit dialog (collapsible, last 20 entries)
+- **GeoIP**: Login events show IP + country code
+- **Logged actions**: Booking CRUD, payments, login, user edits, events, config changes
+
+### Per-Reservation Overrides
+
+Individual subscription reservations can have own square, billing status, and player count — stored as meta overrides in `bs_reservations_meta`. Calendar shows correct square, booking list shows override badge.
+
+### Conflict Detection on Edit
+
+Pre-save conflict check when editing bookings (same logic as create). Considers per-reservation overrides for moved reservations. Extended conflict table with booking ID and subscription info.
+
+---
+
 ## Security
 
 ### Server Hardening (Mar 2026)

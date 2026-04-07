@@ -49,6 +49,7 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 - `/square/booking/payment/pay/:bid` — Pay open bill (payLater)
 - `/square/booking/payment/done|confirm` — Payum callbacks
 - `/backend/booking` — Booking list; `/user/bookings/bills/:bid` — Bill view
+- `/backend/audit` — Audit log (all system actions, filterable)
 
 ### Frontend
 
@@ -130,6 +131,28 @@ Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pas
 
 `bs_options` key `service.maintenance`: `false`=enabled, `administration`=admin+assist only, `true`=maintenance (503). Login route always accessible; no link on status page.
 
+### Audit-Log System
+
+`bs_audit_log` table — flat append-only, no meta table. `AuditService::log($category, $action, $message, $options)` writes to DB + `data/log/audit.log` (JSON-per-line). Fire-and-forget (try-catch, never breaks main flow).
+
+- **AuditListener**: Hooks into `BookingService` events (`create.single`, `cancel.single`). Attached in `BookingServiceFactory`.
+- **Direct calls**: Login/logout (`SessionController`), payment (`Square\BookingController::doneAction`), admin actions (`Backend\BookingController::audit()`), user/event edits.
+- **Log rotation**: 5 MB max, 3 rotated files (`.1`, `.2`, `.3`).
+- **DB cleanup**: MySQL event `cleanup_audit_log` (daily 03:00), retention configurable via `bs_options` key `service.audit.retention-days` (default 90).
+- **GeoIP**: Login events resolve IP to country via `ip-api.com` (2s timeout, private IPs skipped).
+- **Backend UI**: `/backend/audit` — card-style entries, filterable by date/category/search.
+- **Change History**: Booking edit dialog shows collapsible audit trail per booking (last 20 entries).
+
+### Per-Reservation Overrides
+
+Subscription reservations can have individual overrides stored in `bs_reservations_meta`:
+- `sid_override` — different square for this reservation
+- `status_billing_override` — different billing status
+- `quantity_override` — different player count
+- `notes_override` — different notes
+
+Overrides only stored when value differs from booking. Calendar `ReservationsForCell` checks `sid_override`. `BookingFormat` shows `≠` badge. Conflict detection considers `sid_override`.
+
 ## Coding Standards
 
 - **PSR-4**: `\{Module}\{Class}` → `module/{Module}/src/{Module}/{Class}.php`
@@ -154,6 +177,9 @@ Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pas
 | Translations | `data/res/i18n/de-DE/booking.php`, `square.php`, `backend.php` |
 | Booking list helper | `module/Backend/src/Backend/View/Helper/Booking/BookingFormat.php` |
 | Booking update plugin | `module/Backend/src/Backend/Controller/Plugin/Booking/Update.php` |
+| Audit service | `module/Base/src/Base/Service/AuditService.php` |
+| Audit listener | `module/Base/src/Base/Service/Listener/AuditListener.php` |
+| Audit controller | `module/Backend/src/Backend/Controller/AuditController.php` |
 | Migrations | `data/db/migrations.php` (registry), `data/db/migrations/*.sql` |
 
 ## Docker
