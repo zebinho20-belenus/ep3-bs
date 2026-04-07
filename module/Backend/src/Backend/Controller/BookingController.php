@@ -598,13 +598,22 @@ class BookingController extends AbstractActionController
                         'uid' => 'Benutzer',
                         'status_billing' => 'Rechnungsstatus',
                         'quantity' => 'Spieler',
-                        'notes' => 'Notizen',
                         'date' => 'Datum',
-                        'time_start' => 'Uhrzeit (Start)',
-                        'time_end' => 'Uhrzeit (Ende)',
                         'gp' => 'Gastspieler',
                     ];
+                    // Combine time_start + time_end into one "Uhrzeit" line
+                    $hasTimeChange = isset($changes['time_start']) || isset($changes['time_end']);
+                    if ($hasTimeChange) {
+                        $oldStart = isset($changes['time_start']) ? substr($changes['time_start']['old'], 0, 5) : substr($updatedReservation->get('time_start'), 0, 5);
+                        $oldEnd = isset($changes['time_end']) ? substr($changes['time_end']['old'], 0, 5) : substr($updatedReservation->get('time_end'), 0, 5);
+                        $newStart = substr($updatedReservation->get('time_start'), 0, 5);
+                        $newEnd = substr($updatedReservation->get('time_end'), 0, 5);
+                        $readableChanges[] = sprintf('Uhrzeit: %s-%s → %s-%s Uhr', $oldStart, $oldEnd, $newStart, $newEnd);
+                    }
                     foreach ($changes as $key => $change) {
+                        if ($key === 'time_start' || $key === 'time_end' || $key === 'notes') {
+                            continue;
+                        }
                         $label = isset($labelMap[$key]) ? $labelMap[$key] : $key;
                         $oldVal = $change['old'];
                         $newVal = $change['new'];
@@ -612,16 +621,9 @@ class BookingController extends AbstractActionController
                             try { $oldVal = 'Platz ' . $squareManager->get($oldVal)->get('name'); } catch (\Exception $e) {}
                             try { $newVal = 'Platz ' . $squareManager->get($newVal)->get('name'); } catch (\Exception $e) {}
                         }
-                        if ($key === 'time_start' || $key === 'time_end') {
-                            $oldVal = substr($oldVal, 0, 5);
-                            $newVal = substr($newVal, 0, 5);
-                        }
                         if ($key === 'date') {
                             try { $oldVal = date('d.m.Y', strtotime($oldVal)); } catch (\Exception $e) {}
                             try { $newVal = date('d.m.Y', strtotime($newVal)); } catch (\Exception $e) {}
-                        }
-                        if ($key === 'notes') {
-                            continue; // Notizen-Änderungen nicht in Kurzanzeige
                         }
                         $readableChanges[] = sprintf('%s: %s → %s', $label, $oldVal, $newVal);
                     }
