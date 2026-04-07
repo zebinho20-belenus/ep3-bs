@@ -17,6 +17,16 @@ $categoryLabels = [
 
 $pmLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', 'budget' => 'Budget', 'paylater' => 'Spaeter', 'member' => 'Mitglied'];
 
+$actionLabels = [
+    'create' => 'Erstellt', 'cancel' => 'Storniert', 'delete' => 'Geloescht', 'edit' => 'Bearbeitet',
+    'reactivate' => 'Reaktiviert', 'edit_bill' => 'Rechnung', 'edit_user' => 'Bearbeitet',
+    'disable_user' => 'Deaktiviert', 'delete_user' => 'Geloescht',
+    'create_event' => 'Erstellt', 'edit_event' => 'Bearbeitet', 'delete_event' => 'Geloescht',
+    'login' => 'Login', 'login_failed' => 'Login fehlgeschl.', 'logout' => 'Logout',
+    'payment_success' => 'Bezahlt', 'payment_failed' => 'Fehlgeschlagen', 'budget_refund' => 'Rueckerstattung',
+    'config_change' => 'Geaendert',
+];
+
 ?>
 
 <div>
@@ -132,49 +142,57 @@ $pmLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', '
             $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget_old'] ?: '0') . '&rarr;' . $this->escapeHtml($d['budget_new']) . '</small>';
         }
         $entry['_info'] = $infoParts ? implode(' | ', $infoParts) : '';
+        $entry['_info_stacked'] = $infoParts ? implode('<br>', $infoParts) : '';
         $entry['_index'] = $i;
         $cat = $entry['category'];
         $entry['_badge'] = isset($categoryLabels[$cat]) ? $categoryLabels[$cat] : [$cat, 'secondary'];
+        $entry['_action_label'] = isset($actionLabels[$entry['action']]) ? $actionLabels[$entry['action']] : $entry['action'];
         $processedEntries[] = $entry;
     }
     ?>
 
     <!-- Desktop: Table -->
+    <style>
+        .audit-table tr.audit-row { cursor: pointer; transition: background-color 0.15s; }
+        .audit-table tr.audit-row:hover { background-color: rgba(0,0,0,0.04); }
+        .audit-table .audit-detail-row td { background-color: #f8f9fa; border-top: none; }
+    </style>
     <div class="d-none d-lg-block">
         <div class="table-responsive">
-            <table class="table table-striped table-sm" style="font-size: 0.85rem;">
-                <thead>
+            <table class="table table-sm audit-table" style="font-size: 0.85rem;">
+                <thead class="table-light">
                     <tr>
-                        <th style="width: 140px;"><?= $this->t('Date') ?></th>
-                        <th style="width: 80px;"><?= $this->t('Category') ?></th>
-                        <th style="width: 100px;"><?= $this->t('Action') ?></th>
-                        <th style="width: 120px;"><?= $this->t('User') ?></th>
-                        <th><?= $this->t('Message') ?></th>
-                        <th style="width: 180px;">Info</th>
-                        <th style="width: 60px;"><?= $this->t('Details') ?></th>
+                        <th style="width: 100px;"><?= $this->t('Date') ?></th>
+                        <th style="width: 160px;">Typ</th>
+                        <th style="width: 110px;">von</th>
+                        <th>Beschreibung</th>
+                        <th style="width: 200px;">Info</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($processedEntries as $entry): $i = $entry['_index']; ?>
-                    <tr>
-                        <td class="text-nowrap"><?= date('d.m.Y H:i:s', strtotime($entry['created'])) ?></td>
-                        <td><span class="badge bg-<?= $entry['_badge'][1] ?>"><?= $entry['_badge'][0] ?></span></td>
-                        <td><?= $this->escapeHtml($entry['action']) ?></td>
-                        <td><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
-                        <td><?= $this->escapeHtml($entry['message']) ?></td>
-                        <td style="font-size: 0.8rem;"><?= $entry['_info'] ?: '-' ?></td>
+                    <tr class="audit-row" onclick="var d=document.getElementById('detail-<?= $i ?>');if(d)d.style.display=d.style.display=='none'?'table-row':'none';">
+                        <td class="text-nowrap text-muted" style="font-size: 0.8rem;">
+                            <?php
+                            $ts = strtotime($entry['created']);
+                            $isThisYear = date('Y', $ts) == date('Y');
+                            echo $isThisYear ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
+                            ?>
+                        </td>
                         <td>
-                            <?php if ($entry['detail']): ?>
-                                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="var d=document.getElementById('detail-<?= $i ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
-                                    <span class="fa fa-info-circle"></span>
-                                </a>
-                            <?php endif; ?>
+                            <span class="badge bg-<?= $entry['_badge'][1] ?>"><?= $entry['_badge'][0] ?></span>
+                            <span class="text-muted" style="font-size: 0.8rem;"><?= $this->escapeHtml($entry['_action_label']) ?></span>
+                        </td>
+                        <td style="font-size: 0.82rem;"><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
+                        <td><?= $this->escapeHtml($entry['message']) ?></td>
+                        <td style="font-size: 0.8rem; line-height: 1.4;">
+                            <?= $entry['_info_stacked'] ?: '<span class="text-muted">-</span>' ?>
                         </td>
                     </tr>
                     <?php if ($entry['detail']): ?>
-                    <tr id="detail-<?= $i ?>" style="display: none;">
-                        <td colspan="7">
-                            <pre class="mb-0 p-2 bg-light" style="font-size: 0.8rem; white-space: pre-wrap;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+                    <tr id="detail-<?= $i ?>" class="audit-detail-row" style="display: none;">
+                        <td colspan="5">
+                            <pre class="mb-0 p-2" style="font-size: 0.78rem; white-space: pre-wrap; max-height: 300px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
                         </td>
                     </tr>
                     <?php endif; ?>
