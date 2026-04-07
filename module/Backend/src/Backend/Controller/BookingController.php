@@ -63,8 +63,13 @@ class BookingController extends AbstractActionController
 
                 if ($dateStart && $dateEnd) {
                     $totalCount = $reservationManager->countInRange($dateStart, $dateEnd);
-                    $reservations = $reservationManager->getInRange($dateStart, $dateEnd, $pageSize, $offset);
-                    $bookings = $bookingManager->getByReservations($reservations, $filters['filters']);
+                    $bids = $reservationManager->getDistinctBidsInRange($dateStart, $dateEnd, $pageSize, $offset);
+
+                    if ($bids) {
+                        $bookings = $bookingManager->getBy(
+                            array_merge([new \Zend\Db\Sql\Predicate\In(BookingTable::NAME . '.bid', $bids)], $filters['filters'])
+                        );
+                    }
                 } else {
                     $bookings = $bookingManager->getBy($filters['filters'], null, $pageSize, $offset);
                     $totalCount = count($bookings) + $offset;
