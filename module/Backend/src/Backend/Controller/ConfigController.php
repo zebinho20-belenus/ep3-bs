@@ -166,6 +166,10 @@ class ConfigController extends AbstractActionController
                 $optionManager->set('service.calendar.display-club-exceptions', $calendarDisplayClubExceptions);
                 $optionManager->set('service.no-email-statuses', $noEmailStatuses);
 
+                $auditRetentionDays = (int) $data['cf-audit-retention-days'];
+                if ($auditRetentionDays < 7) { $auditRetentionDays = 90; }
+                $optionManager->set('service.audit.retention-days', $auditRetentionDays);
+
                 $this->flashMessenger()->addSuccessMessage('Configuration has been saved');
             } else {
                 $this->flashMessenger()->addErrorMessage('Configuration is (partially) invalid');
@@ -183,6 +187,7 @@ class ConfigController extends AbstractActionController
             $behaviourForm->get('cf-calendar-club-exceptions')->setValue($optionManager->get('service.calendar.club-exceptions'));
             $behaviourForm->get('cf-calendar-display-club-exceptions')->setValue($optionManager->get('service.calendar.display-club-exceptions'));
             $behaviourForm->get('cf-no-email-statuses')->setValue($optionManager->get('service.no-email-statuses'));
+            $behaviourForm->get('cf-audit-retention-days')->setValue($optionManager->get('service.audit.retention-days', '90'));
         }
 
         return array(

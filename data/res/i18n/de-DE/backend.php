@@ -577,4 +577,5 @@ return array(
     'Date to' => 'Datum bis',
     'No entries found' => 'Keine Eintraege gefunden',
     'Reset' => 'Zuruecksetzen',
+    'Audit-Log retention (days)' => 'Audit-Log Aufbewahrung (Tage)',
 );

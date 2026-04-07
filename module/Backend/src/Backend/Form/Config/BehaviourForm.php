@@ -154,6 +154,20 @@ class BehaviourForm extends Form
         ));
 
         $this->add(array(
+            'name' => 'cf-audit-retention-days',
+            'type' => 'Text',
+            'attributes' => array(
+                'id' => 'cf-audit-retention-days',
+                'style' => 'width: 100px;',
+                'placeholder' => '90',
+            ),
+            'options' => array(
+                'label' => 'Audit-Log retention (days)',
+                'notes' => 'Number of days to keep audit log entries in the database.<br>Older entries are automatically deleted daily at 03:00.<br>Default: 90',
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'cf-calendar-display-club-exceptions',
             'type' => 'Checkbox',
             'attributes' => array(
