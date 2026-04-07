@@ -30,16 +30,19 @@ $this->setup(array(
         <table class="table table-sm table-bordered mb-2 bg-white">
             <thead>
                 <tr>
+                    <th>#</th>
                     <th><?= $this->t('Name') ?></th>
                     <th><?= $this->t('Date') ?></th>
                     <th><?= $this->t('Time') ?></th>
                     <th><?= $this->t('Court') ?></th>
                     <th><?= $this->t('Type') ?></th>
+                    <th>Abo-Info</th>
                 </tr>
             </thead>
             <tbody>
             <?php foreach ($this->conflicts as $conflict): ?>
                 <tr>
+                    <td><?= $conflict['bid'] ?? '' ?></td>
                     <td><strong><?= $this->escapeHtml($conflict['user']) ?></strong></td>
                     <td><?= $conflict['date'] ?></td>
                     <td><?= $conflict['time'] ?></td>
@@ -48,6 +51,21 @@ $this->setup(array(
                         <span class="badge bg-<?= $conflict['status'] == 'subscription' ? 'primary' : 'secondary' ?>">
                             <?= $this->t(ucfirst($conflict['status'])) ?>
                         </span>
+                    </td>
+                    <td>
+                        <?php if (isset($conflict['repeat']) && $conflict['repeat']): ?>
+                            <?php
+                            $repeatLabels = ['1' => 'taeglich', '2' => 'woechentlich', '3' => '2-woechentlich', '4' => 'monatlich'];
+                            $repeatLabel = isset($repeatLabels[$conflict['repeat']]) ? $repeatLabels[$conflict['repeat']] : $conflict['repeat'];
+                            $dateRange = '';
+                            if (isset($conflict['date_start']) && isset($conflict['date_end'])) {
+                                $dateRange = date('d.m.', strtotime($conflict['date_start'])) . '-' . date('d.m.Y', strtotime($conflict['date_end']));
+                            }
+                            ?>
+                            <small><?= $repeatLabel ?><?= $dateRange ? ', ' . $dateRange : '' ?></small>
+                        <?php else: ?>
+                            -
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

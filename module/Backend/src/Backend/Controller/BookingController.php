@@ -289,6 +289,87 @@ class BookingController extends AbstractActionController
 
                 if ($d['bf-rid']) {
 
+                    /* Check for conflicts before updating */
+                    $conflicts = [];
+                    if (!$d['bf-force-create']) {
+                        $reservationManager = $serviceManager->get('Booking\Manager\ReservationManager');
+                        $bookingManager = $serviceManager->get('Booking\Manager\BookingManager');
+                        $userManager = $serviceManager->get('User\Manager\UserManager');
+
+                        $currentReservation = $reservationManager->get($d['bf-rid']);
+                        $currentBooking = $bookingManager->get($currentReservation->get('bid'));
+
+                        $checkDate = new \DateTime($d['bf-date-start']);
+                        list($h, $m) = explode(':', $d['bf-time-start']);
+                        $checkStart = clone $checkDate;
+                        $checkStart->setTime((int)$h, (int)$m);
+                        list($h, $m) = explode(':', $d['bf-time-end']);
+                        $checkEnd = clone $checkDate;
+                        $checkEnd->setTime((int)$h, (int)$m);
+
+                        $existingReservations = $reservationManager->getInRange($checkStart, $checkEnd);
+
+                        // Filter by time overlap
+                        foreach ($existingReservations as $rid => $er) {
+                            $erTimeStart = substr($er->get('time_start'), 0, 5);
+                            $erTimeEnd = substr($er->get('time_end'), 0, 5);
+                            if ($erTimeEnd <= $d['bf-time-start'] || $erTimeStart >= $d['bf-time-end']) {
+                                unset($existingReservations[$rid]);
+                            }
+                        }
+
+                        // Exclude own reservation
+                        unset($existingReservations[$d['bf-rid']]);
+
+                        if ($existingReservations) {
+                            $existingBookings = $bookingManager->getByReservations($existingReservations);
+
+                            foreach ($existingBookings as $eb) {
+                                if ($eb->get('sid') == $d['bf-sid']
+                                    && $eb->get('status') != 'cancelled'
+                                    && $eb->get('visibility') == 'public'
+                                    && $eb->get('bid') != $currentBooking->get('bid')) {
+                                    $hasActive = false;
+                                    foreach ($existingReservations as $er) {
+                                        if ($er->get('bid') == $eb->get('bid')
+                                            && $er->get('status', 'confirmed') != 'cancelled') {
+                                            $hasActive = true;
+                                            break;
+                                        }
+                                    }
+                                    if ($hasActive) {
+                                        try {
+                                            $ebUser = $userManager->get($eb->get('uid'));
+                                        } catch (\Exception $e) {
+                                            $ebUser = null;
+                                        }
+                                        $ebSquare = $squareManager->get($eb->get('sid'));
+                                        $ebRes = current($reservationManager->getBy(['bid' => $eb->get('bid')], 'date ASC', 1));
+                                        $conflictEntry = [
+                                            'user' => $ebUser ? $ebUser->get('alias') : '?',
+                                            'date' => $ebRes ? date('d.m.Y', strtotime($ebRes->get('date'))) : '-',
+                                            'time' => $d['bf-time-start'] . ' - ' . $d['bf-time-end'],
+                                            'square' => $ebSquare->get('name'),
+                                            'status' => $eb->get('status'),
+                                            'bid' => $eb->get('bid'),
+                                        ];
+                                        if ($eb->get('status') == 'subscription') {
+                                            $conflictEntry['repeat'] = $eb->getMeta('repeat');
+                                            $conflictEntry['date_start'] = $eb->getMeta('date_start');
+                                            $conflictEntry['date_end'] = $eb->getMeta('date_end');
+                                        }
+                                        $conflicts[] = $conflictEntry;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if ($conflicts) {
+                        $editForm->get('bf-force-create')->setValue('1');
+                        // Fall through to form rendering with conflicts
+                    } else {
+
                     /* Update booking/reservation */
 
                     $updateResult = $this->backendBookingUpdate($d['bf-rid'], $d['bf-user'], $d['bf-time-start'], $d['bf-time-end'], $d['bf-date-start'],
@@ -520,6 +601,8 @@ class BookingController extends AbstractActionController
                         return $this->redirect()->toRoute('frontend', [], ['query' => []]);
                     }
 
+                    } /* end: no conflicts — update completed */
+
                 } else {
 
                     /* Check for booking conflicts before creating */
@@ -575,13 +658,20 @@ class BookingController extends AbstractActionController
                                         }
                                         $ebSquare = $squareManager->get($eb->get('sid'));
                                         $ebRes = current($reservationManager->getBy(['bid' => $eb->get('bid')], 'date ASC', 1));
-                                        $conflicts[] = [
+                                        $conflictEntry = [
                                             'user' => $ebUser ? $ebUser->get('alias') : '?',
                                             'date' => $ebRes ? date('d.m.Y', strtotime($ebRes->get('date'))) : '-',
                                             'time' => $d['bf-time-start'] . ' - ' . $d['bf-time-end'],
                                             'square' => $ebSquare->get('name'),
                                             'status' => $eb->get('status'),
+                                            'bid' => $eb->get('bid'),
                                         ];
+                                        if ($eb->get('status') == 'subscription') {
+                                            $conflictEntry['repeat'] = $eb->getMeta('repeat');
+                                            $conflictEntry['date_start'] = $eb->getMeta('date_start');
+                                            $conflictEntry['date_end'] = $eb->getMeta('date_end');
+                                        }
+                                        $conflicts[] = $conflictEntry;
                                     }
                                 }
                             }
