@@ -1259,7 +1259,7 @@ class BookingController extends AbstractActionController
                     // Now delete the booking
                     $bookingManager->delete($booking);
 
-                    $this->audit('delete', sprintf('Buchung #%s geloescht (uid=%s)', $booking->get('bid'), $booking->get('uid')), $booking);
+                    $this->audit('delete', sprintf('Buchung #%s geloescht', $booking->get('bid')), $booking);
                     $this->flashMessenger()->addSuccessMessage('Booking has been deleted');
                 }
             }
@@ -3454,6 +3454,23 @@ class BookingController extends AbstractActionController
         try {
             $serviceManager = $this->getServiceLocator();
             $sessionUser = $serviceManager->get('User\Manager\UserSessionManager')->getSessionUser();
+
+            // Resolve booking user + square names
+            if ($booking) {
+                $userManager = $serviceManager->get('User\Manager\UserManager');
+                $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+                try {
+                    $bookingUser = $userManager->get($booking->get('uid'));
+                    $detail['user_name_full'] = trim($bookingUser->getMeta('firstname') . ' ' . $bookingUser->getMeta('lastname')) ?: $bookingUser->get('alias');
+                } catch (\Exception $e) {
+                    $detail['user_name_full'] = 'uid=' . $booking->get('uid');
+                }
+                try {
+                    $square = $squareManager->get($booking->get('sid'));
+                    $detail['square_name'] = $square->get('name');
+                } catch (\Exception $e) {}
+            }
+
             $serviceManager->get('Base\Service\AuditService')->log('admin', $action, $message, [
                 'user_id' => $sessionUser ? $sessionUser->get('uid') : null,
                 'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
