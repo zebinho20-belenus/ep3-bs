@@ -465,7 +465,7 @@ class BookingController extends AbstractActionController
             if (($payservice == 'paypal' || $payservice == 'stripe' || $payservice == 'klarna') && $payable) {
             # payment checkout
                    $booking->setMeta('paymentMethod', $payservice);
-                   $booking->setMeta('hasBudget', $byproducts['hasBudget']);
+                   $booking->setMeta('hasBudget', $byproducts['hasBudget'] ? 'true' : 'false');
                    if(array_key_exists('newbudget', $byproducts)) {
                        $booking->setMeta('newbudget', $byproducts['newbudget']);
                    }
