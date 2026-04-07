@@ -52,11 +52,11 @@ class Update extends AbstractPlugin
             /* Capture old values before update */
 
             $oldData = array(
-                'sid' => $booking->get('sid'),
+                'sid' => $reservation->getMeta('sid_override') ?: $booking->get('sid'),
                 'uid' => $booking->get('uid'),
-                'status_billing' => $booking->get('status_billing'),
-                'quantity' => $booking->get('quantity'),
-                'notes' => $booking->getMeta('notes', ''),
+                'status_billing' => $reservation->getMeta('status_billing_override') ?: $booking->get('status_billing'),
+                'quantity' => $reservation->getMeta('quantity_override') ?: $booking->get('quantity'),
+                'notes' => $reservation->getMeta('notes_override') ?: $booking->getMeta('notes', ''),
                 'date' => $reservation->get('date'),
                 'time_start' => $reservation->get('time_start'),
                 'time_end' => $reservation->get('time_end'),

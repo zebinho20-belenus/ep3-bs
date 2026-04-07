@@ -541,11 +541,11 @@ class BookingController extends AbstractActionController
                     $editedReservation = $reservationManager->get($d['bf-rid']);
 
                     $newData = array(
-                        'sid' => $savedBooking->get('sid'),
+                        'sid' => $editedReservation ? ($editedReservation->getMeta('sid_override') ?: $savedBooking->get('sid')) : $savedBooking->get('sid'),
                         'uid' => $savedBooking->get('uid'),
-                        'status_billing' => $savedBooking->get('status_billing'),
-                        'quantity' => $savedBooking->get('quantity'),
-                        'notes' => $savedBooking->getMeta('notes', ''),
+                        'status_billing' => $editedReservation ? ($editedReservation->getMeta('status_billing_override') ?: $savedBooking->get('status_billing')) : $savedBooking->get('status_billing'),
+                        'quantity' => $editedReservation ? ($editedReservation->getMeta('quantity_override') ?: $savedBooking->get('quantity')) : $savedBooking->get('quantity'),
+                        'notes' => $editedReservation ? ($editedReservation->getMeta('notes_override') ?: $savedBooking->getMeta('notes', '')) : $savedBooking->getMeta('notes', ''),
                         'date' => $editedReservation ? $editedReservation->get('date') : $oldData['date'],
                         'time_start' => $editedReservation ? $editedReservation->get('time_start') : $oldData['time_start'],
                         'time_end' => $editedReservation ? $editedReservation->get('time_end') : $oldData['time_end'],
@@ -590,7 +590,35 @@ class BookingController extends AbstractActionController
                         }
                     }
 
-                    $this->audit('edit', sprintf('Buchung #%s bearbeitet', $savedBooking->get('bid')), $savedBooking, $changes ?: []);
+                    // Enrich changes with readable labels for audit log
+                    $readableChanges = [];
+                    $labelMap = [
+                        'sid' => 'Platz',
+                        'uid' => 'Benutzer',
+                        'status_billing' => 'Rechnungsstatus',
+                        'quantity' => 'Anzahl Spieler',
+                        'notes' => 'Notizen',
+                        'date' => 'Datum',
+                        'time_start' => 'Startzeit',
+                        'time_end' => 'Endzeit',
+                        'gp' => 'Gastspieler',
+                    ];
+                    foreach ($changes as $key => $change) {
+                        $label = isset($labelMap[$key]) ? $labelMap[$key] : $key;
+                        $oldVal = $change['old'];
+                        $newVal = $change['new'];
+                        // Resolve sid to square name
+                        if ($key === 'sid') {
+                            try { $oldVal = 'Platz ' . $squareManager->get($oldVal)->get('name'); } catch (\Exception $e) {}
+                            try { $newVal = 'Platz ' . $squareManager->get($newVal)->get('name'); } catch (\Exception $e) {}
+                        }
+                        $readableChanges[] = sprintf('%s: %s → %s', $label, $oldVal, $newVal);
+                    }
+                    $auditMessage = sprintf('Buchung #%s bearbeitet', $savedBooking->get('bid'));
+                    if ($readableChanges) {
+                        $auditMessage .= ' (' . implode(', ', $readableChanges) . ')';
+                    }
+                    $this->audit('edit', $auditMessage, $savedBooking, $changes ?: []);
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
                     if ($this->params()->fromPost('bf-edit-user')) {
