@@ -11,6 +11,7 @@
   - Direct logging: login/login failure, payment success/failure
   - Backend UI: `/backend/audit` with filter (date, category, search), pagination, expandable detail view
   - Categories: booking (blue), payment (green), user (yellow), admin (red), config (gray), system (dark)
+  - Audit descriptions show "Platz X" instead of just "X" for court names
 
 ### Bug Fixes
 
