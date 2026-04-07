@@ -258,6 +258,7 @@ class BookingController extends AbstractActionController
                             // Continue despite errors
                         }
 
+                        $this->audit('reactivate', sprintf('Buchung #%s reaktiviert', $reactivateBooking->get('bid')), $reactivateBooking);
                         $this->flashMessenger()->addSuccessMessage('Booking has been reactivated');
 
                         return $this->redirect()->toRoute('frontend', [], ['query' => [
@@ -490,6 +491,7 @@ class BookingController extends AbstractActionController
                         }
                     }
 
+                    $this->audit('edit', sprintf('Buchung #%s bearbeitet', $savedBooking->get('bid')), $savedBooking, $changes ?: []);
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
                     if ($this->params()->fromPost('bf-edit-user')) {
@@ -1072,6 +1074,7 @@ class BookingController extends AbstractActionController
                     $booking->setMeta('notes', $existingNotes ? $existingNotes . "\n" . $reactivateNote : $reactivateNote);
                     $bookingManager->save($booking);
 
+                    $this->audit('reactivate', sprintf('Reservierung reaktiviert (Buchung #%s, %s)', $booking->get('bid'), $reservation->get('date')), $booking);
                     $this->flashMessenger()->addSuccessMessage('Reservation has been reactivated');
                 }
 
@@ -1125,6 +1128,7 @@ class BookingController extends AbstractActionController
                         // Continue despite errors
                     }
 
+                    $this->audit('cancel', sprintf('Reservierung storniert (Buchung #%s, %s)', $booking->get('bid'), $reservation->get('date')), $booking);
                     $this->flashMessenger()->addSuccessMessage('Reservation has been cancelled');
                 } else {
                     // DELETE: requires delete privilege (admin)
@@ -1162,6 +1166,7 @@ class BookingController extends AbstractActionController
                         $bookingManager->save($booking);
                     }
 
+                    $this->audit('delete', sprintf('Reservierung geloescht (Buchung #%s, %s)', $booking->get('bid'), $reservation->get('date')), $booking);
                     $this->flashMessenger()->addSuccessMessage('Reservation has been deleted');
                 }
             } else {
@@ -1194,6 +1199,7 @@ class BookingController extends AbstractActionController
                         // Continue despite errors
                     }
                     
+                    $this->audit('cancel', sprintf('Buchung #%s storniert', $booking->get('bid')), $booking);
                     $this->flashMessenger()->addSuccessMessage('Booking has been cancelled');
 
                     return $this->redirect()->toRoute('frontend', [], ['query' => [
@@ -1238,6 +1244,7 @@ class BookingController extends AbstractActionController
                     // Now delete the booking
                     $bookingManager->delete($booking);
 
+                    $this->audit('delete', sprintf('Buchung #%s geloescht (uid=%s)', $booking->get('bid'), $booking->get('uid')), $booking);
                     $this->flashMessenger()->addSuccessMessage('Booking has been deleted');
                 }
             }
@@ -1685,6 +1692,7 @@ class BookingController extends AbstractActionController
                     }
                 }
 
+                $this->audit('edit_bill', sprintf('Rechnung bearbeitet (Buchung #%s)', $booking->get('bid')), $booking);
                 $this->flashMessenger()->addSuccessMessage('Booking-Bill has been saved');
 
                 if ($save) {
@@ -3423,6 +3431,23 @@ class BookingController extends AbstractActionController
             );
         } catch (\Exception $e) {
             return null;
+        }
+    }
+
+    protected function audit($action, $message, $booking = null, $detail = [])
+    {
+        try {
+            $serviceManager = $this->getServiceLocator();
+            $sessionUser = $serviceManager->get('User\Manager\UserSessionManager')->getSessionUser();
+            $serviceManager->get('Base\Service\AuditService')->log('admin', $action, $message, [
+                'user_id' => $sessionUser ? $sessionUser->get('uid') : null,
+                'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
+                'entity_type' => $booking ? 'booking' : null,
+                'entity_id' => $booking ? $booking->get('bid') : null,
+                'detail' => $detail,
+            ]);
+        } catch (\Exception $e) {
+            error_log('Audit error: ' . $e->getMessage());
         }
     }
 }
