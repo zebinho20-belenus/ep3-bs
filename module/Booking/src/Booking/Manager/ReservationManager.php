@@ -625,49 +625,35 @@ class ReservationManager extends AbstractManager
      */
     public function getDistinctBidsInRange(DateTime $dateTimeStart, DateTime $dateTimeEnd, $limit = null, $offset = null)
     {
-        $where = new Where();
+        $adapter = $this->reservationTable->getAdapter();
+        $table = ReservationTable::NAME;
 
         if ($dateTimeStart->format('Y-m-d') == $dateTimeEnd->format('Y-m-d')) {
-            $where->equalTo('date', $dateTimeStart->format('Y-m-d'));
+            $whereSql = 'date = ?';
+            $params = [$dateTimeStart->format('Y-m-d')];
         } else {
-            $nested = $where->nest();
-            $nested->equalTo('date', $dateTimeStart->format('Y-m-d'));
-            $nested->greaterThan('time_end', $dateTimeStart->format('H:i'));
-            $nested->unnest();
-
-            $where->or;
-
-            $nested = $where->nest();
-            $nested->greaterThan('date', $dateTimeStart->format('Y-m-d'));
-            $nested->lessThan('date', $dateTimeEnd->format('Y-m-d'));
-            $nested->unnest();
-
-            $where->or;
-
-            $nested = $where->nest();
-            $nested->equalTo('date', $dateTimeEnd->format('Y-m-d'));
-            $nested->lessThan('time_start', $dateTimeEnd->format('H:i'));
-            $nested->unnest();
+            $whereSql = '(date = ? AND time_end > ?) OR (date > ? AND date < ?) OR (date = ? AND time_start < ?)';
+            $params = [
+                $dateTimeStart->format('Y-m-d'), $dateTimeStart->format('H:i'),
+                $dateTimeStart->format('Y-m-d'), $dateTimeEnd->format('Y-m-d'),
+                $dateTimeEnd->format('Y-m-d'), $dateTimeEnd->format('H:i'),
+            ];
         }
 
-        $select = $this->reservationTable->getSql()->select();
-        $select->columns(['bid' => new \Zend\Db\Sql\Expression('DISTINCT bid')]);
-        $select->where($where);
-        $select->order(new \Zend\Db\Sql\Expression('MIN(date) ASC, MIN(time_start) ASC'));
-        $select->group('bid');
+        $sql = "SELECT DISTINCT bid FROM {$table} WHERE {$whereSql} ORDER BY bid ASC";
 
         if ($limit) {
-            $select->limit($limit);
+            $sql .= ' LIMIT ' . (int) $limit;
             if ($offset) {
-                $select->offset($offset);
+                $sql .= ' OFFSET ' . (int) $offset;
             }
         }
 
-        $resultSet = $this->reservationTable->selectWith($select);
+        $result = $adapter->query($sql, $params)->toArray();
 
         $bids = [];
-        foreach ($resultSet as $row) {
-            $bids[] = (int) $row->bid;
+        foreach ($result as $row) {
+            $bids[] = (int) $row['bid'];
         }
 
         return $bids;
