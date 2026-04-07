@@ -50,6 +50,27 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config/be
 
         <h3 class="mb-3"><?= $this->t('Email notifications') ?></h3>
         <?= $this->formRowDefault($form, 'cf-no-email-statuses') ?>
+        <div class="mb-3" style="margin-top: -0.5rem;">
+            <small class="text-muted"><?= $this->t('Click to add/remove:') ?></small><br>
+            <?php
+            $noEmailStatuses = array_map('trim', explode(',', $form->get('cf-no-email-statuses')->getValue() ?: ''));
+            $statusMap = [
+                'team' => $this->t('Team'),
+                'guestgroup' => $this->t('Guest Group'),
+                'singleguest' => $this->t('Single Guest'),
+                'placeholder' => $this->t('Placeholder'),
+                'blocked' => $this->t('Blocked user'),
+                'deleted' => $this->t('Deleted user'),
+            ];
+            foreach ($statusMap as $slug => $label):
+                $isActive = in_array($slug, $noEmailStatuses);
+            ?>
+                <span class="badge <?= $isActive ? 'bg-primary' : 'bg-light text-dark border' ?> me-1 mb-1"
+                      style="cursor: pointer; font-size: 0.8rem;"
+                      onclick="(function(el,slug){var input=document.getElementById('cf-no-email-statuses');var vals=input.value.split(',').map(function(s){return s.trim()}).filter(Boolean);var idx=vals.indexOf(slug);if(idx>-1){vals.splice(idx,1);el.className='badge bg-light text-dark border me-1 mb-1'}else{vals.push(slug);el.className='badge bg-primary me-1 mb-1'}input.value=vals.join(', ')})(this,'<?= $slug ?>')"
+                ><?= $this->escapeHtml($slug) ?> <small>(<?= $this->escapeHtml($label) ?>)</small></span>
+            <?php endforeach; ?>
+        </div>
 
         <hr class="my-3">
 
