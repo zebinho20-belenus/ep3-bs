@@ -107,19 +107,23 @@
                         var $input = $('<input type="text" class="col-filter form-control form-control-sm" placeholder="' + placeholder + '">');
                         if (isNrCol) {
                             // Nr. column: server-side search on Enter or after short delay if no client match
+                            function bidSearchRedirect(val) {
+                                var url = new URL(window.location.href);
+                                url.searchParams.set('search', '(bid = ' + val + ')');
+                                url.searchParams.delete('page');
+                                url.searchParams.delete('date-start');
+                                url.searchParams.delete('date-end');
+                                window.location.href = url.toString();
+                            }
                             $input.on('keydown', function (e) {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
                                     var val = $(this).val().trim();
                                     if (val && /^\d+$/.test(val)) {
-                                        var url = new URL(window.location.href);
-                                        url.searchParams.set('search', '(bid = ' + val + ')');
-                                        url.searchParams.delete('page');
-                                        window.location.href = url.toString();
+                                        bidSearchRedirect(val);
                                     }
                                 }
                             });
-                            // Show hint when no local results found
                             var $nrInput = $input;
                             var $nrTd = $td;
                             $input.on('input', function () {
@@ -131,10 +135,7 @@
                                         var $hint = $('<a href="#" class="nr-search-hint" style="font-size:0.7rem;display:block;margin-top:2px;">Suchen ↵</a>');
                                         $hint.on('click', function (e) {
                                             e.preventDefault();
-                                            var url = new URL(window.location.href);
-                                            url.searchParams.set('search', '(bid = ' + val + ')');
-                                            url.searchParams.delete('page');
-                                            window.location.href = url.toString();
+                                            bidSearchRedirect(val);
                                         });
                                         $nrTd.append($hint);
                                     }
