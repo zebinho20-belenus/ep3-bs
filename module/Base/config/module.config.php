@@ -38,9 +38,13 @@ return array(
 
             'Zend\Db\Adapter\Adapter' => 'Zend\Db\Adapter\AdapterServiceFactory',
 
+            'Base\Table\AuditLogTable' => 'Base\Table\AuditLogTableFactory',
+            'Base\Service\AuditService' => 'Base\Service\AuditServiceFactory',
+
             /* Listeners */
 
             'Base\Manager\Listener\ConfigLocaleListener' => 'Base\Manager\Listener\ConfigLocaleListenerFactory',
+            'Base\Service\Listener\AuditListener' => 'Base\Service\Listener\AuditListenerFactory',
         ),
 
         'initializers' => array(

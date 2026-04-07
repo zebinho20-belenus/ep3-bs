@@ -1,5 +1,38 @@
 # Changelog
 
+## v2.2.7 (2026-04-07)
+
+### New Features
+
+- **Audit-Log System**: Comprehensive audit logging for all system actions
+  - New `bs_audit_log` DB table (auto-migration on startup)
+  - Dual output: database + `data/log/audit.log` (JSON-per-line)
+  - Event-based logging: booking create/cancel via `AuditListener`
+  - Direct logging: login/login failure, payment success/failure
+  - Backend UI: `/backend/audit` with filter (date, category, search), pagination, expandable detail view
+  - Categories: booking (blue), payment (green), user (yellow), admin (red), config (gray), system (dark)
+
+### Bug Fixes
+
+- **Partial budget payment not deducted (#102)**: `hasBudget` meta was stored as boolean instead of string `'true'`, causing the comparison in `doneAction()` to fail after DB round-trip. Budget is now correctly deducted for partial payments (budget + PayPal).
+- **CSP form-action blocking payments**: Added `form-action 'self' https://*.paypal.com https://*.stripe.com` to CSP header. Also added `object-src 'none'` and `base-uri 'self'`.
+
+### Cleanup
+
+- Removed all temporary debug logging (`file_put_contents`, `error_log DEBUG`)
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Audit-Log**: Neues System zur Nachvollziehbarkeit aller Aktionen (Buchungen, Zahlungen, Logins, Admin-Aktionen). DB-Tabelle + Logdatei + Backend-UI unter Konfiguration → Audit-Protokoll mit Filter und Pagination.
+
+**Bugfix #102**: Teilzahlung mit Budget — Budget wurde nach PayPal-Zahlung nicht abgezogen weil `hasBudget` als boolean statt String gespeichert wurde.
+
+**CSP**: `form-action` mit Payment-Gateway-Domains hinzugefuegt, verhindert Blockierung von PayPal/Stripe-Formularen.
+</details>
+
+---
+
 ## v2.2.6 Hotfix (2026-04-04)
 
 ### Bug Fixes

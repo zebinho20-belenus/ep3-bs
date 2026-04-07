@@ -1246,27 +1246,19 @@ class BookingController extends AbstractActionController
             }
 
             # redefine user budget (atomic to prevent double-spend race condition)
-            $debugHasBudget = $booking->getMeta('hasBudget');
-            $debugBudget = $booking->getMeta('budget');
-            $debugNewbudget = $booking->getMeta('newbudget');
-            file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " doneAction bid=$bid hasBudget=[$debugHasBudget] budget=[$debugBudget] newbudget=[$debugNewbudget] type=" . gettype($debugHasBudget) . "\n", FILE_APPEND);
             if ($booking->getMeta('hasBudget') == 'true') {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $oldBudget = (float) $booking->getMeta('budget');
                 $targetNewBudget = (float) $booking->getMeta('newbudget');
                 $deductAmount = $oldBudget - $targetNewBudget;
-                file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " INSIDE hasBudget block: uid=" . $booking->get('uid') . " oldBudget=$oldBudget targetNew=$targetNewBudget deductAmount=$deductAmount\n", FILE_APPEND);
                 if ($deductAmount > 0) {
                     $actualNewBudget = $userManager->deductBudgetAtomic($booking->get('uid'), $deductAmount);
-                    file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " deductBudgetAtomic result: " . var_export($actualNewBudget, true) . "\n", FILE_APPEND);
                     if ($actualNewBudget !== false) {
                         $notes = $notes . " payment with user budget (budget: " . $oldBudget . " -> " . $actualNewBudget . ") | ";
                     } else {
                         $notes = $notes . " budget deduction failed (insufficient funds) | ";
                     }
                 }
-            } else {
-                file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " hasBudget check FAILED: value=[" . $booking->getMeta('hasBudget') . "]\n", FILE_APPEND);
             }
 
             if ($booking->getMeta('payLater') == 'true') {
@@ -1279,6 +1271,13 @@ class BookingController extends AbstractActionController
             $booking->setMeta('notes', $notes);
             $bookingService->updatePaymentSingle($booking);
 
+            $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_success',
+                sprintf('Zahlung erfolgreich: Buchung #%s, %s, Status: %s', $bid, $booking->getMeta('paymentMethod'), $actualPaymentStatus),
+                ['user_id' => $booking->get('uid'), 'entity_type' => 'booking', 'entity_id' => $bid,
+                 'detail' => ['paymentMethod' => $booking->getMeta('paymentMethod'), 'payment_status' => $actualPaymentStatus,
+                              'status_billing' => $booking->get('status_billing'), 'hasBudget' => $booking->getMeta('hasBudget'),
+                              'budget' => $booking->getMeta('budget'), 'newbudget' => $booking->getMeta('newbudget')]]);
+
             // Send confirmation email now that payment is confirmed
             if ($booking->getMeta('suppressEmail') == 'true') {
                 $booking->setMeta('suppressEmail', null);
@@ -1288,8 +1287,12 @@ class BookingController extends AbstractActionController
 	    }
 	    else
         {
-            // syslog(LOG_EMERG, 'doneAction - error');
             $paymentResult = 'failed';
+
+            $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_failed',
+                sprintf('Zahlung fehlgeschlagen: Buchung #%s, %s', $bid, $booking->getMeta('paymentMethod')),
+                ['user_id' => $booking->get('uid'), 'entity_type' => 'booking', 'entity_id' => $bid,
+                 'detail' => ['paymentMethod' => $booking->getMeta('paymentMethod'), 'paymentStatus' => $paymentStatus]]);
 
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {

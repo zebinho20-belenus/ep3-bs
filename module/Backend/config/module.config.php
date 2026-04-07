@@ -252,6 +252,16 @@ return array(
                             ),
                         ),
                     ),
+                    'audit' => array(
+                        'type' => 'Literal',
+                        'options' => array(
+                            'route' => '/audit',
+                            'defaults' => array(
+                                'controller' => 'Backend\Controller\Audit',
+                                'action' => 'index',
+                            ),
+                        ),
+                    ),
                     'config' => array(
                         'type' => 'Literal',
                         'options' => array(
@@ -457,6 +467,7 @@ return array(
             'Backend\Controller\Event' => 'Backend\Controller\EventController',
             'Backend\Controller\Config' => 'Backend\Controller\ConfigController',
             'Backend\Controller\ConfigSquare' => 'Backend\Controller\ConfigSquareController',
+            'Backend\Controller\Audit' => 'Backend\Controller\AuditController',
         ),
     ),
 

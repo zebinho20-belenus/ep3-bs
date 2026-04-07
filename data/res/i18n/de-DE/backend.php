@@ -567,4 +567,13 @@ return array(
     '%s reservations (%s active, %s cancelled)' => '%s Reservierungen (%s aktiv, %s storniert)',
     'Cancelled reservations:' => 'Stornierte Reservierungen:',
     'further dates' => 'weitere Termine',
+
+    'Audit-Log' => 'Audit-Protokoll',
+    'View all system actions and changes' => 'Alle Systemaktionen und Aenderungen einsehen',
+    'All system actions and changes' => 'Alle Systemaktionen und Aenderungen',
+    'All categories' => 'Alle Kategorien',
+    'Date from' => 'Datum von',
+    'Date to' => 'Datum bis',
+    'No entries found' => 'Keine Eintraege gefunden',
+    'Reset' => 'Zuruecksetzen',
 );

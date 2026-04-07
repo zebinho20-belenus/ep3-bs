@@ -57,4 +57,9 @@ return [
         'check' => "SHOW INDEX FROM bs_bookings WHERE Key_name = 'idx_uid_status'",
         'file' => 'data/db/migrations/009-add-performance-indexes.sql',
     ],
+    10 => [
+        'name' => 'audit-log',
+        'check' => "SHOW TABLES LIKE 'bs_audit_log'",
+        'file' => 'data/db/migrations/010-audit-log.sql',
+    ],
 ];

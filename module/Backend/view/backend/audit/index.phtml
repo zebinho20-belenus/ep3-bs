@@ -1,0 +1,149 @@
+<?php
+
+$this->setup(array(
+    'title' => 'Audit-Log',
+    'panel' => 'centered-panel giant-sized',
+    'back' => array('Configuration' => $this->url('backend/config')),
+));
+
+$categoryLabels = [
+    'booking' => ['Buchung', 'primary'],
+    'payment' => ['Zahlung', 'success'],
+    'user' => ['Benutzer', 'warning'],
+    'admin' => ['Admin', 'danger'],
+    'config' => ['Konfig.', 'secondary'],
+    'system' => ['System', 'dark'],
+];
+
+?>
+
+<div>
+    <h1><?= $this->t('Audit-Log') ?></h1>
+
+    <div class="separator-small"></div>
+
+    <p><?= $this->t('All system actions and changes') ?></p>
+
+    <div class="separator separator-line"></div>
+
+    <!-- Filter -->
+    <form method="get" action="<?= $this->url('backend/audit') ?>" class="row g-2 mb-3 no-print">
+        <div class="col-auto">
+            <input type="text" name="date-start" class="form-control form-control-sm datepicker" style="width: 110px;"
+                   placeholder="<?= $this->t('Date from') ?>" value="<?= $this->escapeHtml($this->dateStart) ?>">
+        </div>
+        <div class="col-auto">
+            <input type="text" name="date-end" class="form-control form-control-sm datepicker" style="width: 110px;"
+                   placeholder="<?= $this->t('Date to') ?>" value="<?= $this->escapeHtml($this->dateEnd) ?>">
+        </div>
+        <div class="col-auto">
+            <select name="category" class="form-select form-select-sm" style="width: 140px;">
+                <option value=""><?= $this->t('All categories') ?></option>
+                <?php foreach ($categoryLabels as $key => $label): ?>
+                    <option value="<?= $key ?>" <?= $this->category == $key ? 'selected' : '' ?>><?= $label[0] ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-auto">
+            <input type="text" name="search" class="form-control form-control-sm" style="width: 200px;"
+                   placeholder="<?= $this->t('Search') ?>" value="<?= $this->escapeHtml($this->search) ?>">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-sm btn-primary"><span class="fa fa-search"></span></button>
+            <a href="<?= $this->url('backend/audit') ?>" class="btn btn-sm btn-outline-secondary"><?= $this->t('Reset') ?></a>
+        </div>
+    </form>
+
+    <div class="separator separator-line"></div>
+
+    <?php
+    $page = $this->page ?? 1;
+    $totalPages = $this->totalPages ?? 1;
+    $totalCount = $this->totalCount ?? 0;
+    $paginationQuery = [];
+    if ($this->dateStart) { $paginationQuery['date-start'] = $this->dateStart; }
+    if ($this->dateEnd) { $paginationQuery['date-end'] = $this->dateEnd; }
+    if ($this->category) { $paginationQuery['category'] = $this->category; }
+    if ($this->search) { $paginationQuery['search'] = $this->search; }
+    ?>
+
+    <?php if ($totalPages > 1): ?>
+    <div class="d-flex justify-content-between align-items-center no-print" style="padding: 8px 0;">
+        <small class="text-muted">
+            <?= sprintf($this->t('%s results, page %s of %s'), $totalCount, $page, $totalPages) ?>
+        </small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <?php if ($page > 1): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="<?= $this->url('backend/audit', [], ['query' => array_merge($paginationQuery, ['page' => $page - 1])]) ?>">&laquo;</a>
+                    </li>
+                <?php endif; ?>
+                <?php
+                $startPage = max(1, $page - 3);
+                $endPage = min($totalPages, $page + 3);
+                for ($p = $startPage; $p <= $endPage; $p++): ?>
+                    <li class="page-item <?= $p == $page ? 'active' : '' ?>">
+                        <a class="page-link" href="<?= $this->url('backend/audit', [], ['query' => array_merge($paginationQuery, ['page' => $p])]) ?>"><?= $p ?></a>
+                    </li>
+                <?php endfor; ?>
+                <?php if ($page < $totalPages): ?>
+                    <li class="page-item">
+                        <a class="page-link" href="<?= $this->url('backend/audit', [], ['query' => array_merge($paginationQuery, ['page' => $page + 1])]) ?>">&raquo;</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+    </div>
+    <?php endif; ?>
+
+    <?php if (empty($this->entries)): ?>
+        <p class="text-muted"><?= $this->t('No entries found') ?></p>
+    <?php else: ?>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm" style="font-size: 0.85rem;">
+            <thead>
+                <tr>
+                    <th style="width: 140px;"><?= $this->t('Date') ?></th>
+                    <th style="width: 80px;"><?= $this->t('Category') ?></th>
+                    <th style="width: 100px;"><?= $this->t('Action') ?></th>
+                    <th style="width: 120px;"><?= $this->t('User') ?></th>
+                    <th><?= $this->t('Message') ?></th>
+                    <th style="width: 60px;"><?= $this->t('Details') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($this->entries as $i => $entry): ?>
+                <tr>
+                    <td class="text-nowrap"><?= date('d.m.Y H:i:s', strtotime($entry['created'])) ?></td>
+                    <td>
+                        <?php
+                        $cat = $entry['category'];
+                        $badge = isset($categoryLabels[$cat]) ? $categoryLabels[$cat] : [$cat, 'secondary'];
+                        ?>
+                        <span class="badge bg-<?= $badge[1] ?>"><?= $badge[0] ?></span>
+                    </td>
+                    <td><?= $this->escapeHtml($entry['action']) ?></td>
+                    <td><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
+                    <td><?= $this->escapeHtml($entry['message']) ?></td>
+                    <td>
+                        <?php if ($entry['detail']): ?>
+                            <a href="#" class="btn btn-sm btn-outline-secondary" onclick="var d=document.getElementById('detail-<?= $i ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
+                                <span class="fa fa-info-circle"></span>
+                            </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php if ($entry['detail']): ?>
+                <tr id="detail-<?= $i ?>" style="display: none;">
+                    <td colspan="6">
+                        <pre class="mb-0 p-2 bg-light" style="font-size: 0.8rem; white-space: pre-wrap;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+                    </td>
+                </tr>
+                <?php endif; ?>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>

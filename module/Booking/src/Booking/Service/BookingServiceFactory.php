@@ -27,6 +27,9 @@ class BookingServiceFactory implements FactoryInterface
         $eventManager = $bookingService->getEventManager();
         $eventManager->attach($notificationListener);
 
+        $auditListener = $sm->get('Base\Service\Listener\AuditListener');
+        $eventManager->attach($auditListener);
+
         return $bookingService;
     }
 

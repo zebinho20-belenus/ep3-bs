@@ -38,6 +38,10 @@ class SessionController extends AbstractActionController
 
                         $user = $loginResult->getIdentity();
 
+                        $serviceManager->get('Base\Service\AuditService')->log('user', 'login',
+                            sprintf('Login: %s', $user->need('alias')),
+                            ['user_id' => $user->get('uid'), 'user_name' => $user->get('alias'), 'entity_type' => 'user', 'entity_id' => $user->get('uid')]);
+
                         $this->flashMessenger()->addSuccessMessage(
                             sprintf($this->t('Welcome, %s'), $user->need('alias')));
 
@@ -52,6 +56,9 @@ class SessionController extends AbstractActionController
                     default:
                         // Generic message for all failures to prevent user enumeration (OWASP A07)
                         $loginMessage = 'Email address and/or password invalid';
+                        $serviceManager->get('Base\Service\AuditService')->log('user', 'login_failed',
+                            sprintf('Fehlgeschlagener Login: %s', $loginData['lf-email']),
+                            ['detail' => ['email' => $loginData['lf-email']]]);
                         break;
                 }
             } else {
