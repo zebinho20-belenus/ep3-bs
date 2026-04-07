@@ -3459,6 +3459,8 @@ class BookingController extends AbstractActionController
             if ($booking) {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $squareManager = $serviceManager->get('Square\Manager\SquareManager');
+                $detail['uid'] = $booking->get('uid');
+                $detail['sid'] = $booking->get('sid');
                 try {
                     $bookingUser = $userManager->get($booking->get('uid'));
                     $detail['user_name_full'] = trim($bookingUser->getMeta('firstname') . ' ' . $bookingUser->getMeta('lastname')) ?: $bookingUser->get('alias');
