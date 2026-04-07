@@ -34,6 +34,8 @@ class DetermineFilters extends AbstractPlugin
                     array(
                         str_replace(' ', '_', strtolower($controller->t('Booking ID'))),
                         'bid',
+                        strtolower($controller->t('Name')),
+                        'name',
                         str_replace(' ', '_', strtolower($controller->t('User ID'))),
                         strtolower($controller->t('User')),
                         str_replace(' ', '_', strtolower($controller->t('Square ID'))),
@@ -42,7 +44,7 @@ class DetermineFilters extends AbstractPlugin
                         strtolower($controller->t('Quantity')),
                         strtolower($controller->t('Created')),
                     ),
-                    array('bid', 'bid', 'uid', 'uid', 'sid', 'status_billing', 'visibility', 'quantity', 'created'),
+                    array('bid', 'bid', 'name', 'name', 'uid', 'uid', 'sid', 'status_billing', 'visibility', 'quantity', 'created'),
                     $key);
 
                 // Translate values
@@ -77,6 +79,11 @@ class DetermineFilters extends AbstractPlugin
                 $filterParts[] = array($key, $operator, $value);
 
                 if ($key == str_replace(' ', '_', strtolower($controller->t('Billing total')))) {
+                    continue;
+                }
+
+                // Name filter handled separately in controller (requires user lookup)
+                if ($key == 'name') {
                     continue;
                 }
 

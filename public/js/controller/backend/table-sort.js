@@ -142,6 +142,23 @@
                                 }
                             });
                         }
+                        // All text filters: Enter → server-side search if no local match
+                        $input.on('keydown', function (e) {
+                            if (e.key === 'Enter' && !isNrCol) {
+                                e.preventDefault();
+                                var val = $(this).val().trim();
+                                if (val && val.length >= 2) {
+                                    var visibleRows = $table.find('tbody tr:visible').length;
+                                    var totalRows = $table.find('tbody tr').length;
+                                    if (visibleRows === 0 || visibleRows < totalRows) {
+                                        var url = new URL(window.location.href);
+                                        url.searchParams.set('search', '(name = ' + val + ')');
+                                        url.searchParams.delete('page');
+                                        window.location.href = url.toString();
+                                    }
+                                }
+                            }
+                        });
                         $input.on('input', function () {
                             applyFilters($table);
                         });

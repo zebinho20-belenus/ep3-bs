@@ -71,6 +71,23 @@ class BookingController extends AbstractActionController
                 }
             }
 
+            // Resolve name filter to uid filter (name requires LIKE search on users table)
+            foreach ($filters['filterParts'] as $filterPart) {
+                if ($filterPart[0] === 'name' && $filterPart[2]) {
+                    $nameSearch = '%' . $filterPart[2] . '%';
+                    $matchingUids = [];
+                    $allUsers = $userManager->getBy(new \Zend\Db\Sql\Predicate\Like('alias', $nameSearch));
+                    foreach ($allUsers as $u) {
+                        $matchingUids[] = $u->get('uid');
+                    }
+                    if ($matchingUids) {
+                        $filters['filters'][] = new \Zend\Db\Sql\Predicate\In('uid', $matchingUids);
+                    } else {
+                        $filters['filters'][] = 'uid = -1'; // No match → empty result
+                    }
+                }
+            }
+
             try {
                 $offset = ($page - 1) * $pageSize;
 
