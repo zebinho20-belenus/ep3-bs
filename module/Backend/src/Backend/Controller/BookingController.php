@@ -318,23 +318,24 @@ class BookingController extends AbstractActionController
                             }
                         }
 
-                        // Exclude own reservation
+                        // Exclude own reservation (not entire booking — other reservations of same subscription ARE potential conflicts)
                         unset($existingReservations[$d['bf-rid']]);
 
                         if ($existingReservations) {
                             $existingBookings = $bookingManager->getByReservations($existingReservations);
 
                             foreach ($existingBookings as $eb) {
-                                if ($eb->get('sid') == $d['bf-sid']
-                                    && $eb->get('status') != 'cancelled'
-                                    && $eb->get('visibility') == 'public'
-                                    && $eb->get('bid') != $currentBooking->get('bid')) {
+                                if ($eb->get('status') != 'cancelled'
+                                    && $eb->get('visibility') == 'public') {
                                     $hasActive = false;
                                     foreach ($existingReservations as $er) {
                                         if ($er->get('bid') == $eb->get('bid')
                                             && $er->get('status', 'confirmed') != 'cancelled') {
-                                            $hasActive = true;
-                                            break;
+                                            $effectiveSid = $er->getMeta('sid_override') ?: $eb->get('sid');
+                                            if ($effectiveSid == $d['bf-sid']) {
+                                                $hasActive = true;
+                                                break;
+                                            }
                                         }
                                     }
                                     if ($hasActive) {
@@ -666,16 +667,19 @@ class BookingController extends AbstractActionController
                             $existingBookings = $bookingManager->getByReservations($existingReservations);
 
                             foreach ($existingBookings as $eb) {
-                                if ($eb->get('sid') == $d['bf-sid']
-                                    && $eb->get('status') != 'cancelled'
+                                if ($eb->get('status') != 'cancelled'
                                     && $eb->get('visibility') == 'public') {
-                                    // Check for active (non-cancelled) reservations
+                                    // Check for active (non-cancelled) reservations on the target square
+                                    // Consider sid_override per reservation
                                     $hasActive = false;
                                     foreach ($existingReservations as $er) {
                                         if ($er->get('bid') == $eb->get('bid')
                                             && $er->get('status', 'confirmed') != 'cancelled') {
-                                            $hasActive = true;
-                                            break;
+                                            $effectiveSid = $er->getMeta('sid_override') ?: $eb->get('sid');
+                                            if ($effectiveSid == $d['bf-sid']) {
+                                                $hasActive = true;
+                                                break;
+                                            }
                                         }
                                     }
                                     if ($hasActive) {
