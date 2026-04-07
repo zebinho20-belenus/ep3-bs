@@ -34,7 +34,11 @@ class BookingController extends AbstractActionController
 
         // Pagination parameters
         $page = max(1, (int) $this->params()->fromQuery('page', 1));
-        $pageSize = 100;
+        $allowedPageSizes = [25, 50, 100];
+        $pageSize = (int) $this->params()->fromQuery('per-page', 25);
+        if (! in_array($pageSize, $allowedPageSizes)) {
+            $pageSize = 25;
+        }
         $totalCount = 0;
 
         if ($dateStart) {

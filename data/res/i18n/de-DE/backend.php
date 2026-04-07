@@ -558,6 +558,7 @@ return array(
     'CSV file is too large (max 1 MB)' => 'CSV-Datei ist zu groß (max. 1 MB)',
     'Invalid file type' => 'Ungültiger Dateityp',
     '%s results, page %s of %s' => '%s Ergebnisse, Seite %s von %s',
+    'Page' => 'Seite',
     'Modified reservation on %s' => 'Geänderte Reservierung am %s',
     'deleted' => 'gelöscht',
     'cancelled' => 'storniert',
