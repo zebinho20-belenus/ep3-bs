@@ -132,7 +132,11 @@ class BookingFormat extends AbstractHelper
 
         /* Square col */
 
-        if ($booking->get('sid')) {
+        $sidOverride = $reservation->getMeta('sid_override');
+        if ($sidOverride) {
+            $squareName = $this->squareManager->get($sidOverride)->get('name');
+            $squareName .= ' <span class="badge bg-info text-dark" style="font-size:0.6rem;" title="Abweichung von Abo">&#8800;</span>';
+        } elseif ($booking->get('sid')) {
             $squareName = $this->squareManager->get($booking->get('sid'))->get('name');
         } else {
             $squareName = '-';
@@ -178,7 +182,8 @@ class BookingFormat extends AbstractHelper
 
         /* Billing status col */
 
-        $statusBilling = $booking->get('status_billing');
+        $statusBillingOverride = $reservation->getMeta('status_billing_override');
+        $statusBilling = $statusBillingOverride ?: $booking->get('status_billing');
 
         if ($statusBilling) {
             $statusCssMap = array(

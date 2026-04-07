@@ -19,7 +19,8 @@ class ReservationsForCell extends AbstractHelper
 
             $booking = $reservation->needExtra('booking');
 
-            if ($booking->need('sid') == $square->need('sid')) {
+            $effectiveSid = $reservation->getMeta('sid_override') ?: $booking->need('sid');
+            if ($effectiveSid == $square->need('sid')) {
                 if ($booking->need('status') != 'cancelled') {
                     if ($booking->need('visibility') == 'public') {
                         $reservationsForCell[$rid] = $reservation;

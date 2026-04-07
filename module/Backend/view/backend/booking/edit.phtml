@@ -186,9 +186,12 @@ $this->setup(array(
                     </thead>
                     <tbody>
                     <?php foreach ($this->allReservations as $res): ?>
-                        <?php $isCancelled = ($res->get('status', 'confirmed') == 'cancelled'); ?>
-                        <tr class="<?= $isCancelled ? 'table-danger' : '' ?>">
-                            <td><?= date('d.m.Y', strtotime($res->get('date'))) ?></td>
+                        <?php
+                        $isCancelled = ($res->get('status', 'confirmed') == 'cancelled');
+                        $resHasOverride = ($res->getMeta('sid_override') || $res->getMeta('status_billing_override') || $res->getMeta('quantity_override'));
+                        ?>
+                        <tr class="<?= $isCancelled ? 'table-danger' : ($resHasOverride ? 'table-info' : '') ?>">
+                            <td><?= date('d.m.Y', strtotime($res->get('date'))) ?><?php if ($resHasOverride): ?> <span class="badge bg-info text-dark" style="font-size:0.6rem;" title="<?= $this->t('Has overrides') ?>">&#8800;</span><?php endif; ?></td>
                             <td class="responsive-pass-3"><?= $this->dateFormat(new \DateTime($res->get('date')), \IntlDateFormatter::FULL, \IntlDateFormatter::NONE) ?></td>
                             <td><?= substr($res->get('time_start'), 0, 5) ?> - <?= substr($res->get('time_end'), 0, 5) ?></td>
                             <td>
