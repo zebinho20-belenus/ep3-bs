@@ -10,6 +10,7 @@ use Square\Manager\SquareManager;
 use User\Entity\User;
 use User\Manager\UserManager;
 use Zend\Db\Adapter\Driver\ConnectionInterface;
+use Base\Service\AuditService;
 use Zend\Mvc\Controller\Plugin\AbstractPlugin;
 
 class Create extends AbstractPlugin
@@ -20,15 +21,17 @@ class Create extends AbstractPlugin
     protected $squareManager;
     protected $userManager;
     protected $connection;
+    protected $auditService;
 
     public function __construct(BookingManager $bookingManager, ReservationManager $reservationManager,
-        SquareManager $squareManager, UserManager $userManager, ConnectionInterface $connection)
+        SquareManager $squareManager, UserManager $userManager, ConnectionInterface $connection, AuditService $auditService = null)
     {
         $this->bookingManager = $bookingManager;
         $this->reservationManager = $reservationManager;
         $this->squareManager = $squareManager;
         $this->userManager = $userManager;
         $this->connection = $connection;
+        $this->auditService = $auditService;
     }
 
     public function __invoke($user, $timeStart, $timeEnd, $dateStart, $dateEnd, $repeat, $square, $statusBilling, $quantity, $notes = null, $creator = null)
@@ -176,6 +179,28 @@ class Create extends AbstractPlugin
 
             if ($transaction) {
                 $this->connection->commit();
+            }
+
+            // Audit log
+            if ($this->auditService) {
+                try {
+                    $this->auditService->log('booking', 'create',
+                        sprintf('Buchung #%s erstellt (Backend, %s, Platz %s, uid=%s)',
+                            $booking->get('bid'), $status, $square->get('name'), $booking->get('uid')),
+                        [
+                            'user_name' => $creator,
+                            'entity_type' => 'booking',
+                            'entity_id' => $booking->get('bid'),
+                            'detail' => [
+                                'source' => 'backend',
+                                'sid' => $square->get('sid'),
+                                'uid' => $booking->get('uid'),
+                                'status' => $status,
+                                'status_billing' => $statusBilling,
+                                'quantity' => $quantity,
+                            ],
+                        ]);
+                } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
             }
 
             return $booking;
