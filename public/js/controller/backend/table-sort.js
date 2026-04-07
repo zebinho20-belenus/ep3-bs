@@ -106,7 +106,7 @@
                         var placeholder = isNrCol ? 'Nr...' : 'Filter...';
                         var $input = $('<input type="text" class="col-filter form-control form-control-sm" placeholder="' + placeholder + '">');
                         if (isNrCol) {
-                            // Nr. column: server-side search on Enter
+                            // Nr. column: server-side search on Enter or after short delay if no client match
                             $input.on('keydown', function (e) {
                                 if (e.key === 'Enter') {
                                     e.preventDefault();
@@ -116,6 +116,27 @@
                                         url.searchParams.set('search', '(bid = ' + val + ')');
                                         url.searchParams.delete('page');
                                         window.location.href = url.toString();
+                                    }
+                                }
+                            });
+                            // Show hint when no local results found
+                            var $nrInput = $input;
+                            var $nrTd = $td;
+                            $input.on('input', function () {
+                                var val = $nrInput.val().trim();
+                                $nrTd.find('.nr-search-hint').remove();
+                                if (val && /^\d+$/.test(val)) {
+                                    var visibleRows = $table.find('tbody tr:visible').length;
+                                    if (visibleRows === 0) {
+                                        var $hint = $('<a href="#" class="nr-search-hint" style="font-size:0.7rem;display:block;margin-top:2px;">Suchen ↵</a>');
+                                        $hint.on('click', function (e) {
+                                            e.preventDefault();
+                                            var url = new URL(window.location.href);
+                                            url.searchParams.set('search', '(bid = ' + val + ')');
+                                            url.searchParams.delete('page');
+                                            window.location.href = url.toString();
+                                        });
+                                        $nrTd.append($hint);
                                     }
                                 }
                             });

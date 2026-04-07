@@ -39,27 +39,36 @@ class AuditListener extends AbstractListenerAggregate
         $userName = $this->resolveUserName($booking->get('uid'));
         $squareName = $this->resolveSquareName($booking->get('sid'));
         $playerNames = $this->resolvePlayerNames($booking);
+        $dateTime = $this->resolveDateTime($booking);
 
-        $this->auditService->log('booking', 'create',
-            sprintf('Buchung #%s: %s auf %s', $booking->get('bid'), $userName, $squareName),
-            [
-                'user_id' => $sessionUser ? $sessionUser->get('uid') : $booking->get('uid'),
-                'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
-                'entity_type' => 'booking',
-                'entity_id' => $booking->get('bid'),
-                'detail' => [
-                    'square_name' => $squareName,
-                    'user_name_full' => $userName,
-                    'player_names' => $playerNames,
-                    'status' => $booking->get('status'),
-                    'status_billing' => $booking->get('status_billing'),
-                    'quantity' => $booking->get('quantity'),
-                    'paymentMethod' => $booking->getMeta('paymentMethod'),
-                    'hasBudget' => $booking->getMeta('hasBudget'),
-                    'budget' => $booking->getMeta('budget'),
-                    'newbudget' => $booking->getMeta('newbudget'),
-                ],
-            ]);
+        $message = sprintf('Buchung #%s: %s auf %s', $booking->get('bid'), $userName, $squareName);
+        if ($dateTime) {
+            $message .= ' (' . $dateTime . ')';
+        }
+
+        $detail = [
+            'square_name' => $squareName,
+            'user_name_full' => $userName,
+            'player_names' => $playerNames,
+            'status' => $booking->get('status'),
+            'status_billing' => $booking->get('status_billing'),
+            'quantity' => $booking->get('quantity'),
+            'paymentMethod' => $booking->getMeta('paymentMethod'),
+            'hasBudget' => $booking->getMeta('hasBudget'),
+            'budget' => $booking->getMeta('budget'),
+            'newbudget' => $booking->getMeta('newbudget'),
+        ];
+        if ($dateTime) {
+            $detail['date_time'] = $dateTime;
+        }
+
+        $this->auditService->log('booking', 'create', $message, [
+            'user_id' => $sessionUser ? $sessionUser->get('uid') : $booking->get('uid'),
+            'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
+            'entity_type' => 'booking',
+            'entity_id' => $booking->get('bid'),
+            'detail' => $detail,
+        ]);
     }
 
     public function onBookingCancel(Event $event)
@@ -69,9 +78,14 @@ class AuditListener extends AbstractListenerAggregate
 
         $userName = $this->resolveUserName($booking->get('uid'));
         $squareName = $this->resolveSquareName($booking->get('sid'));
+        $dateTime = $this->resolveDateTime($booking);
 
-        $this->auditService->log('booking', 'cancel',
-            sprintf('Buchung #%s storniert: %s auf %s', $booking->get('bid'), $userName, $squareName),
+        $cancelMsg = sprintf('Buchung #%s storniert: %s auf %s', $booking->get('bid'), $userName, $squareName);
+        if ($dateTime) {
+            $cancelMsg .= ' (' . $dateTime . ')';
+        }
+
+        $this->auditService->log('booking', 'cancel', $cancelMsg,
             [
                 'user_id' => $sessionUser ? $sessionUser->get('uid') : null,
                 'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
@@ -124,6 +138,21 @@ class AuditListener extends AbstractListenerAggregate
             }
         }
         return $names ?: null;
+    }
+
+    protected function resolveDateTime($booking)
+    {
+        $reservations = $booking->getExtra('reservations');
+        if (! $reservations || ! is_array($reservations)) {
+            return null;
+        }
+        $first = reset($reservations);
+        if (! $first) {
+            return null;
+        }
+        $date = date('d.m.Y', strtotime($first->get('date')));
+        $time = substr($first->get('time_start'), 0, 5) . '-' . substr($first->get('time_end'), 0, 5);
+        return $date . ' ' . $time;
     }
 
     protected function getSessionUser()
