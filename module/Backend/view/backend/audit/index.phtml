@@ -173,64 +173,84 @@ $actionLabels = [
     }
     ?>
 
-    <!-- Desktop: Table -->
+    <!-- Desktop: Two-line entries -->
     <style>
-        .audit-table tr.audit-row { cursor: pointer; transition: background-color 0.15s; }
-        .audit-table tr.audit-row:hover { background-color: rgba(0,0,0,0.04); }
-        .audit-table .audit-detail-row td { background-color: #f8f9fa; border-top: none; }
+        .audit-entry { padding: 0.5rem 0; border-bottom: 1px solid #e9ecef; cursor: pointer; transition: background-color 0.15s; }
+        .audit-entry:hover { background-color: rgba(0,0,0,0.02); }
+        .audit-entry:last-child { border-bottom: none; }
+        .audit-chip { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 1rem; font-size: 0.75rem; margin: 0.1rem 0.15rem; }
+        .audit-chip-change { background: #e8f4fd; color: #0c5da5; }
+        .audit-chip-info { background: #f0f0f0; color: #555; }
+        .audit-chip-payment { background: #e6f9e6; color: #1a7a1a; }
+        .audit-chip-budget { background: #fff3e0; color: #b86e00; }
     </style>
     <div class="d-none d-lg-block">
-        <div class="table-responsive">
-            <table class="table table-sm audit-table" style="font-size: 0.85rem;">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 100px;"><?= $this->t('Date') ?></th>
-                        <th style="width: 160px;">Typ</th>
-                        <th style="width: 110px;">von</th>
-                        <th>Beschreibung</th>
-                        <th style="width: 200px;">Info</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($processedEntries as $entry): $i = $entry['_index']; ?>
-                    <tr class="audit-row" onclick="var d=document.getElementById('detail-<?= $i ?>');if(d)d.style.display=d.style.display=='none'?'table-row':'none';">
-                        <td class="text-nowrap text-muted" style="font-size: 0.8rem;">
-                            <?php
-                            $ts = strtotime($entry['created']);
-                            $isThisYear = date('Y', $ts) == date('Y');
-                            echo $isThisYear ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
-                            ?>
-                        </td>
-                        <td>
-                            <span class="badge bg-<?= $entry['_badge'][1] ?>"><?= $entry['_badge'][0] ?></span>
-                            <span class="text-muted" style="font-size: 0.8rem;"><?= $this->escapeHtml($entry['_action_label']) ?></span>
-                        </td>
-                        <td style="font-size: 0.82rem;"><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
-                        <td><?php
-                            $msg = $entry['message'];
-                            $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
-                            // Truncate message if changes are shown in info column
-                            if (isset($d['changes_readable']) && !empty($d['changes_readable'])) {
-                                if (($pos = strpos($msg, ' — ')) !== false) { $msg = substr($msg, 0, $pos); }
-                                elseif (($pos = strpos($msg, ': ')) !== false && strpos($msg, 'Uhr:') !== false) { $msg = substr($msg, 0, strpos($msg, 'Uhr:') + 3); }
-                            }
-                            echo $this->escapeHtml($msg);
-                        ?></td>
-                        <td style="font-size: 0.8rem; line-height: 1.4;">
-                            <?= $entry['_info_stacked'] ?: '<span class="text-muted">-</span>' ?>
-                        </td>
-                    </tr>
-                    <?php if ($entry['detail']): ?>
-                    <tr id="detail-<?= $i ?>" class="audit-detail-row" style="display: none;">
-                        <td colspan="5">
-                            <pre class="mb-0 p-2" style="font-size: 0.78rem; white-space: pre-wrap; max-height: 300px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+        <?php foreach ($processedEntries as $entry): $i = $entry['_index'];
+            $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
+            $msg = $entry['message'];
+            if (isset($d['changes_readable']) && !empty($d['changes_readable'])) {
+                if (($pos = strpos($msg, ' — ')) !== false) { $msg = substr($msg, 0, $pos); }
+                elseif (strpos($msg, 'Uhr:') !== false) { $msg = substr($msg, 0, strpos($msg, 'Uhr:') + 3); }
+            }
+            $ts = strtotime($entry['created']);
+            $dateStr = (date('Y', $ts) == date('Y')) ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
+        ?>
+        <div class="audit-entry" onclick="var d=document.getElementById('detail-<?= $i ?>');if(d)d.style.display=d.style.display=='none'?'block':'none';">
+            <!-- Line 1: Meta -->
+            <div class="d-flex align-items-center gap-2" style="font-size: 0.82rem;">
+                <span class="text-muted text-nowrap"><?= $dateStr ?></span>
+                <span class="badge bg-<?= $entry['_badge'][1] ?>"><?= $entry['_badge'][0] ?></span>
+                <span style="font-size: 0.78rem;"><?= $this->escapeHtml($entry['_action_label']) ?></span>
+                <span class="text-muted"><?= $this->escapeHtml($entry['user_name'] ?: '') ?></span>
+            </div>
+            <!-- Line 2: Message -->
+            <div style="font-size: 0.85rem; margin-top: 0.2rem;">
+                <?= $this->escapeHtml($msg) ?>
+            </div>
+            <!-- Line 3: Chips -->
+            <?php
+            $chips = [];
+            if (isset($d['changes_readable']) && is_array($d['changes_readable'])) {
+                foreach ($d['changes_readable'] as $cr) { $chips[] = ['text' => $cr, 'class' => 'audit-chip-change']; }
+            } elseif (isset($d['changes']) && is_array($d['changes'])) {
+                foreach ($d['changes'] as $ck => $cv) {
+                    if (is_array($cv) && isset($cv['old']) && isset($cv['new'])) {
+                        $chips[] = ['text' => $ck . ': ' . $cv['old'] . ' → ' . $cv['new'], 'class' => 'audit-chip-change'];
+                    }
+                }
+            }
+            if (isset($d['paymentMethod']) && $d['paymentMethod']) {
+                $pmLabel = $pmLabels[$d['paymentMethod']] ?? $d['paymentMethod'];
+                $chips[] = ['text' => $pmLabel, 'class' => 'audit-chip-payment'];
+            }
+            if (isset($d['square_name']) && $d['square_name']) { $chips[] = ['text' => $d['square_name'], 'class' => 'audit-chip-info']; }
+            if (isset($d['user_name_full']) && $d['user_name_full']) { $chips[] = ['text' => $d['user_name_full'], 'class' => 'audit-chip-info']; }
+            if (isset($d['player_names']) && is_array($d['player_names'])) {
+                foreach ($d['player_names'] as $pn) { $chips[] = ['text' => $pn, 'class' => 'audit-chip-info']; }
+            }
+            if (isset($d['budget']) && $d['budget']) { $chips[] = ['text' => 'Budget: ' . $d['budget'] . '→' . ($d['newbudget'] ?? '0'), 'class' => 'audit-chip-budget']; }
+            if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) { $chips[] = ['text' => 'Budget: ' . ($d['budget_old'] ?: '0') . '→' . $d['budget_new'], 'class' => 'audit-chip-budget']; }
+            if ($entry['ip'] && ($entry['action'] == 'login' || $entry['action'] == 'login_failed')) {
+                $ipText = $entry['ip'];
+                if (isset($d['countryCode']) && $d['countryCode']) { $ipText .= ' (' . $d['countryCode'] . ')'; }
+                $chips[] = ['text' => $ipText, 'class' => 'audit-chip-info'];
+            }
+            ?>
+            <?php if ($chips): ?>
+            <div style="margin-top: 0.25rem;">
+                <?php foreach ($chips as $chip): ?>
+                    <span class="audit-chip <?= $chip['class'] ?>"><?= $this->escapeHtml($chip['text']) ?></span>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+            <!-- Detail JSON -->
+            <?php if ($entry['detail']): ?>
+            <div id="detail-<?= $i ?>" style="display:none; margin-top: 0.4rem;">
+                <pre class="mb-0 p-2 bg-light rounded" style="font-size: 0.72rem; white-space: pre-wrap; max-height: 250px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+            </div>
+            <?php endif; ?>
         </div>
+        <?php endforeach; ?>
     </div>
 
     <!-- Mobile: Card Layout -->
