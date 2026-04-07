@@ -206,7 +206,16 @@ $actionLabels = [
                             <span class="text-muted" style="font-size: 0.8rem;"><?= $this->escapeHtml($entry['_action_label']) ?></span>
                         </td>
                         <td style="font-size: 0.82rem;"><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
-                        <td><?= $this->escapeHtml($entry['message']) ?></td>
+                        <td><?php
+                            $msg = $entry['message'];
+                            $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
+                            // Truncate message if changes are shown in info column
+                            if (isset($d['changes_readable']) && !empty($d['changes_readable'])) {
+                                if (($pos = strpos($msg, ' — ')) !== false) { $msg = substr($msg, 0, $pos); }
+                                elseif (($pos = strpos($msg, ': ')) !== false && strpos($msg, 'Uhr:') !== false) { $msg = substr($msg, 0, strpos($msg, 'Uhr:') + 3); }
+                            }
+                            echo $this->escapeHtml($msg);
+                        ?></td>
                         <td style="font-size: 0.8rem; line-height: 1.4;">
                             <?= $entry['_info_stacked'] ?: '<span class="text-muted">-</span>' ?>
                         </td>
