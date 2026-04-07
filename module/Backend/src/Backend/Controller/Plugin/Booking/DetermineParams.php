@@ -110,7 +110,8 @@ class DetermineParams extends AbstractPlugin
 
                     /* Filter wrong squares */
 
-                    if ($reservation->getExtra('booking')->get('sid') == $square->get('sid')) {
+                    $effectiveSid = $reservation->getMeta('sid_override') ?: $reservation->getExtra('booking')->get('sid');
+                    if ($effectiveSid == $square->get('sid')) {
                         $validReservations[$rid] = $reservation;
                     }
                 }
