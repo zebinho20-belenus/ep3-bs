@@ -53,6 +53,11 @@ $this->headScript()->appendFile($this->basePath('js/controller/backend/config/be
 
         <hr class="my-3">
 
+        <h3 class="mb-3"><?= $this->t('Audit-Log') ?></h3>
+        <?= $this->formRowDefault($form, 'cf-audit-retention-days') ?>
+
+        <hr class="my-3">
+
         <div class="d-flex flex-wrap gap-2 mb-3">
             <a href="<?= $this->url('backend/config/behaviour/rules') ?>" class="default-button default-button-outline">
                 <span class="symbolic symbolic-edit"><?= $this->t('Edit business terms and privacy policy') ?></span>
