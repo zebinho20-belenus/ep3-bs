@@ -38,9 +38,11 @@ class SessionController extends AbstractActionController
 
                         $user = $loginResult->getIdentity();
 
+                        $loginGeo = $this->resolveGeoIp();
                         $serviceManager->get('Base\Service\AuditService')->log('user', 'login',
                             sprintf('Login: %s', $user->need('alias')),
-                            ['user_id' => $user->get('uid'), 'user_name' => $user->get('alias'), 'entity_type' => 'user', 'entity_id' => $user->get('uid')]);
+                            ['user_id' => $user->get('uid'), 'user_name' => $user->get('alias'), 'entity_type' => 'user', 'entity_id' => $user->get('uid'),
+                             'detail' => array_filter(['country' => $loginGeo['country'] ?? null, 'countryCode' => $loginGeo['countryCode'] ?? null])]);
 
                         $this->flashMessenger()->addSuccessMessage(
                             sprintf($this->t('Welcome, %s'), $user->need('alias')));
@@ -56,9 +58,10 @@ class SessionController extends AbstractActionController
                     default:
                         // Generic message for all failures to prevent user enumeration (OWASP A07)
                         $loginMessage = 'Email address and/or password invalid';
+                        $failGeo = $this->resolveGeoIp();
                         $serviceManager->get('Base\Service\AuditService')->log('user', 'login_failed',
                             sprintf('Fehlgeschlagener Login: %s', $loginData['lf-email']),
-                            ['detail' => ['email' => $loginData['lf-email']]]);
+                            ['detail' => array_filter(['email' => $loginData['lf-email'], 'country' => $failGeo['country'] ?? null, 'countryCode' => $failGeo['countryCode'] ?? null])]);
                         break;
                 }
             } else {
@@ -75,6 +78,25 @@ class SessionController extends AbstractActionController
             'loginMessage' => $loginMessage,
             'loginDetent' => $loginDetent,
         );
+    }
+
+    protected function resolveGeoIp()
+    {
+        try {
+            $ip = isset($_SERVER['HTTP_X_FORWARDED_FOR']) ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]) : ($_SERVER['REMOTE_ADDR'] ?? null);
+            if (! $ip || $ip === '127.0.0.1' || strpos($ip, '192.168.') === 0 || strpos($ip, '10.') === 0) {
+                return ['country' => null, 'countryCode' => null];
+            }
+            $ctx = stream_context_create(['http' => ['timeout' => 2]]);
+            $json = @file_get_contents('http://ip-api.com/json/' . urlencode($ip) . '?fields=country,countryCode', false, $ctx);
+            if ($json) {
+                $data = json_decode($json, true);
+                return ['country' => $data['country'] ?? null, 'countryCode' => $data['countryCode'] ?? null];
+            }
+        } catch (\Exception $e) {
+            // Fallback: no geo data
+        }
+        return ['country' => null, 'countryCode' => null];
     }
 
     public function logoutAction()

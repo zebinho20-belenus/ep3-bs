@@ -44,14 +44,40 @@ class AuditService
             error_log('AuditService DB error: ' . $e->getMessage());
         }
 
-        // Write to file (JSON-per-line)
+        // Write to file (JSON-per-line) with rotation
         try {
+            $this->rotateLogIfNeeded();
             $row['created'] = date('Y-m-d H:i:s');
             $line = json_encode($row, JSON_UNESCAPED_UNICODE) . "\n";
             file_put_contents($this->logFilePath, $line, FILE_APPEND | LOCK_EX);
         } catch (\Exception $e) {
             error_log('AuditService file error: ' . $e->getMessage());
         }
+    }
+
+    protected function rotateLogIfNeeded()
+    {
+        if (! file_exists($this->logFilePath)) {
+            return;
+        }
+        $maxSize = 5 * 1024 * 1024; // 5 MB
+        $maxFiles = 3;
+        if (filesize($this->logFilePath) < $maxSize) {
+            return;
+        }
+        // Rotate: .3 delete, .2→.3, .1→.2, current→.1
+        $old = $this->logFilePath . '.' . $maxFiles;
+        if (file_exists($old)) {
+            @unlink($old);
+        }
+        for ($i = $maxFiles - 1; $i >= 1; $i--) {
+            $from = $this->logFilePath . '.' . $i;
+            $to = $this->logFilePath . '.' . ($i + 1);
+            if (file_exists($from)) {
+                @rename($from, $to);
+            }
+        }
+        @rename($this->logFilePath, $this->logFilePath . '.1');
     }
 
     protected function getClientIp()

@@ -141,6 +141,15 @@ $actionLabels = [
         if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) {
             $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget_old'] ?: '0') . '&rarr;' . $this->escapeHtml($d['budget_new']) . '</small>';
         }
+        // IP + Country for login events
+        if ($entry['ip'] && ($entry['action'] == 'login' || $entry['action'] == 'login_failed')) {
+            $ipDisplay = '<small class="text-muted"><span class="fa fa-globe"></span> ' . $this->escapeHtml($entry['ip']);
+            if (isset($d['countryCode']) && $d['countryCode']) {
+                $ipDisplay .= ' (' . $this->escapeHtml($d['countryCode']) . ')';
+            }
+            $ipDisplay .= '</small>';
+            $infoParts[] = $ipDisplay;
+        }
         $entry['_info'] = $infoParts ? implode(' | ', $infoParts) : '';
         $entry['_info_stacked'] = $infoParts ? implode('<br>', $infoParts) : '';
         $entry['_index'] = $i;

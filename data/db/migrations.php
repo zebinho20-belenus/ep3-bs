@@ -62,4 +62,9 @@ return [
         'check' => "SHOW TABLES LIKE 'bs_audit_log'",
         'file' => 'data/db/migrations/010-audit-log.sql',
     ],
+    11 => [
+        'name' => 'audit-log-cleanup',
+        'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'cleanup_audit_log' AND EVENT_SCHEMA = DATABASE()",
+        'file' => 'data/db/migrations/011-audit-log-cleanup.sql',
+    ],
 ];
