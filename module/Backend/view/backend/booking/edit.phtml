@@ -336,14 +336,6 @@ $this->setup(array(
     $auditCategoryBadges = [
         'booking' => 'primary', 'payment' => 'success', 'admin' => 'danger', 'system' => 'dark',
     ];
-    $auditProcessed = [];
-    foreach ($this->auditEntries as $ai => $ae) {
-        $ae['_label'] = isset($auditActionLabels[$ae['action']]) ? $auditActionLabels[$ae['action']] : $ae['action'];
-        $ae['_badge'] = isset($auditCategoryBadges[$ae['category']]) ? $auditCategoryBadges[$ae['category']] : 'secondary';
-        $ae['_detail'] = $ae['detail'] ? json_decode($ae['detail'], true) : [];
-        $ae['_i'] = $ai;
-        $auditProcessed[] = $ae;
-    }
     ?>
     <div class="row mt-3">
         <div class="col-12">
@@ -351,73 +343,74 @@ $this->setup(array(
                 <h6 class="mb-0" style="cursor:pointer;" onclick="var b=document.getElementById('audit-history-body');var a=document.getElementById('audit-arrow');b.style.display=b.style.display=='none'?'block':'none';a.className=b.style.display=='none'?'fa fa-chevron-right':'fa fa-chevron-down';">
                     <span id="audit-arrow" class="fa fa-chevron-right"></span>
                     <span class="fa fa-history"></span> <?= $this->t('Change history') ?>
-                    <span class="badge bg-secondary"><?= count($auditProcessed) ?></span>
+                    <span class="badge bg-secondary"><?= count($this->auditEntries) ?></span>
                 </h6>
-                <div id="audit-history-body" style="display:none; margin-top: 0.5rem;">
+                <div id="audit-history-body" style="display:none; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                    <?php foreach ($this->auditEntries as $ai => $ae):
+                        $aLabel = isset($auditActionLabels[$ae['action']]) ? $auditActionLabels[$ae['action']] : $ae['action'];
+                        $aBadge = isset($auditCategoryBadges[$ae['category']]) ? $auditCategoryBadges[$ae['category']] : 'secondary';
+                        $aDetail = $ae['detail'] ? json_decode($ae['detail'], true) : [];
+                        $aOwner = isset($aDetail['user_name_full']) ? $aDetail['user_name_full'] : '';
+                        $aUser = $ae['user_name'] ?: '';
+                        $ts = strtotime($ae['created']);
+                        $dateStr = (date('Y', $ts) == date('Y')) ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
 
-                    <!-- Desktop -->
-                    <div class="d-none d-md-block" style="max-height: 280px; overflow-y: auto;">
-                        <div class="border-start border-2 border-primary ps-2">
-                            <?php foreach ($auditProcessed as $ae): ?>
-                            <div class="mb-2 pb-2 border-bottom" style="font-size: 0.82rem; cursor:pointer; position:relative;" onclick="var d=document.getElementById('bk-audit-<?= $ae['_i'] ?>');if(d)d.style.display=d.style.display=='none'?'block':'none';">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <span class="badge bg-<?= $ae['_badge'] ?>"><?= $ae['_label'] ?></span>
-                                        <span class="text-muted ms-1"><?= $this->escapeHtml($ae['user_name'] ?: '-') ?></span>
-                                    </div>
-                                    <small class="text-muted text-nowrap"><?= date('d.m. H:i', strtotime($ae['created'])) ?></small>
+                        // Short message (strip changes from old entries)
+                        $aMsg = $ae['message'];
+                        if (isset($aDetail['changes_readable']) && !empty($aDetail['changes_readable'])) {
+                            if (($pos = strpos($aMsg, ' — ')) !== false) { $aMsg = substr($aMsg, 0, $pos); }
+                            elseif (strpos($aMsg, 'Uhr:') !== false) { $aMsg = substr($aMsg, 0, strpos($aMsg, 'Uhr:') + 3); }
+                        }
+
+                        // Detail lines
+                        $aLines = [];
+                        if (isset($aDetail['changes_readable']) && is_array($aDetail['changes_readable'])) {
+                            foreach ($aDetail['changes_readable'] as $cr) { $aLines[] = $cr; }
+                        } elseif (isset($aDetail['changes']) && is_array($aDetail['changes'])) {
+                            foreach ($aDetail['changes'] as $ck => $cv) {
+                                if (is_array($cv) && isset($cv['old']) && isset($cv['new'])) { $aLines[] = $ck . ': ' . $cv['old'] . ' &rarr; ' . $cv['new']; }
+                            }
+                        }
+                        $hasSquareChange = isset($aDetail['changes']['sid']) || (isset($aDetail['changes_readable']) && is_array($aDetail['changes_readable']) && preg_grep('/Platz/', $aDetail['changes_readable']));
+                        if (!$hasSquareChange && isset($aDetail['square_name']) && $aDetail['square_name']) { $aLines[] = $aDetail['square_name']; }
+                        if (isset($aDetail['paymentMethod']) && $aDetail['paymentMethod']) {
+                            $pmLabels2 = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', 'budget' => 'Budget'];
+                            $aLines[] = 'Zahlung: ' . ($pmLabels2[$aDetail['paymentMethod']] ?? $aDetail['paymentMethod']);
+                        }
+                        if (isset($aDetail['budget']) && $aDetail['budget']) { $aLines[] = 'Budget: ' . $aDetail['budget'] . ' &rarr; ' . ($aDetail['newbudget'] ?? '0'); }
+                    ?>
+                    <div class="card mb-2" <?= $ae['detail'] ? 'style="cursor:pointer;" onclick="var j=document.getElementById(\'bk-audit-' . $ai . '\');j.style.display=j.style.display==\'none\'?\'block\':\'none\';"' : '' ?>>
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-<?= $aBadge ?> bg-opacity-75" style="font-size: 0.68rem;"><?= $aLabel ?></span>
+                                    <?php if ($aOwner): ?>
+                                        <strong style="font-size: 0.82rem;"><?= $this->escapeHtml($aOwner) ?></strong>
+                                    <?php endif; ?>
+                                    <?php if ($aUser && $aUser != $aOwner): ?>
+                                        <span class="text-muted" style="font-size: 0.76rem;">(von <?= $this->escapeHtml($aUser) ?>)</span>
+                                    <?php elseif ($aUser && !$aOwner): ?>
+                                        <span style="font-size: 0.82rem;"><?= $this->escapeHtml($aUser) ?></span>
+                                    <?php endif; ?>
                                 </div>
-                                <div class="mt-1" style="font-size: 0.8rem;">
-                                    <?= $this->escapeHtml($ae['message']) ?>
-                                </div>
-                                <?php if (isset($ae['_detail']['changes_readable']) && is_array($ae['_detail']['changes_readable'])): ?>
-                                    <?php foreach ($ae['_detail']['changes_readable'] as $cr): ?>
-                                        <div style="font-size: 0.78rem;" class="text-info"><?= $this->escapeHtml($cr) ?></div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                                <?php if ($ae['detail']): ?>
-                                <div id="bk-audit-<?= $ae['_i'] ?>" style="display:none;" class="mt-1">
-                                    <pre class="mb-0 p-1 bg-light" style="font-size:0.7rem;white-space:pre-wrap;max-height:120px;overflow-y:auto;"><?= $this->escapeHtml(json_encode(json_decode($ae['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
-                                </div>
-                                <?php endif; ?>
+                                <small class="text-muted text-nowrap ms-2" style="font-size: 0.72rem;"><?= $dateStr ?></small>
                             </div>
-                            <?php endforeach; ?>
+                            <div class="text-muted" style="font-size: 0.8rem; margin-top: 0.1rem;"><?= $this->escapeHtml($aMsg) ?></div>
+                            <?php if ($aLines): ?>
+                            <ul class="list-unstyled mb-0 mt-1" style="font-size: 0.76rem; padding-left: 0.5rem; border-left: 2px solid #ced4da;">
+                                <?php foreach ($aLines as $line): ?>
+                                <li class="text-secondary"><?= $line ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                            <?php endif; ?>
                         </div>
-                    </div>
-
-                    <!-- Mobile -->
-                    <div class="d-md-none" style="max-height: 300px; overflow-y: auto;">
-                        <?php foreach ($auditProcessed as $ae): ?>
-                        <div class="card mb-2">
-                            <div class="card-body p-2">
-                                <div class="d-flex justify-content-between align-items-start mb-1">
-                                    <span class="badge bg-<?= $ae['_badge'] ?>"><?= $ae['_label'] ?></span>
-                                    <small class="text-muted text-nowrap"><?= date('d.m. H:i', strtotime($ae['created'])) ?></small>
-                                </div>
-                                <div style="font-size: 0.85rem;"><?= $this->escapeHtml($ae['message']) ?></div>
-                                <?php if (isset($ae['_detail']['changes_readable']) && is_array($ae['_detail']['changes_readable'])): ?>
-                                    <?php foreach ($ae['_detail']['changes_readable'] as $cr): ?>
-                                        <div style="font-size: 0.8rem;" class="text-info"><?= $this->escapeHtml($cr) ?></div>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                                <?php if ($ae['user_name']): ?>
-                                <div style="font-size: 0.78rem;"><span class="text-muted">von</span> <?= $this->escapeHtml($ae['user_name']) ?></div>
-                                <?php endif; ?>
-                                <?php if ($ae['detail']): ?>
-                                <div class="mt-1">
-                                    <a href="#" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size:0.7rem;" onclick="event.stopPropagation();var d=document.getElementById('bk-audit-m-<?= $ae['_i'] ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
-                                        <span class="fa fa-info-circle"></span> JSON
-                                    </a>
-                                    <div id="bk-audit-m-<?= $ae['_i'] ?>" style="display:none;" class="mt-1">
-                                        <pre class="mb-0 p-1 bg-light" style="font-size:0.65rem;white-space:pre-wrap;max-height:150px;overflow-y:auto;"><?= $this->escapeHtml(json_encode(json_decode($ae['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
-                                    </div>
-                                </div>
-                                <?php endif; ?>
-                            </div>
+                        <?php if ($ae['detail']): ?>
+                        <div id="bk-audit-<?= $ai ?>" class="card-footer bg-light p-2" style="display:none;">
+                            <pre class="mb-0 p-1 bg-white border rounded" style="font-size: 0.65rem; white-space: pre-wrap; max-height: 150px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($ae['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
                         </div>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
-
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
