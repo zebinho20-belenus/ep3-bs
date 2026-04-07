@@ -675,15 +675,18 @@ class BookingController extends AbstractActionController
             if ($booking) {
                 $user = $booking->needExtra('user');
 
+                // Use per-reservation overrides in reservation edit mode for subscriptions
+                $isReservationOverride = ($booking->get('status') == 'subscription' && isset($params['editMode']) && $params['editMode'] == 'reservation');
                 $editForm->setData(array(
                     'bf-rid' => $reservation->get('rid'),
                     'bf-user' => $user->need('alias') . ' (' . $user->need('uid') . ')',
-                    'bf-sid' => $booking->get('sid'),
-                    'bf-status-billing' => $booking->get('status_billing'),
-                    'bf-quantity' => $booking->get('quantity'),
+                    'bf-sid' => ($isReservationOverride && $reservation->getMeta('sid_override')) ? $reservation->getMeta('sid_override') : $booking->get('sid'),
+                    'bf-status-billing' => ($isReservationOverride && $reservation->getMeta('status_billing_override')) ? $reservation->getMeta('status_billing_override') : $booking->get('status_billing'),
+                    'bf-quantity' => ($isReservationOverride && $reservation->getMeta('quantity_override')) ? $reservation->getMeta('quantity_override') : $booking->get('quantity'),
                     'bf-guest-player' => $booking->getMeta('gp', '0') == '1' ? '1' : '0',
-                    'bf-notes' => $booking->getMeta('notes', ''),
+                    'bf-notes' => ($isReservationOverride && $reservation->getMeta('notes_override') !== null) ? $reservation->getMeta('notes_override') : $booking->getMeta('notes', ''),
                 ));
+                $hasOverrides = $isReservationOverride && ($reservation->getMeta('sid_override') || $reservation->getMeta('status_billing_override') || $reservation->getMeta('quantity_override') || $reservation->getMeta('notes_override') !== null);
 
                 if ($booking->get('status') == 'subscription' && $params['editMode'] == 'booking') {
                     $editForm->setData(array(
@@ -804,6 +807,8 @@ class BookingController extends AbstractActionController
             'billTotal' => $billTotal,
             'allReservations' => $allReservations,
             'conflicts' => $conflicts,
+            'isReservationOverride' => isset($isReservationOverride) ? $isReservationOverride : false,
+            'hasOverrides' => isset($hasOverrides) ? $hasOverrides : false,
         )));
     }
 

@@ -63,44 +63,65 @@ class Update extends AbstractPlugin
                 'gp' => $booking->getMeta('gp', '0'),
             );
 
-            /* Update booking */
+            /* Determine or create user */
 
-            if ($mode == null || $mode == 'booking' || $mode == 'reservation') {
+            if (preg_match('/\(([0-9]+)\)/', $newUser, $matches)) {
+                $user = $this->userManager->get($matches[1]);
+            } else {
+                $users = $this->userManager->getBy(['email' => $newUser]);
 
-                /* Determine or create user */
-
-                if (preg_match('/\(([0-9]+)\)/', $newUser, $matches)) {
-                    $user = $this->userManager->get($matches[1]);
+                if ($users) {
+                    $user = current($users);
                 } else {
-                    $users = $this->userManager->getBy(['email' => $newUser]);
+                    $users = $this->userManager->getBy(['alias' => $newUser]);
 
                     if ($users) {
                         $user = current($users);
                     } else {
-                        $users = $this->userManager->getBy(['alias' => $newUser]);
-
-                        if ($users) {
-                            $user = current($users);
-                        } else {
-                            $user = null;
-                        }
+                        $user = null;
                     }
                 }
+            }
 
-                if (! ($user instanceof User)) {
-                    $user = $this->userManager->create($newUser);
-                }
+            if (! ($user instanceof User)) {
+                $user = $this->userManager->create($newUser);
+            }
 
-                /* Determine square */
+            /* Determine square */
 
-                if ($newSquare instanceof Square) {
-                    $square = $this->squareManager->get($newSquare->get('sid'));
+            if ($newSquare instanceof Square) {
+                $square = $this->squareManager->get($newSquare->get('sid'));
+            } else {
+                $square = $this->squareManager->get($newSquare);
+            }
+
+            /* Update booking or reservation overrides */
+
+            if ($mode == 'reservation' && $booking->get('status') == 'subscription') {
+                // Per-reservation overrides: store in reservation meta if different from booking
+                $newSid = $square->need('sid');
+                if ($newSid != $booking->get('sid')) {
+                    $reservation->setMeta('sid_override', $newSid);
                 } else {
-                    $square = $this->squareManager->get($newSquare);
+                    $reservation->setMeta('sid_override', null);
                 }
-
-                /* Save booking */
-
+                if ($newStatusBilling != $booking->get('status_billing')) {
+                    $reservation->setMeta('status_billing_override', $newStatusBilling);
+                } else {
+                    $reservation->setMeta('status_billing_override', null);
+                }
+                if ($newQuantity != $booking->get('quantity')) {
+                    $reservation->setMeta('quantity_override', $newQuantity);
+                } else {
+                    $reservation->setMeta('quantity_override', null);
+                }
+                if ($newNotes != $booking->getMeta('notes', '')) {
+                    $reservation->setMeta('notes_override', $newNotes);
+                } else {
+                    $reservation->setMeta('notes_override', null);
+                }
+            } else {
+                // Normal booking update (single bookings or booking-mode for subscriptions)
                 $booking->set('uid', $user->need('uid'));
                 $booking->set('sid', $square->need('sid'));
                 $booking->set('status_billing', $newStatusBilling);

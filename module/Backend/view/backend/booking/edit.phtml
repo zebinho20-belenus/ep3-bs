@@ -221,6 +221,15 @@ $this->setup(array(
 
         <div class="col-md-6 mb-3">
             <div class="sandbox">
+                <?php if ($this->isReservationOverride): ?>
+                <div class="alert alert-info py-1 px-2 mb-2" style="font-size: 0.82rem;">
+                    <span class="fa fa-info-circle"></span>
+                    <?= $this->t('Changes apply only to this reservation') ?>
+                    <?php if ($this->hasOverrides): ?>
+                        <span class="badge bg-warning text-dark ms-1"><?= $this->t('Has overrides') ?></span>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
                 <?= $this->formRowCompact($form, 'bf-sid') ?>
                 <?= $this->formRowCompact($form, 'bf-status-billing') ?>
                 <?= $this->formRowCompact($form, 'bf-quantity') ?>

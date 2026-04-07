@@ -578,4 +578,6 @@ return array(
     'No entries found' => 'Keine Eintraege gefunden',
     'Reset' => 'Zuruecksetzen',
     'Audit-Log retention (days)' => 'Audit-Log Aufbewahrung (Tage)',
+    'Changes apply only to this reservation' => 'Aenderungen gelten nur fuer diese Reservierung',
+    'Has overrides' => 'Hat Abweichungen',
 );
