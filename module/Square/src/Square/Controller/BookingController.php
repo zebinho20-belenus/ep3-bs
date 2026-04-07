@@ -1246,6 +1246,10 @@ class BookingController extends AbstractActionController
             }
 
             # redefine user budget (atomic to prevent double-spend race condition)
+            $debugHasBudget = $booking->getMeta('hasBudget');
+            $debugBudget = $booking->getMeta('budget');
+            $debugNewbudget = $booking->getMeta('newbudget');
+            file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " doneAction bid=$bid hasBudget=[$debugHasBudget] budget=[$debugBudget] newbudget=[$debugNewbudget] type=" . gettype($debugHasBudget) . "\n", FILE_APPEND);
             if ($booking->getMeta('hasBudget') == 'true') {
                 $userManager = $serviceManager->get('User\Manager\UserManager');
                 $oldBudget = (float) $booking->getMeta('budget');
