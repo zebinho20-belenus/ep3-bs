@@ -215,7 +215,7 @@ $actionLabels = [
         }
         $hasDetails = !empty($detailLines) || $entry['detail'];
     ?>
-    <div class="card mb-2 <?= $hasDetails ? '' : 'border-0 bg-transparent' ?>" <?= $hasDetails ? 'style="cursor:pointer;" onclick="var b=document.getElementById(\'audit-body-' . $i . '\');b.style.display=b.style.display==\'none\'?\'block\':\'none\';"' : '' ?>>
+    <div class="card mb-2" <?= $entry['detail'] ? 'style="cursor:pointer;" onclick="var b=document.getElementById(\'audit-body-' . $i . '\');b.style.display=b.style.display==\'none\'?\'block\':\'none\';"' : '' ?>>
         <div class="card-body p-2">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
@@ -231,22 +231,20 @@ $actionLabels = [
                 <small class="text-muted text-nowrap ms-2" style="font-size: 0.75rem;"><?= $dateStr ?></small>
             </div>
             <div class="text-muted" style="font-size: 0.82rem; margin-top: 0.15rem;"><?= $this->escapeHtml($msg) ?></div>
-        </div>
-        <?php if ($hasDetails): ?>
-        <div id="audit-body-<?= $i ?>" class="card-footer bg-light p-2" style="display:none;">
             <?php if ($detailLines): ?>
-            <ul class="list-unstyled mb-1" style="font-size: 0.78rem; padding-left: 0.6rem; border-left: 2px solid #ced4da;">
+            <ul class="list-unstyled mb-0 mt-1" style="font-size: 0.78rem; padding-left: 0.6rem; border-left: 2px solid #ced4da;">
                 <?php foreach ($detailLines as $line): ?>
                 <li class="py-0 text-secondary"><?= $line ?></li>
                 <?php endforeach; ?>
             </ul>
             <?php endif; ?>
-            <?php if ($entry['detail']): ?>
+        </div>
+        <?php if ($entry['detail']): ?>
+        <div id="audit-body-<?= $i ?>" class="card-footer bg-light p-2" style="display:none;">
             <a href="#" class="text-secondary" style="font-size: 0.7rem; text-decoration: none;" onclick="event.stopPropagation();var j=document.getElementById('audit-json-<?= $i ?>');j.style.display=j.style.display=='none'?'block':'none';return false;">
                 <span class="fa fa-code"></span> JSON
             </a>
             <pre id="audit-json-<?= $i ?>" class="mb-0 mt-1 p-2 bg-white border rounded" style="display:none; font-size: 0.68rem; white-space: pre-wrap; max-height: 180px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
-            <?php endif; ?>
         </div>
         <?php endif; ?>
     </div>
