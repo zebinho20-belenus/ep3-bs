@@ -117,6 +117,13 @@ class EventController extends AbstractActionController
 
                     $eventManager->save($event);
 
+                    try {
+                        $serviceManager->get('Base\Service\AuditService')->log('admin', 'edit_event',
+                            sprintf('Veranstaltung #%s bearbeitet: %s', $event->get('eid'), $event->getMeta('name') ?: $event->get('eid')),
+                            ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
+                             'entity_type' => 'event', 'entity_id' => $event->get('eid')]);
+                    } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
+
                     $this->flashMessenger()->addSuccessMessage('Event has been saved');
 
                 } else {
@@ -319,6 +326,13 @@ class EventController extends AbstractActionController
 
                         $connection->commit();
 
+                        try {
+                            $serviceManager->get('Base\Service\AuditService')->log('admin', 'create_event',
+                                sprintf('%s Veranstaltung(en) erstellt: %s', $count, $data['ef-name'] ?? ''),
+                                ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
+                                 'entity_type' => 'event', 'detail' => ['count' => $count, 'name' => $data['ef-name'] ?? '']]);
+                        } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
+
                         $this->flashMessenger()->addSuccessMessage(sprintf(
                             $this->translate('%s event(s) have been created'), $count
                         ));
@@ -460,6 +474,13 @@ class EventController extends AbstractActionController
             } else {
                 /* Delete single event */
                 $eventManager->delete($event);
+
+                try {
+                    $serviceManager->get('Base\Service\AuditService')->log('admin', 'delete_event',
+                        sprintf('Veranstaltung #%s geloescht: %s', $event->get('eid'), $event->getMeta('name') ?: $event->get('eid')),
+                        ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
+                         'entity_type' => 'event', 'entity_id' => $event->get('eid')]);
+                } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
 
                 $this->flashMessenger()->addSuccessMessage('Event has been deleted');
             }

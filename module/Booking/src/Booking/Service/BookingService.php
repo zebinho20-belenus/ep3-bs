@@ -256,6 +256,13 @@ class BookingService extends AbstractService
         $refundEur = $total / 100;
         $userManager->addBudgetAtomic($booking->get('uid'), $refundEur);
 
+        try {
+            $this->serviceManager->get('Base\Service\AuditService')->log('payment', 'budget_refund',
+                sprintf('Budget-Rueckerstattung: %.2f EUR fuer Buchung #%s (uid=%s)', $refundEur, $booking->get('bid'), $booking->get('uid')),
+                ['entity_type' => 'booking', 'entity_id' => $booking->get('bid'),
+                 'detail' => ['uid' => $booking->get('uid'), 'refund_eur' => $refundEur]]);
+        } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
+
         return $total;
     }
 

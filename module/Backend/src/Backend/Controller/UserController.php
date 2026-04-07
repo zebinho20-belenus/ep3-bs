@@ -171,11 +171,27 @@ class UserController extends AbstractActionController
                 $user->setMeta('phone', $eud['euf-phone']);
                 // $user->setMeta('birthdate', $eud['euf-birthdate']);
                 $user->setMeta('member', $eud['euf-member']);
-                $user->setMeta('budget', $eud['euf-budget'] !== '' ? $eud['euf-budget'] : '0');
+                $oldBudget = $user->getMeta('budget');
+                $newBudget = $eud['euf-budget'] !== '' ? $eud['euf-budget'] : '0';
+                $user->setMeta('budget', $newBudget);
                 $user->setMeta('max_active_bookings', $eud['euf-max-active-bookings'] !== '' ? $eud['euf-max-active-bookings'] : null);
                 $user->setMeta('notes', $eud['euf-notes']);
 
                 $userManager->save($user);
+
+                // Audit: user edit
+                $auditDetail = ['alias' => $user->get('alias'), 'status' => $user->get('status')];
+                if ($oldBudget != $newBudget) {
+                    $auditDetail['budget_old'] = $oldBudget;
+                    $auditDetail['budget_new'] = $newBudget;
+                }
+                try {
+                    $serviceManager->get('Base\Service\AuditService')->log('admin', 'edit_user',
+                        sprintf('Benutzer %s bearbeitet%s', $user->get('alias'),
+                            $oldBudget != $newBudget ? sprintf(' (Budget: %s → %s)', $oldBudget ?: '0', $newBudget) : ''),
+                        ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
+                         'entity_type' => 'user', 'entity_id' => $user->get('uid'), 'detail' => $auditDetail]);
+                } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
 
                 $this->flashMessenger()->addSuccessMessage('User has been saved');
 
@@ -252,11 +268,25 @@ class UserController extends AbstractActionController
                 $user->set('status', 'deleted');
                 $userManager->save($user);
 
+                try {
+                    $serviceManager->get('Base\Service\AuditService')->log('admin', 'disable_user',
+                        sprintf('Benutzer %s deaktiviert (hat Buchungen)', $user->get('alias')),
+                        ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
+                         'entity_type' => 'user', 'entity_id' => $user->get('uid')]);
+                } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
+
                 $this->flashMessenger()->addSuccessMessage('User status has been set to deleted');
             } else {
 
                 // User has no bookings, so we can actually delete him
                 $userManager->delete($user);
+
+                try {
+                    $serviceManager->get('Base\Service\AuditService')->log('admin', 'delete_user',
+                        sprintf('Benutzer %s geloescht', $user->get('alias')),
+                        ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
+                         'entity_type' => 'user', 'entity_id' => $user->get('uid')]);
+                } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
 
                 $this->flashMessenger()->addSuccessMessage('User has been deleted');
             }
