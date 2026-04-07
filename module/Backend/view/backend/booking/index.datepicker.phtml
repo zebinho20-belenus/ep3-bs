@@ -16,8 +16,9 @@ if (! ($this->dateStart || $this->dateEnd)) {
         <div class="d-flex flex-wrap align-items-end gap-2">
             <div>
                 <label for="date-start" class="form-label small text-muted mb-1"><?= $this->t('Date') ?></label>
+                <?php $allDates = isset($_GET['all-dates']) && $_GET['all-dates'] === '1'; ?>
                 <input type="text" name="date-start" id="date-start" value="<?= $this->dateFormat($this->dateStart, IntlDateFormatter::MEDIUM) ?>"
-                       class="form-control form-control-sm datepicker" style="width: 120px;">
+                       class="form-control form-control-sm datepicker" style="width: 120px;" <?= $allDates ? 'disabled' : '' ?>>
             </div>
 
             <div class="pb-1">
@@ -27,7 +28,16 @@ if (! ($this->dateStart || $this->dateEnd)) {
             <div>
                 <label for="date-end" class="form-label small text-muted mb-1">&nbsp;</label>
                 <input type="text" name="date-end" id="date-end" value="<?= $this->dateFormat($this->dateEnd, IntlDateFormatter::MEDIUM) ?>"
-                       class="form-control form-control-sm datepicker" style="width: 120px;">
+                       class="form-control form-control-sm datepicker" style="width: 120px;" <?= $allDates ? 'disabled' : '' ?>>
+            </div>
+
+            <div class="pb-1">
+                <div class="form-check form-switch">
+                    <input type="checkbox" name="all-dates" value="1" id="all-dates"
+                           class="form-check-input" <?= $allDates ? 'checked' : '' ?>
+                           onchange="document.getElementById('date-start').disabled=this.checked;document.getElementById('date-end').disabled=this.checked;">
+                    <label for="all-dates" class="form-check-label small"><?= $this->t('All dates') ?></label>
+                </div>
             </div>
 
             <div style="flex: 1; min-width: 180px;">

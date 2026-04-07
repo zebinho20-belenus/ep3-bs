@@ -62,8 +62,8 @@ class BookingController extends AbstractActionController
         if (($dateStart && $dateEnd) || $search) {
             $filters = $this->backendBookingDetermineFilters($search);
 
-            // Any explicit filter → search across all dates (user wants to find specific bookings)
-            $hasDirectFilter = !empty($filters['filters']) || !empty($filters['filterParts']);
+            // "All dates" toggle — skip date range when explicitly requested
+            $hasDirectFilter = ($this->params()->fromQuery('all-dates') === '1');
 
             // Resolve name filter to uid filter (name requires LIKE search on users table)
             foreach ($filters['filterParts'] as $filterPart) {

@@ -32,6 +32,7 @@ $this->setup(array(
     if ($this->dateStart) { $paginationQuery['date-start'] = $this->dateStart->format('d.m.Y'); }
     if ($this->dateEnd) { $paginationQuery['date-end'] = $this->dateEnd->format('d.m.Y'); }
     if ($this->search) { $paginationQuery['search'] = $this->search; }
+    if (isset($_GET['all-dates']) && $_GET['all-dates'] === '1') { $paginationQuery['all-dates'] = '1'; }
     $page = $this->page ?? 1;
     $totalPages = $this->totalPages ?? 1;
     $totalCount = $this->totalCount ?? 0;

@@ -110,9 +110,8 @@
                             function bidSearchRedirect(val) {
                                 var url = new URL(window.location.href);
                                 url.searchParams.set('search', '(bid = ' + val + ')');
+                                url.searchParams.set('all-dates', '1');
                                 url.searchParams.delete('page');
-                                url.searchParams.delete('date-start');
-                                url.searchParams.delete('date-end');
                                 window.location.href = url.toString();
                             }
                             $input.on('keydown', function (e) {
@@ -153,6 +152,7 @@
                                     if (visibleRows === 0 || visibleRows < totalRows) {
                                         var url = new URL(window.location.href);
                                         url.searchParams.set('search', '(name = ' + val + ')');
+                                        url.searchParams.set('all-dates', '1');
                                         url.searchParams.delete('page');
                                         window.location.href = url.toString();
                                     }

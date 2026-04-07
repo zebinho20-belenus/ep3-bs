@@ -560,6 +560,7 @@ return array(
     '%s results, page %s of %s' => '%s Ergebnisse, Seite %s von %s',
     'Page' => 'Seite',
     'Booking ID' => 'Buchungs-Nr',
+    'All dates' => 'Alle Daten',
     'Modified reservation on %s' => 'Geänderte Reservierung am %s',
     'deleted' => 'gelöscht',
     'cancelled' => 'storniert',
