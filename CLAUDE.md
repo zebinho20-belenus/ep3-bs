@@ -125,7 +125,14 @@ Salutation: always `Hallo Vorname Nachname` (fallback: alias). No gender-based s
 
 ### Backend Booking List
 
-Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Server-side pagination (100 per page). Status badges: `[E]`=single, `[A]`=subscription, `[S]`=cancelled, `[A][S]`=cancelled reservation within active subscription. Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
+Panel `giant-sized` (1280px), 13 columns, `table-layout: fixed`, `responsive-pass-*` hiding. Actions icon-only. Server-side pagination (default 25, selectable 25/50/100 via dropdown). Status badges: `[E]`=single, `[A]`=subscription, `[S]`=cancelled, `[A][S]`=cancelled reservation within active subscription. Reactivate requires `calendar.reactivate-bookings` privilege (admins auto; assist users need `allow.calendar.reactivate-bookings` meta).
+
+**Server-side search**: Column filters support server-side search on Enter:
+- **Nr. filter**: type booking ID + Enter → `(bid = X)` search (date-independent, finds any booking)
+- **Name filter**: type name + Enter → `(name = X)` search (LIKE on user alias, across all pages)
+- **Search field**: supports `(bid = X)`, `(name = X)`, `(uid = X)`, `(sid = X)`, `(status_billing = X)` etc.
+
+**Per-reservation overrides**: Subscription reservations can have `sid_override`, `status_billing_override`, `quantity_override`, `notes_override` in reservation meta. Calendar, booking list, and edit dialog all respect overrides. `DetermineParams` uses `effectiveSid` for square matching.
 
 ### Administration Mode
 
@@ -199,7 +206,7 @@ macOS: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't 
 ## Gotchas
 
 - **JS/CSS sync**: `.js` + `.min.js` and `app.css` + `app.min.css` always kept in sync — no build tool.
-- **SW cache bump required** after CSS/JS changes: `cacheName` in `public/js/sw.js` (`ep3bs_vX.XX:static`). Current: **v3.20**.
+- **SW cache bump required** after CSS/JS changes: `cacheName` in `public/js/sw.js` (`ep3bs_vX.XX:static`). Current: **v3.24**.
 - **Event overlay**: use `.calendar-event-overlay` class for hide/remove — `[id$='-overlay-']` never matches (IDs end with `-overlay-0`).
 - **`composer update` broken**: `payum/payum-module` conflicts with our forked ZF packages. Vendor changes manual only. Use `--ignore-platform-reqs` if needed.
 - **Translation file scope**: key must be in correct module file (e.g. `booking.php` for NotificationListener). `$this->t(ucfirst($slug))` works for status slugs.

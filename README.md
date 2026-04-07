@@ -69,6 +69,8 @@ EP3-BS is a comprehensive online booking system designed for sports facilities (
 - **TinyMCE Rich Text Editor** for content management
 - **Auto-Registration** with member email verification
 - **Security Hardened** (OWASP Top 10 audit, security headers, prepared statements)
+- **Audit Log** with change tracking, GeoIP, card-style UI
+- **Per-Reservation Overrides** (move individual subscription dates to different courts)
 
 ### Code Statistics
 
