@@ -141,6 +141,19 @@ $actionLabels = [
         if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) {
             $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget_old'] ?: '0') . '&rarr;' . $this->escapeHtml($d['budget_new']) . '</small>';
         }
+        // Show readable changes for edit actions
+        if (isset($d['changes_readable']) && is_array($d['changes_readable']) && !empty($d['changes_readable'])) {
+            foreach ($d['changes_readable'] as $change) {
+                $infoParts[] = '<small class="text-info">' . $this->escapeHtml($change) . '</small>';
+            }
+        } elseif (isset($d['changes']) && is_array($d['changes']) && !empty($d['changes'])) {
+            // Fallback for old entries without changes_readable
+            foreach ($d['changes'] as $key => $cv) {
+                if (is_array($cv) && isset($cv['old']) && isset($cv['new'])) {
+                    $infoParts[] = '<small class="text-info">' . $this->escapeHtml($key) . ': ' . $this->escapeHtml($cv['old']) . ' &rarr; ' . $this->escapeHtml($cv['new']) . '</small>';
+                }
+            }
+        }
         // IP + Country for login events
         if ($entry['ip'] && ($entry['action'] == 'login' || $entry['action'] == 'login_failed')) {
             $ipDisplay = '<small class="text-muted"><span class="fa fa-globe"></span> ' . $this->escapeHtml($entry['ip']);
