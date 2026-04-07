@@ -185,6 +185,12 @@ $actionLabels = [
         $dateStr = (date('Y', $ts) == date('Y')) ? date('d.m. H:i', $ts) : date('d.m.Y H:i', $ts);
         $userName = $entry['user_name'] ?: (isset($d['user_name_full']) ? $d['user_name_full'] : '');
 
+        // Booking owner (different from acting user)
+        $bookingOwner = isset($d['user_name_full']) ? $d['user_name_full'] : '';
+
+        // Check if changes include square (to avoid duplicate display)
+        $hasSquareChange = isset($d['changes']['sid']) || (isset($d['changes_readable']) && is_array($d['changes_readable']) && preg_grep('/Platz/', $d['changes_readable']));
+
         // Build detail lines
         $detailLines = [];
         if (isset($d['changes_readable']) && is_array($d['changes_readable'])) {
@@ -196,10 +202,10 @@ $actionLabels = [
                 }
             }
         }
-        if (isset($d['square_name']) && $d['square_name']) { $detailLines[] = $d['square_name']; }
-        if (isset($d['user_name_full']) && $d['user_name_full'] && $d['user_name_full'] != $userName) { $detailLines[] = $d['user_name_full']; }
-        if (isset($d['player_names']) && is_array($d['player_names'])) { $detailLines[] = implode(', ', $d['player_names']); }
-        if (isset($d['paymentMethod']) && $d['paymentMethod']) { $detailLines[] = ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']); }
+        // Only show square if not already in changes
+        if (!$hasSquareChange && isset($d['square_name']) && $d['square_name']) { $detailLines[] = $d['square_name']; }
+        if (isset($d['player_names']) && is_array($d['player_names'])) { $detailLines[] = 'Spieler: ' . implode(', ', $d['player_names']); }
+        if (isset($d['paymentMethod']) && $d['paymentMethod']) { $detailLines[] = 'Zahlung: ' . ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']); }
         if (isset($d['budget']) && $d['budget']) { $detailLines[] = 'Budget: ' . $d['budget'] . ' &rarr; ' . ($d['newbudget'] ?? '0'); }
         if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) { $detailLines[] = 'Budget: ' . ($d['budget_old'] ?: '0') . ' &rarr; ' . $d['budget_new']; }
         if ($entry['ip'] && ($entry['action'] == 'login' || $entry['action'] == 'login_failed')) {
@@ -215,8 +221,11 @@ $actionLabels = [
                 <div>
                     <span class="badge bg-<?= $entry['_badge'][1] ?> bg-opacity-75" style="font-size: 0.68rem;"><?= $entry['_badge'][0] ?></span>
                     <strong style="font-size: 0.82rem;"><?= $this->escapeHtml($entry['_action_label']) ?></strong>
-                    <?php if ($userName): ?>
-                        <span class="text-muted" style="font-size: 0.8rem;">&middot; <?= $this->escapeHtml($userName) ?></span>
+                    <?php if ($bookingOwner): ?>
+                        <span style="font-size: 0.8rem;">&middot; <?= $this->escapeHtml($bookingOwner) ?></span>
+                    <?php endif; ?>
+                    <?php if ($userName && $userName != $bookingOwner): ?>
+                        <span class="text-muted" style="font-size: 0.78rem;">(von <?= $this->escapeHtml($userName) ?>)</span>
                     <?php endif; ?>
                 </div>
                 <small class="text-muted text-nowrap ms-2" style="font-size: 0.75rem;"><?= $dateStr ?></small>
