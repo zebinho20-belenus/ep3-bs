@@ -15,6 +15,8 @@ $categoryLabels = [
     'system' => ['System', 'dark'],
 ];
 
+$pmLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', 'budget' => 'Budget', 'paylater' => 'Spaeter', 'member' => 'Mitglied'];
+
 ?>
 
 <div>
@@ -22,35 +24,39 @@ $categoryLabels = [
 
     <div class="separator-small"></div>
 
-    <p><?= $this->t('All system actions and changes') ?></p>
+    <p class="d-none d-md-block"><?= $this->t('All system actions and changes') ?></p>
 
-    <div class="separator separator-line"></div>
+    <div class="separator separator-line d-none d-md-block"></div>
 
     <!-- Filter -->
-    <form method="get" action="<?= $this->url('backend/audit') ?>" class="row g-2 mb-3 no-print">
-        <div class="col-auto">
-            <input type="text" name="date-start" class="form-control form-control-sm datepicker" style="width: 110px;"
-                   placeholder="<?= $this->t('Date from') ?>" value="<?= $this->escapeHtml($this->dateStart) ?>">
-        </div>
-        <div class="col-auto">
-            <input type="text" name="date-end" class="form-control form-control-sm datepicker" style="width: 110px;"
-                   placeholder="<?= $this->t('Date to') ?>" value="<?= $this->escapeHtml($this->dateEnd) ?>">
-        </div>
-        <div class="col-auto">
-            <select name="category" class="form-select form-select-sm" style="width: 140px;">
-                <option value=""><?= $this->t('All categories') ?></option>
-                <?php foreach ($categoryLabels as $key => $label): ?>
-                    <option value="<?= $key ?>" <?= $this->category == $key ? 'selected' : '' ?>><?= $label[0] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-auto">
-            <input type="text" name="search" class="form-control form-control-sm" style="width: 200px;"
-                   placeholder="<?= $this->t('Search') ?>" value="<?= $this->escapeHtml($this->search) ?>">
-        </div>
-        <div class="col-auto">
-            <button type="submit" class="btn btn-sm btn-primary"><span class="fa fa-search"></span></button>
-            <a href="<?= $this->url('backend/audit') ?>" class="btn btn-sm btn-outline-secondary"><?= $this->t('Reset') ?></a>
+    <form method="get" action="<?= $this->url('backend/audit') ?>" class="no-print mb-3">
+        <div class="row g-2">
+            <div class="col-6 col-md-auto">
+                <input type="text" name="date-start" class="form-control form-control-sm datepicker"
+                       placeholder="<?= $this->t('Date from') ?>" value="<?= $this->escapeHtml($this->dateStart) ?>">
+            </div>
+            <div class="col-6 col-md-auto">
+                <input type="text" name="date-end" class="form-control form-control-sm datepicker"
+                       placeholder="<?= $this->t('Date to') ?>" value="<?= $this->escapeHtml($this->dateEnd) ?>">
+            </div>
+            <div class="col-6 col-md-auto">
+                <select name="category" class="form-select form-select-sm">
+                    <option value=""><?= $this->t('All categories') ?></option>
+                    <?php foreach ($categoryLabels as $key => $label): ?>
+                        <option value="<?= $key ?>" <?= $this->category == $key ? 'selected' : '' ?>><?= $label[0] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-6 col-md-auto">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="<?= $this->t('Search') ?>" value="<?= $this->escapeHtml($this->search) ?>">
+                    <button type="submit" class="btn btn-primary"><span class="fa fa-search"></span></button>
+                </div>
+            </div>
+            <div class="col-auto d-none d-md-block">
+                <a href="<?= $this->url('backend/audit') ?>" class="btn btn-sm btn-outline-secondary"><?= $this->t('Reset') ?></a>
+            </div>
         </div>
     </form>
 
@@ -80,8 +86,8 @@ $categoryLabels = [
                     </li>
                 <?php endif; ?>
                 <?php
-                $startPage = max(1, $page - 3);
-                $endPage = min($totalPages, $page + 3);
+                $startPage = max(1, $page - 2);
+                $endPage = min($totalPages, $page + 2);
                 for ($p = $startPage; $p <= $endPage; $p++): ?>
                     <li class="page-item <?= $p == $page ? 'active' : '' ?>">
                         <a class="page-link" href="<?= $this->url('backend/audit', [], ['query' => array_merge($paginationQuery, ['page' => $p])]) ?>"><?= $p ?></a>
@@ -100,77 +106,123 @@ $categoryLabels = [
     <?php if (empty($this->entries)): ?>
         <p class="text-muted"><?= $this->t('No entries found') ?></p>
     <?php else: ?>
-    <div class="table-responsive">
-        <table class="table table-striped table-sm" style="font-size: 0.85rem;">
-            <thead>
-                <tr>
-                    <th style="width: 140px;"><?= $this->t('Date') ?></th>
-                    <th style="width: 80px;"><?= $this->t('Category') ?></th>
-                    <th style="width: 100px;"><?= $this->t('Action') ?></th>
-                    <th style="width: 120px;"><?= $this->t('User') ?></th>
-                    <th><?= $this->t('Message') ?></th>
-                    <th style="width: 180px;">Info</th>
-                    <th style="width: 60px;"><?= $this->t('Details') ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($this->entries as $i => $entry): ?>
-                <tr>
-                    <td class="text-nowrap"><?= date('d.m.Y H:i:s', strtotime($entry['created'])) ?></td>
-                    <td>
-                        <?php
-                        $cat = $entry['category'];
-                        $badge = isset($categoryLabels[$cat]) ? $categoryLabels[$cat] : [$cat, 'secondary'];
-                        ?>
-                        <span class="badge bg-<?= $badge[1] ?>"><?= $badge[0] ?></span>
-                    </td>
-                    <td><?= $this->escapeHtml($entry['action']) ?></td>
-                    <td><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
-                    <td><?= $this->escapeHtml($entry['message']) ?></td>
-                    <td style="font-size: 0.8rem;">
-                        <?php
-                        $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
-                        $infoParts = [];
-                        if (isset($d['paymentMethod']) && $d['paymentMethod']) {
-                            $pmLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', 'budget' => 'Budget', 'paylater' => 'Spaeter', 'member' => 'Mitglied'];
-                            $infoParts[] = '<span class="badge bg-info text-dark">' . ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']) . '</span>';
-                        }
-                        if (isset($d['square_name']) && $d['square_name']) {
-                            $infoParts[] = $this->escapeHtml($d['square_name']);
-                        }
-                        if (isset($d['user_name_full']) && $d['user_name_full']) {
-                            $infoParts[] = $this->escapeHtml($d['user_name_full']);
-                        }
-                        if (isset($d['player_names']) && is_array($d['player_names'])) {
-                            $infoParts[] = '<small class="text-muted">' . $this->escapeHtml(implode(', ', $d['player_names'])) . '</small>';
-                        }
-                        if (isset($d['budget']) && $d['budget']) {
-                            $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget']) . '&rarr;' . $this->escapeHtml($d['newbudget'] ?? '0') . '</small>';
-                        }
-                        if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) {
-                            $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget_old'] ?: '0') . '&rarr;' . $this->escapeHtml($d['budget_new']) . '</small>';
-                        }
-                        echo $infoParts ? implode(' | ', $infoParts) : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php if ($entry['detail']): ?>
-                            <a href="#" class="btn btn-sm btn-outline-secondary" onclick="var d=document.getElementById('detail-<?= $i ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
-                                <span class="fa fa-info-circle"></span>
-                            </a>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-                <?php if ($entry['detail']): ?>
-                <tr id="detail-<?= $i ?>" style="display: none;">
-                    <td colspan="7">
-                        <pre class="mb-0 p-2 bg-light" style="font-size: 0.8rem; white-space: pre-wrap;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
-                    </td>
-                </tr>
-                <?php endif; ?>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+
+    <?php
+    // Pre-process detail data for all entries
+    $processedEntries = [];
+    foreach ($this->entries as $i => $entry) {
+        $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
+        $infoParts = [];
+        if (isset($d['paymentMethod']) && $d['paymentMethod']) {
+            $infoParts[] = '<span class="badge bg-info text-dark">' . ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']) . '</span>';
+        }
+        if (isset($d['square_name']) && $d['square_name']) {
+            $infoParts[] = $this->escapeHtml($d['square_name']);
+        }
+        if (isset($d['user_name_full']) && $d['user_name_full']) {
+            $infoParts[] = $this->escapeHtml($d['user_name_full']);
+        }
+        if (isset($d['player_names']) && is_array($d['player_names'])) {
+            $infoParts[] = '<small class="text-muted">' . $this->escapeHtml(implode(', ', $d['player_names'])) . '</small>';
+        }
+        if (isset($d['budget']) && $d['budget']) {
+            $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget']) . '&rarr;' . $this->escapeHtml($d['newbudget'] ?? '0') . '</small>';
+        }
+        if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) {
+            $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget_old'] ?: '0') . '&rarr;' . $this->escapeHtml($d['budget_new']) . '</small>';
+        }
+        $entry['_info'] = $infoParts ? implode(' | ', $infoParts) : '';
+        $entry['_index'] = $i;
+        $cat = $entry['category'];
+        $entry['_badge'] = isset($categoryLabels[$cat]) ? $categoryLabels[$cat] : [$cat, 'secondary'];
+        $processedEntries[] = $entry;
+    }
+    ?>
+
+    <!-- Desktop: Table -->
+    <div class="d-none d-lg-block">
+        <div class="table-responsive">
+            <table class="table table-striped table-sm" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th style="width: 140px;"><?= $this->t('Date') ?></th>
+                        <th style="width: 80px;"><?= $this->t('Category') ?></th>
+                        <th style="width: 100px;"><?= $this->t('Action') ?></th>
+                        <th style="width: 120px;"><?= $this->t('User') ?></th>
+                        <th><?= $this->t('Message') ?></th>
+                        <th style="width: 180px;">Info</th>
+                        <th style="width: 60px;"><?= $this->t('Details') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($processedEntries as $entry): $i = $entry['_index']; ?>
+                    <tr>
+                        <td class="text-nowrap"><?= date('d.m.Y H:i:s', strtotime($entry['created'])) ?></td>
+                        <td><span class="badge bg-<?= $entry['_badge'][1] ?>"><?= $entry['_badge'][0] ?></span></td>
+                        <td><?= $this->escapeHtml($entry['action']) ?></td>
+                        <td><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
+                        <td><?= $this->escapeHtml($entry['message']) ?></td>
+                        <td style="font-size: 0.8rem;"><?= $entry['_info'] ?: '-' ?></td>
+                        <td>
+                            <?php if ($entry['detail']): ?>
+                                <a href="#" class="btn btn-sm btn-outline-secondary" onclick="var d=document.getElementById('detail-<?= $i ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
+                                    <span class="fa fa-info-circle"></span>
+                                </a>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php if ($entry['detail']): ?>
+                    <tr id="detail-<?= $i ?>" style="display: none;">
+                        <td colspan="7">
+                            <pre class="mb-0 p-2 bg-light" style="font-size: 0.8rem; white-space: pre-wrap;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <!-- Mobile: Card Layout -->
+    <div class="d-lg-none">
+        <?php foreach ($processedEntries as $entry): $i = $entry['_index']; ?>
+        <div class="card mb-2">
+            <div class="card-body p-2">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                    <div>
+                        <span class="badge bg-<?= $entry['_badge'][1] ?>"><?= $entry['_badge'][0] ?></span>
+                        <span class="badge bg-light text-dark"><?= $this->escapeHtml($entry['action']) ?></span>
+                    </div>
+                    <small class="text-muted text-nowrap"><?= date('d.m. H:i', strtotime($entry['created'])) ?></small>
+                </div>
+                <div class="mb-1" style="font-size: 0.9rem;">
+                    <?= $this->escapeHtml($entry['message']) ?>
+                </div>
+                <?php if ($entry['_info']): ?>
+                <div class="mb-1" style="font-size: 0.8rem;">
+                    <?= $entry['_info'] ?>
+                </div>
+                <?php endif; ?>
+                <?php if ($entry['user_name']): ?>
+                <div style="font-size: 0.8rem;">
+                    <span class="text-muted">von</span> <?= $this->escapeHtml($entry['user_name']) ?>
+                </div>
+                <?php endif; ?>
+                <?php if ($entry['detail']): ?>
+                <div class="mt-1">
+                    <a href="#" class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size: 0.75rem;" onclick="var d=document.getElementById('detail-m-<?= $i ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
+                        <span class="fa fa-info-circle"></span> JSON
+                    </a>
+                    <div id="detail-m-<?= $i ?>" style="display: none;" class="mt-1">
+                        <pre class="mb-0 p-2 bg-light" style="font-size: 0.7rem; white-space: pre-wrap; max-height: 200px; overflow-y: auto;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
     <?php endif; ?>
 </div>
