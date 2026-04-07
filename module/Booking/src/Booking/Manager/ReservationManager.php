@@ -651,10 +651,10 @@ class ReservationManager extends AbstractManager
         }
 
         $select = $this->reservationTable->getSql()->select();
-        $select->columns(['bid']);
+        $select->columns(['bid' => new \Zend\Db\Sql\Expression('DISTINCT bid')]);
         $select->where($where);
+        $select->order(new \Zend\Db\Sql\Expression('MIN(date) ASC, MIN(time_start) ASC'));
         $select->group('bid');
-        $select->order('MIN(date) ASC, MIN(time_start) ASC');
 
         if ($limit) {
             $select->limit($limit);
