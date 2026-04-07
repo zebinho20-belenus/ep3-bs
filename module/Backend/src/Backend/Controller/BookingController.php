@@ -103,6 +103,9 @@ class BookingController extends AbstractActionController
                 }
 
                 $userManager->getByBookings($bookings);
+
+                $bookingBillManager = $serviceManager->get('Booking\Manager\Booking\BillManager');
+                $bookingBillManager->getByBookings($bookings);
             } catch (\RuntimeException $e) {
                 $bookings = array();
                 $reservations = array();

@@ -28,6 +28,8 @@ RUN if [ "$INSTALL_XDEBUG" = "true" ]; then \
     && echo "xdebug.idekey=PHPSTORM" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.discover_client_host=0" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache-settings.ini \
+    && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/opcache-settings.ini \
     ; fi
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
@@ -64,8 +66,8 @@ COPY <<'EOF' /usr/local/etc/php/conf.d/opcache-settings.ini
 opcache.memory_consumption=128
 opcache.interned_strings_buffer=16
 opcache.max_accelerated_files=10000
-opcache.validate_timestamps=1
-opcache.revalidate_freq=60
+opcache.validate_timestamps=0
+opcache.revalidate_freq=0
 opcache.enable_cli=0
 opcache.enable=1
 EOF

@@ -30,6 +30,16 @@ class MigrationManager
             return;
         }
 
+        $latestMigration = max(array_keys($migrations));
+
+        // Skip DB query if APCu confirms all migrations are applied
+        if (function_exists('apcu_fetch')) {
+            $cachedVersion = apcu_fetch('migration_schema_version');
+            if ($cachedVersion !== false && $cachedVersion >= $latestMigration) {
+                return;
+            }
+        }
+
         $currentVersion = $this->getSchemaVersion();
 
         foreach ($migrations as $version => $migration) {
@@ -44,6 +54,11 @@ class MigrationManager
 
             $this->executeMigrationFile($migration);
             $this->setSchemaVersion($version);
+        }
+
+        // Cache final version in APCu to skip DB query on subsequent requests
+        if (function_exists('apcu_store')) {
+            apcu_store('migration_schema_version', $this->getSchemaVersion(), 300);
         }
     }
 

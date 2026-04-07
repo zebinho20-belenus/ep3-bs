@@ -22,10 +22,13 @@ services:
       --innodb-flush-method=O_DIRECT
       --max-connections=50
       --join-buffer-size=512K
-      --sort-buffer-size=512K
-      --table-open-cache=400
+      --sort-buffer-size=2M
+      --table-open-cache=2000
       --tmp-table-size=32M
       --max-heap-table-size=32M
+      --innodb-stats-on-metadata=0
+      --slow-query-log=1
+      --long-query-time=1
     volumes:
       - ./db:/var/lib/mysql
     healthcheck:

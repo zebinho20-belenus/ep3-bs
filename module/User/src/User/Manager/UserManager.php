@@ -213,6 +213,10 @@ class UserManager extends AbstractManager
      */
     public function get($uid, $strict = true)
     {
+        if (isset($this->buffer[$uid])) {
+            return $this->buffer[$uid];
+        }
+
         $users = $this->getBy(array('uid' => $uid));
 
         if (empty($users)) {

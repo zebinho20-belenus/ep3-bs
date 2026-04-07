@@ -92,7 +92,10 @@ class BookingFormat extends AbstractHelper
             $userName = $booking->need('uid');
         }
 
-        $user = $this->userManager->get($booking->need('uid'));
+        $user = $booking->getExtra('user');
+        if (! $user) {
+            $user = $this->userManager->get($booking->need('uid'));
+        }
 
         $html .= sprintf('<td><b>%s</b></td>',
             $userName);
@@ -159,7 +162,10 @@ class BookingFormat extends AbstractHelper
 
         $price = 0;
 
-        $bills = $this->bookingBillManager->getBy(array('bid' => $booking->need('bid')), 'bbid ASC'); 
+        $bills = $booking->getExtra('bills');
+        if (! $bills) {
+            $bills = $this->bookingBillManager->getBy(array('bid' => $booking->need('bid')), 'bbid ASC');
+        }
 
         if ($bills) {
             foreach ($bills as $bill) {
