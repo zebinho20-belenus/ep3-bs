@@ -62,13 +62,17 @@ class BookingController extends AbstractActionController
                 $offset = ($page - 1) * $pageSize;
 
                 if ($dateStart && $dateEnd) {
-                    $totalCount = $reservationManager->countInRange($dateStart, $dateEnd);
-                    $bids = $reservationManager->getDistinctBidsInRange($dateStart, $dateEnd, $pageSize, $offset);
+                    // Get all booking IDs in date range, then filter + paginate at booking level
+                    $allBids = $reservationManager->getDistinctBidsInRange($dateStart, $dateEnd);
 
-                    if ($bids) {
-                        $bookings = $bookingManager->getBy(
-                            array_merge([new \Zend\Db\Sql\Predicate\In(BookingTable::NAME . '.bid', $bids)], $filters['filters'])
-                        );
+                    if ($allBids) {
+                        $bidFilter = new \Zend\Db\Sql\Predicate\In(BookingTable::NAME . '.bid', $allBids);
+                        $allFilters = array_merge([$bidFilter], $filters['filters']);
+
+                        $allBookings = $bookingManager->getBy($allFilters);
+                        $allBookings = $this->complexFilterBookings($allBookings, $filters);
+                        $totalCount = count($allBookings);
+                        $bookings = array_slice($allBookings, $offset, $pageSize, true);
                     }
                 } else {
                     $bookings = $bookingManager->getBy($filters['filters'], null, $pageSize, $offset);
@@ -79,7 +83,9 @@ class BookingController extends AbstractActionController
                     }
                 }
 
-                $bookings = $this->complexFilterBookings($bookings, $filters);
+                if (! ($dateStart && $dateEnd)) {
+                    $bookings = $this->complexFilterBookings($bookings, $filters);
+                }
                 $reservations = $reservationManager->getByBookings($bookings);
 
                 // Filter reservations to only include those within the requested date range
