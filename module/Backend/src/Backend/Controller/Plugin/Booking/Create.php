@@ -184,17 +184,17 @@ class Create extends AbstractPlugin
             // Audit log
             if ($this->auditService) {
                 try {
+                    $userFullName = trim($user->getMeta('firstname') . ' ' . $user->getMeta('lastname')) ?: $user->get('alias');
                     $this->auditService->log('booking', 'create',
-                        sprintf('Buchung #%s erstellt (Backend, %s, Platz %s, uid=%s)',
-                            $booking->get('bid'), $status, $square->get('name'), $booking->get('uid')),
+                        sprintf('Buchung #%s: %s auf %s (Backend, %s)', $booking->get('bid'), $userFullName, $square->get('name'), $status),
                         [
                             'user_name' => $creator,
                             'entity_type' => 'booking',
                             'entity_id' => $booking->get('bid'),
                             'detail' => [
                                 'source' => 'backend',
-                                'sid' => $square->get('sid'),
-                                'uid' => $booking->get('uid'),
+                                'square_name' => $square->get('name'),
+                                'user_name_full' => $userFullName,
                                 'status' => $status,
                                 'status_billing' => $statusBilling,
                                 'quantity' => $quantity,

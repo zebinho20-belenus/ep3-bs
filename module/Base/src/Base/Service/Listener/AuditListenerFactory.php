@@ -12,7 +12,9 @@ class AuditListenerFactory implements FactoryInterface
     {
         return new AuditListener(
             $sm->get('Base\Service\AuditService'),
-            $sm->get('User\Manager\UserSessionManager')
+            $sm->get('User\Manager\UserSessionManager'),
+            $sm->get('User\Manager\UserManager'),
+            $sm->get('Square\Manager\SquareManager')
         );
     }
 

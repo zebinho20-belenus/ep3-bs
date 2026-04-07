@@ -109,6 +109,7 @@ $categoryLabels = [
                     <th style="width: 100px;"><?= $this->t('Action') ?></th>
                     <th style="width: 120px;"><?= $this->t('User') ?></th>
                     <th><?= $this->t('Message') ?></th>
+                    <th style="width: 180px;">Info</th>
                     <th style="width: 60px;"><?= $this->t('Details') ?></th>
                 </tr>
             </thead>
@@ -126,6 +127,32 @@ $categoryLabels = [
                     <td><?= $this->escapeHtml($entry['action']) ?></td>
                     <td><?= $this->escapeHtml($entry['user_name'] ?: '-') ?></td>
                     <td><?= $this->escapeHtml($entry['message']) ?></td>
+                    <td style="font-size: 0.8rem;">
+                        <?php
+                        $d = $entry['detail'] ? json_decode($entry['detail'], true) : [];
+                        $infoParts = [];
+                        if (isset($d['paymentMethod']) && $d['paymentMethod']) {
+                            $pmLabels = ['paypal' => 'PayPal', 'stripe' => 'Stripe', 'klarna' => 'Klarna', 'budget' => 'Budget', 'paylater' => 'Spaeter', 'member' => 'Mitglied'];
+                            $infoParts[] = '<span class="badge bg-info text-dark">' . ($pmLabels[$d['paymentMethod']] ?? $d['paymentMethod']) . '</span>';
+                        }
+                        if (isset($d['square_name']) && $d['square_name']) {
+                            $infoParts[] = $this->escapeHtml($d['square_name']);
+                        }
+                        if (isset($d['user_name_full']) && $d['user_name_full']) {
+                            $infoParts[] = $this->escapeHtml($d['user_name_full']);
+                        }
+                        if (isset($d['player_names']) && is_array($d['player_names'])) {
+                            $infoParts[] = '<small class="text-muted">' . $this->escapeHtml(implode(', ', $d['player_names'])) . '</small>';
+                        }
+                        if (isset($d['budget']) && $d['budget']) {
+                            $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget']) . '&rarr;' . $this->escapeHtml($d['newbudget'] ?? '0') . '</small>';
+                        }
+                        if (isset($d['budget_old']) && isset($d['budget_new']) && $d['budget_old'] != $d['budget_new']) {
+                            $infoParts[] = '<small>Budget: ' . $this->escapeHtml($d['budget_old'] ?: '0') . '&rarr;' . $this->escapeHtml($d['budget_new']) . '</small>';
+                        }
+                        echo $infoParts ? implode(' | ', $infoParts) : '-';
+                        ?>
+                    </td>
                     <td>
                         <?php if ($entry['detail']): ?>
                             <a href="#" class="btn btn-sm btn-outline-secondary" onclick="var d=document.getElementById('detail-<?= $i ?>');d.style.display=d.style.display=='none'?'block':'none';return false;">
@@ -136,7 +163,7 @@ $categoryLabels = [
                 </tr>
                 <?php if ($entry['detail']): ?>
                 <tr id="detail-<?= $i ?>" style="display: none;">
-                    <td colspan="6">
+                    <td colspan="7">
                         <pre class="mb-0 p-2 bg-light" style="font-size: 0.8rem; white-space: pre-wrap;"><?= $this->escapeHtml(json_encode(json_decode($entry['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
                     </td>
                 </tr>
