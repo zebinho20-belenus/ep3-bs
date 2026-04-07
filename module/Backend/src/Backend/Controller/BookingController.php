@@ -891,6 +891,21 @@ class BookingController extends AbstractActionController
             }
         }
 
+        /* Fetch audit history for this booking */
+        $auditEntries = [];
+        if ($booking) {
+            try {
+                $auditLogTable = $serviceManager->get('Base\Table\AuditLogTable');
+                $auditSelect = $auditLogTable->getSql()->select()
+                    ->where(['entity_type' => 'booking', 'entity_id' => $booking->get('bid')])
+                    ->order('created DESC')
+                    ->limit(20);
+                foreach ($auditLogTable->selectWith($auditSelect) as $row) {
+                    $auditEntries[] = $row;
+                }
+            } catch (\Exception $e) {}
+        }
+
         /* Ensure conflicts variable exists for view */
         if (!isset($conflicts)) {
             $conflicts = [];
@@ -917,6 +932,7 @@ class BookingController extends AbstractActionController
             'billTotal' => $billTotal,
             'allReservations' => $allReservations,
             'conflicts' => $conflicts,
+            'auditEntries' => $auditEntries,
             )));
         }
 
@@ -931,6 +947,7 @@ class BookingController extends AbstractActionController
             'conflicts' => $conflicts,
             'isReservationOverride' => isset($isReservationOverride) ? $isReservationOverride : false,
             'hasOverrides' => isset($hasOverrides) ? $hasOverrides : false,
+            'auditEntries' => $auditEntries,
         )));
     }
 

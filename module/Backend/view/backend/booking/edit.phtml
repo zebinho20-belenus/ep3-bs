@@ -325,6 +325,69 @@ $this->setup(array(
         </div>
     </div>
 
+    <?php if (!empty($this->auditEntries)): ?>
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="sandbox">
+                <h6 class="mb-2">
+                    <span class="fa fa-history"></span> <?= $this->t('Change history') ?>
+                    <small class="text-muted">(<?= count($this->auditEntries) ?>)</small>
+                </h6>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-sm" style="font-size: 0.8rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 110px;"><?= $this->t('Date') ?></th>
+                                <th style="width: 100px;"><?= $this->t('User') ?></th>
+                                <th style="width: 90px;"><?= $this->t('Action') ?></th>
+                                <th><?= $this->t('Description') ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        $auditActionLabels = [
+                            'create' => 'Erstellt', 'cancel' => 'Storniert', 'delete' => 'Geloescht',
+                            'edit' => 'Bearbeitet', 'reactivate' => 'Reaktiviert', 'edit_bill' => 'Rechnung',
+                            'payment_success' => 'Bezahlt', 'payment_failed' => 'Fehlgeschlagen',
+                            'budget_refund' => 'Rueckerstattung',
+                        ];
+                        $auditCategoryBadges = [
+                            'booking' => 'primary', 'payment' => 'success', 'admin' => 'danger', 'system' => 'dark',
+                        ];
+                        foreach ($this->auditEntries as $ai => $ae):
+                            $aLabel = isset($auditActionLabels[$ae['action']]) ? $auditActionLabels[$ae['action']] : $ae['action'];
+                            $aBadge = isset($auditCategoryBadges[$ae['category']]) ? $auditCategoryBadges[$ae['category']] : 'secondary';
+                            $aDetail = $ae['detail'] ? json_decode($ae['detail'], true) : [];
+                        ?>
+                            <tr class="audit-row" style="cursor:pointer;" onclick="var d=document.getElementById('bk-audit-<?= $ai ?>');if(d)d.style.display=d.style.display=='none'?'table-row':'none';">
+                                <td class="text-nowrap text-muted"><?= date('d.m. H:i', strtotime($ae['created'])) ?></td>
+                                <td><?= $this->escapeHtml($ae['user_name'] ?: '-') ?></td>
+                                <td><span class="badge bg-<?= $aBadge ?>"><?= $aLabel ?></span></td>
+                                <td>
+                                    <?= $this->escapeHtml($ae['message']) ?>
+                                    <?php if (isset($aDetail['changes_readable']) && is_array($aDetail['changes_readable'])): ?>
+                                        <?php foreach ($aDetail['changes_readable'] as $cr): ?>
+                                            <br><small class="text-info"><?= $this->escapeHtml($cr) ?></small>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php if ($ae['detail']): ?>
+                            <tr id="bk-audit-<?= $ai ?>" style="display:none;">
+                                <td colspan="4">
+                                    <pre class="mb-0 p-1 bg-light" style="font-size:0.7rem;white-space:pre-wrap;max-height:150px;overflow-y:auto;"><?= $this->escapeHtml(json_encode(json_decode($ae['detail']), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)) ?></pre>
+                                </td>
+                            </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="edit-actions">
         <?php if ($this->sessionUser->can('admin.booking')): ?>
             <?= $this->formElement($form->get('bf-submit')) ?>
