@@ -62,11 +62,11 @@ class BookingController extends AbstractActionController
         if (($dateStart && $dateEnd) || $search) {
             $filters = $this->backendBookingDetermineFilters($search);
 
-            // Check if search contains a direct bid filter — skip date range if so
-            $hasBidFilter = false;
+            // Check if search contains a direct lookup filter — skip date range if so
+            $hasDirectFilter = false;
             foreach ($filters['filters'] as $f) {
                 if (is_string($f) && preg_match('/^bid\s*=/', $f)) {
-                    $hasBidFilter = true;
+                    $hasDirectFilter = true;
                     break;
                 }
             }
@@ -74,6 +74,7 @@ class BookingController extends AbstractActionController
             // Resolve name filter to uid filter (name requires LIKE search on users table)
             foreach ($filters['filterParts'] as $filterPart) {
                 if ($filterPart[0] === 'name' && $filterPart[2]) {
+                    $hasDirectFilter = true;
                     $nameSearch = '%' . $filterPart[2] . '%';
                     $matchingUids = [];
                     $allUsers = $userManager->getBy(new \Zend\Db\Sql\Predicate\Like('alias', $nameSearch));
@@ -91,7 +92,7 @@ class BookingController extends AbstractActionController
             try {
                 $offset = ($page - 1) * $pageSize;
 
-                if ($hasBidFilter) {
+                if ($hasDirectFilter) {
                     // Direct booking ID lookup — ignore date range
                     $allBookings = $bookingManager->getBy($filters['filters']);
                     $allBookings = $this->complexFilterBookings($allBookings, $filters);
@@ -128,7 +129,7 @@ class BookingController extends AbstractActionController
                 // (getByBookings fetches ALL reservations for matched bookings, which for
                 // subscription bookings includes reservations outside the date range)
                 // Skip date filter for direct bid lookup — show all reservations
-                if ($dateStart && $dateEnd && !$hasBidFilter) {
+                if ($dateStart && $dateEnd && !$hasDirectFilter) {
                     $reservations = array_filter($reservations, function($reservation) use ($dateStart, $dateEnd) {
                         $resDate = new \DateTime($reservation->get('date'));
                         return $resDate >= $dateStart && $resDate <= $dateEnd;
