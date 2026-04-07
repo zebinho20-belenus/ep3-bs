@@ -584,4 +584,6 @@ return array(
     'Description' => 'Beschreibung',
     'Changes apply only to this reservation' => 'Aenderungen gelten nur fuer diese Reservierung',
     'Has overrides' => 'Hat Abweichungen',
+    'All entries in audit log' => 'Alle Eintraege im Audit-Log',
+    'Show in booking list' => 'In Buchungsliste anzeigen',
 );

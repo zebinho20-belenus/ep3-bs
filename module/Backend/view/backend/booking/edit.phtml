@@ -411,6 +411,14 @@ $this->setup(array(
                         <?php endif; ?>
                     </div>
                     <?php endforeach; ?>
+                    <div class="mt-2 d-flex gap-2" style="font-size: 0.78rem;">
+                        <a href="<?= $this->url('backend/audit', [], ['query' => ['search' => $this->booking->get('bid')]]) ?>" class="text-decoration-none" onclick="event.stopPropagation();">
+                            <span class="fa fa-list"></span> <?= $this->t('All entries in audit log') ?>
+                        </a>
+                        <a href="<?= $this->url('backend/booking', [], ['query' => ['search' => '(bid = ' . $this->booking->get('bid') . ')']]) ?>" class="text-decoration-none" onclick="event.stopPropagation();">
+                            <span class="fa fa-search"></span> <?= $this->t('Show in booking list') ?>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
