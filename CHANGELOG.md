@@ -7,11 +7,15 @@
 - **Audit-Log System**: Comprehensive audit logging for all system actions
   - New `bs_audit_log` DB table (auto-migration on startup)
   - Dual output: database + `data/log/audit.log` (JSON-per-line)
-  - Event-based logging: booking create/cancel via `AuditListener`
-  - Direct logging: login/login failure, payment success/failure
-  - Backend UI: `/backend/audit` with filter (date, category, search), pagination, expandable detail view
-  - Categories: booking (blue), payment (green), user (yellow), admin (red), config (gray), system (dark)
-  - Audit descriptions show "Platz X" instead of just "X" for court names
+  - Log rotation: 5 MB max, 3 rotated files
+  - DB cleanup: MySQL event deletes old entries (configurable under Backend → Verhalten)
+  - GeoIP lookup for login events (IP + country code via ip-api.com)
+  - Backend UI: `/backend/audit` — modern card-style with booking owner, action badge, date
+  - Changes visible directly (no expanding needed), JSON on click
+  - Logged: bookings (create/edit/cancel/delete/reactivate), payments (success/fail/refund), login, users, events
+- **Change History in Booking View** ([#104](https://github.com/zebinho20-belenus/ep3bs-payment/issues/104)): Collapsible audit trail per booking in edit dialog — shows who changed what, when (date + time of reservation included)
+- **Per-Reservation Overrides** ([#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101)): Individual subscription reservations can have own square, billing status, player count (stored as meta overrides). Calendar shows correct square, booking list shows override badge.
+- **Conflict Detection on Edit** ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100)): Pre-save conflict check when editing bookings (same logic as create). Considers sid_override for moved reservations. Extended conflict table with booking ID and subscription info.
 
 ### Bug Fixes
 
@@ -42,17 +46,21 @@
 <details>
 <summary><b>Deutsche Zusammenfassung</b></summary>
 
-**Audit-Log**: Neues System zur Nachvollziehbarkeit aller Aktionen (Buchungen, Zahlungen, Logins, Admin-Aktionen). DB-Tabelle + Logdatei + Backend-UI unter Konfiguration → Audit-Protokoll mit Filter und Pagination.
+**Audit-Log**: Neues System zur Nachvollziehbarkeit aller Aktionen. DB-Tabelle + Logdatei + modernes Card-UI unter Konfiguration → Audit-Protokoll. Log-Rotation (5 MB), DB-Cleanup (konfigurierbar), GeoIP bei Login.
 
-**Bugfix #102**: Teilzahlung mit Budget — Budget wurde nach PayPal-Zahlung nicht abgezogen weil `hasBudget` als boolean statt String gespeichert wurde.
+**Aenderungshistorie in Buchung** (#104): Collapsible Audit-Trail direkt in der Buchungsbearbeitung — wer hat wann was geaendert (mit Datum/Uhrzeit der Reservierung).
 
-**Bugfix #103**: Buchungsliste zaehlte Reservierungen statt Buchungen — Abo mit 60 Terminen zaehlte als 60 Ergebnisse. Jetzt korrekte Anzahl per `COUNT(DISTINCT bid)` und Pagination auf Booking-Ebene.
+**Einzelne Abo-Reservierung aendern** (#101): Platz, Rechnungsstatus, Spieleranzahl pro Reservierung statt fuer gesamtes Abo. Kalender zeigt Override-Platz, Buchungsliste mit Badge.
 
-**Performance**: N+1 Queries in Buchungsliste eliminiert (~50 Queries/Seite gespart), MigrationManager APCu-Cache, OPcache ohne Timestamp-Validierung in Prod, MariaDB Tuning + Slow Query Log.
+**Konflikterkennung bei Aenderung** (#100): Pre-Save Konfliktcheck bei Buchungsbearbeitung. Beruecksichtigt verschobene Abo-Reservierungen. Erweiterte Konflikttabelle mit Abo-Info.
 
-**Security**: Dev-Umgebung mit Basic Auth + noindex geschuetzt, User-Enumeration-Fix (generische Fehlermeldungen), Server-Header versteckt, CSP gehaertet.
+**Bugfix #102**: Teilzahlung mit Budget — Budget nach PayPal nicht abgezogen (hasBudget boolean statt String).
 
-**CSP**: `form-action` mit Payment-Gateway-Domains hinzugefuegt, verhindert Blockierung von PayPal/Stripe-Formularen.
+**Bugfix #103**: Buchungsliste zaehlte Reservierungen statt Buchungen.
+
+**Performance**: N+1 Queries eliminiert, APCu-Cache, OPcache, MariaDB Tuning.
+
+**Security**: Dev Basic Auth, User-Enumeration-Fix, CSP gehaertet mit Payment-Gateway-Domains.
 </details>
 
 ---
