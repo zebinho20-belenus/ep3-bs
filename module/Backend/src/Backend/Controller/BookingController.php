@@ -615,11 +615,13 @@ class BookingController extends AbstractActionController
                         }
                         $readableChanges[] = sprintf('%s: %s → %s', $label, $oldVal, $newVal);
                     }
-                    $auditMessage = sprintf('Buchung #%s bearbeitet', $savedBooking->get('bid'));
+                    $resDate = date('d.m.Y', strtotime($updatedReservation->get('date')));
+                    $resTime = substr($updatedReservation->get('time_start'), 0, 5) . '-' . substr($updatedReservation->get('time_end'), 0, 5);
+                    $auditMessage = sprintf('Buchung #%s bearbeitet (%s, %s Uhr)', $savedBooking->get('bid'), $resDate, $resTime);
                     if ($readableChanges) {
-                        $auditMessage .= ' (' . implode(', ', $readableChanges) . ')';
+                        $auditMessage .= ' — ' . implode(', ', $readableChanges);
                     }
-                    $this->audit('edit', $auditMessage, $savedBooking, ['changes' => $changes ?: [], 'changes_readable' => $readableChanges ?: []]);
+                    $this->audit('edit', $auditMessage, $savedBooking, ['changes' => $changes ?: [], 'changes_readable' => $readableChanges ?: [], 'date' => $resDate, 'time' => $resTime]);
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
                     if ($this->params()->fromPost('bf-edit-user')) {
