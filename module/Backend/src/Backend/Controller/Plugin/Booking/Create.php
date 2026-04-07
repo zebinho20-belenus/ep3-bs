@@ -24,7 +24,7 @@ class Create extends AbstractPlugin
     protected $auditService;
 
     public function __construct(BookingManager $bookingManager, ReservationManager $reservationManager,
-        SquareManager $squareManager, UserManager $userManager, ConnectionInterface $connection, AuditService $auditService = null)
+        SquareManager $squareManager, UserManager $userManager, ConnectionInterface $connection, ?AuditService $auditService = null)
     {
         $this->bookingManager = $bookingManager;
         $this->reservationManager = $reservationManager;
