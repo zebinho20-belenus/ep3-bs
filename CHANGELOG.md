@@ -18,6 +18,13 @@
 - **CSP form-action blocking payments**: Added `form-action 'self' https://*.paypal.com https://*.stripe.com` to CSP header. Also added `object-src 'none'` and `base-uri 'self'`.
 - **Booking list count mismatch (#103)**: Backend booking list counted reservations instead of bookings. A subscription with 60 reservations was counted as 60 results but displayed as 1 row. Now uses `COUNT(DISTINCT bid)` and paginates by booking IDs.
 
+### Security
+
+- **Dev environment protection**: Traefik Basic Auth (`dev-auth-court@file`) + `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` header for dev server.
+- **User enumeration fix**: Generic "not available" message instead of "already registered" on registration/email forms (Tenable WAS Medium finding).
+- **Server header hidden**: `Header always unset Server` in `.htaccess`.
+- **CSP hardened**: Added `object-src 'none'`, `base-uri 'self'`, `form-action 'self'` directives.
+
 ### Performance
 
 - **N+1 query elimination**: Backend booking list used per-row DB queries for users and bills (~50 extra queries per page). Now uses bulk-loaded data from controller.
@@ -41,6 +48,8 @@
 **Bugfix #103**: Buchungsliste zaehlte Reservierungen statt Buchungen — Abo mit 60 Terminen zaehlte als 60 Ergebnisse. Jetzt korrekte Anzahl per `COUNT(DISTINCT bid)` und Pagination auf Booking-Ebene.
 
 **Performance**: N+1 Queries in Buchungsliste eliminiert (~50 Queries/Seite gespart), MigrationManager APCu-Cache, OPcache ohne Timestamp-Validierung in Prod, MariaDB Tuning + Slow Query Log.
+
+**Security**: Dev-Umgebung mit Basic Auth + noindex geschuetzt, User-Enumeration-Fix (generische Fehlermeldungen), Server-Header versteckt, CSP gehaertet.
 
 **CSP**: `form-action` mit Payment-Gateway-Domains hinzugefuegt, verhindert Blockierung von PayPal/Stripe-Formularen.
 </details>
