@@ -51,6 +51,7 @@ if (! ($this->dateStart || $this->dateEnd)) {
 
         <p><?= $this->t('You can use filters like these to narrow your search:') ?></p>
 
+        <?= $this->backendUserFilterHelp('Booking ID', '=', '3336', 'bs-filter-snippet') ?>
         <?= $this->backendUserFilterHelp('User ID', '=', '1', 'bs-filter-snippet') ?>
         <?= $this->backendUserFilterHelp('Square ID', '=', '1', 'bs-filter-snippet') ?>
         <?= $this->backendUserFilterHelp('Status', '=', 'Single', 'bs-filter-snippet') ?>

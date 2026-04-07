@@ -62,10 +62,25 @@ class BookingController extends AbstractActionController
         if (($dateStart && $dateEnd) || $search) {
             $filters = $this->backendBookingDetermineFilters($search);
 
+            // Check if search contains a direct bid filter — skip date range if so
+            $hasBidFilter = false;
+            foreach ($filters['filters'] as $f) {
+                if (is_string($f) && preg_match('/^bid\s*=/', $f)) {
+                    $hasBidFilter = true;
+                    break;
+                }
+            }
+
             try {
                 $offset = ($page - 1) * $pageSize;
 
-                if ($dateStart && $dateEnd) {
+                if ($hasBidFilter) {
+                    // Direct booking ID lookup — ignore date range
+                    $allBookings = $bookingManager->getBy($filters['filters']);
+                    $allBookings = $this->complexFilterBookings($allBookings, $filters);
+                    $totalCount = count($allBookings);
+                    $bookings = array_slice($allBookings, $offset, $pageSize, true);
+                } elseif ($dateStart && $dateEnd) {
                     // Get all booking IDs in date range, then filter + paginate at booking level
                     $allBids = $reservationManager->getDistinctBidsInRange($dateStart, $dateEnd);
 

@@ -102,7 +102,24 @@
                         });
                         $td.append($select);
                     } else {
-                        var $input = $('<input type="text" class="col-filter form-control form-control-sm" placeholder="Filter...">');
+                        var isNrCol = $th.hasClass('nr-col');
+                        var placeholder = isNrCol ? 'Nr...' : 'Filter...';
+                        var $input = $('<input type="text" class="col-filter form-control form-control-sm" placeholder="' + placeholder + '">');
+                        if (isNrCol) {
+                            // Nr. column: server-side search on Enter
+                            $input.on('keydown', function (e) {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    var val = $(this).val().trim();
+                                    if (val && /^\d+$/.test(val)) {
+                                        var url = new URL(window.location.href);
+                                        url.searchParams.set('search', '(bid = ' + val + ')');
+                                        url.searchParams.delete('page');
+                                        window.location.href = url.toString();
+                                    }
+                                }
+                            });
+                        }
                         $input.on('input', function () {
                             applyFilters($table);
                         });
