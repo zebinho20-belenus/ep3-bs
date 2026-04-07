@@ -35,6 +35,7 @@ class AuditService
             'entity_id'   => $options['entity_id'] ?? null,
             'detail'      => isset($options['detail']) ? json_encode($options['detail'], JSON_UNESCAPED_UNICODE) : null,
             'ip'          => $this->getClientIp(),
+            'created'     => date('Y-m-d H:i:s'),
         ];
 
         // Write to DB
