@@ -41,7 +41,7 @@ class AuditListener extends AbstractListenerAggregate
         $playerNames = $this->resolvePlayerNames($booking);
 
         $this->auditService->log('booking', 'create',
-            sprintf('Buchung #%s: %s auf Platz %s', $booking->get('bid'), $userName, $squareName),
+            sprintf('Buchung #%s: %s auf %s', $booking->get('bid'), $userName, $squareName),
             [
                 'user_id' => $sessionUser ? $sessionUser->get('uid') : $booking->get('uid'),
                 'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
@@ -71,7 +71,7 @@ class AuditListener extends AbstractListenerAggregate
         $squareName = $this->resolveSquareName($booking->get('sid'));
 
         $this->auditService->log('booking', 'cancel',
-            sprintf('Buchung #%s storniert: %s auf Platz %s', $booking->get('bid'), $userName, $squareName),
+            sprintf('Buchung #%s storniert: %s auf %s', $booking->get('bid'), $userName, $squareName),
             [
                 'user_id' => $sessionUser ? $sessionUser->get('uid') : null,
                 'user_name' => $sessionUser ? $sessionUser->get('alias') : null,
@@ -101,7 +101,7 @@ class AuditListener extends AbstractListenerAggregate
     {
         try {
             $square = $this->squareManager->get($sid);
-            return $square->get('name');
+            return 'Platz ' . $square->get('name');
         } catch (\Exception $e) {
             return 'sid=' . $sid;
         }

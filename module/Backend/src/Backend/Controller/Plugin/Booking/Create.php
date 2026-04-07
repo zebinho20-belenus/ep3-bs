@@ -186,14 +186,14 @@ class Create extends AbstractPlugin
                 try {
                     $userFullName = trim($user->getMeta('firstname') . ' ' . $user->getMeta('lastname')) ?: $user->get('alias');
                     $this->auditService->log('booking', 'create',
-                        sprintf('Buchung #%s: %s auf %s (Backend, %s)', $booking->get('bid'), $userFullName, $square->get('name'), $status),
+                        sprintf('Buchung #%s: %s auf Platz %s (Backend, %s)', $booking->get('bid'), $userFullName, $square->get('name'), $status),
                         [
                             'user_name' => $creator,
                             'entity_type' => 'booking',
                             'entity_id' => $booking->get('bid'),
                             'detail' => [
                                 'source' => 'backend',
-                                'square_name' => $square->get('name'),
+                                'square_name' => 'Platz ' . $square->get('name'),
                                 'user_name_full' => $userFullName,
                                 'status' => $status,
                                 'status_billing' => $statusBilling,

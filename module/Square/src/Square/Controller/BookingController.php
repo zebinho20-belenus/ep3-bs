@@ -1273,10 +1273,10 @@ class BookingController extends AbstractActionController
 
             $paymentUserName = $sessionUser ? trim($sessionUser->getMeta('firstname') . ' ' . $sessionUser->getMeta('lastname')) ?: $sessionUser->get('alias') : 'uid=' . $booking->get('uid');
             $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_success',
-                sprintf('Zahlung erfolgreich: Buchung #%s, %s von %s auf %s', $bid, $booking->getMeta('paymentMethod'), $paymentUserName, $square->get('name')),
+                sprintf('Zahlung erfolgreich: Buchung #%s, %s von %s auf Platz %s', $bid, $booking->getMeta('paymentMethod'), $paymentUserName, $square->get('name')),
                 ['user_id' => $booking->get('uid'), 'user_name' => $paymentUserName, 'entity_type' => 'booking', 'entity_id' => $bid,
                  'detail' => ['paymentMethod' => $booking->getMeta('paymentMethod'), 'payment_status' => $actualPaymentStatus,
-                              'square_name' => $square->get('name'), 'user_name_full' => $paymentUserName,
+                              'square_name' => 'Platz ' . $square->get('name'), 'user_name_full' => $paymentUserName,
                               'status_billing' => $booking->get('status_billing'), 'hasBudget' => $booking->getMeta('hasBudget'),
                               'budget' => $booking->getMeta('budget'), 'newbudget' => $booking->getMeta('newbudget')]]);
 

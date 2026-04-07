@@ -3616,7 +3616,7 @@ class BookingController extends AbstractActionController
                 }
                 try {
                     $square = $squareManager->get($booking->get('sid'));
-                    $detail['square_name'] = $square->get('name');
+                    $detail['square_name'] = 'Platz ' . $square->get('name');
                 } catch (\Exception $e) {}
             }
 
