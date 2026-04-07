@@ -597,29 +597,41 @@ class BookingController extends AbstractActionController
                         'sid' => 'Platz',
                         'uid' => 'Benutzer',
                         'status_billing' => 'Rechnungsstatus',
-                        'quantity' => 'Anzahl Spieler',
+                        'quantity' => 'Spieler',
                         'notes' => 'Notizen',
                         'date' => 'Datum',
-                        'time_start' => 'Startzeit',
-                        'time_end' => 'Endzeit',
+                        'time_start' => 'Uhrzeit (Start)',
+                        'time_end' => 'Uhrzeit (Ende)',
                         'gp' => 'Gastspieler',
                     ];
                     foreach ($changes as $key => $change) {
                         $label = isset($labelMap[$key]) ? $labelMap[$key] : $key;
                         $oldVal = $change['old'];
                         $newVal = $change['new'];
-                        // Resolve sid to square name
                         if ($key === 'sid') {
                             try { $oldVal = 'Platz ' . $squareManager->get($oldVal)->get('name'); } catch (\Exception $e) {}
                             try { $newVal = 'Platz ' . $squareManager->get($newVal)->get('name'); } catch (\Exception $e) {}
+                        }
+                        if ($key === 'time_start' || $key === 'time_end') {
+                            $oldVal = substr($oldVal, 0, 5);
+                            $newVal = substr($newVal, 0, 5);
+                        }
+                        if ($key === 'date') {
+                            try { $oldVal = date('d.m.Y', strtotime($oldVal)); } catch (\Exception $e) {}
+                            try { $newVal = date('d.m.Y', strtotime($newVal)); } catch (\Exception $e) {}
+                        }
+                        if ($key === 'notes') {
+                            continue; // Notizen-Änderungen nicht in Kurzanzeige
                         }
                         $readableChanges[] = sprintf('%s: %s → %s', $label, $oldVal, $newVal);
                     }
                     $resDate = date('d.m.Y', strtotime($updatedReservation->get('date')));
                     $resTime = substr($updatedReservation->get('time_start'), 0, 5) . '-' . substr($updatedReservation->get('time_end'), 0, 5);
-                    $auditMessage = sprintf('Buchung #%s bearbeitet (%s, %s Uhr)', $savedBooking->get('bid'), $resDate, $resTime);
+                    $auditMessage = sprintf('Buchung #%s am %s, %s Uhr', $savedBooking->get('bid'), $resDate, $resTime);
                     if ($readableChanges) {
-                        $auditMessage .= ' — ' . implode(', ', $readableChanges);
+                        $auditMessage .= ': ' . implode(', ', $readableChanges);
+                    } else {
+                        $auditMessage .= ' bearbeitet';
                     }
                     $this->audit('edit', $auditMessage, $savedBooking, ['changes' => $changes ?: [], 'changes_readable' => $readableChanges ?: [], 'date' => $resDate, 'time' => $resTime]);
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
