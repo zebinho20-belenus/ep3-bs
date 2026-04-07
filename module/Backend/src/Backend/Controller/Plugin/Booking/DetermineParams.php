@@ -100,6 +100,7 @@ class DetermineParams extends AbstractPlugin
 
             /* Filter reservations with correct bookings */
 
+            $allReservations = $reservations;
             $validReservations = array();
 
             foreach ($reservations as $rid => $reservation) {
@@ -124,6 +125,9 @@ class DetermineParams extends AbstractPlugin
             if ($reservationParam) {
                 if (isset($reservations[$reservationParam])) {
                     $reservations = array( $reservations[$reservationParam] );
+                } elseif (isset($allReservations[$reservationParam]) && $allReservations[$reservationParam]->getExtra('booking')) {
+                    // Reservation exists but on a different square (e.g. sid_override moved it)
+                    $reservations = array( $allReservations[$reservationParam] );
                 } else {
                     throw new \RuntimeException('The requested reservation does not exist (here)');
                 }
