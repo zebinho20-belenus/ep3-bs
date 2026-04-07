@@ -26,7 +26,9 @@ class OccupiedForPrivileged extends AbstractHelper
         } else {
             $reservation = current($reservations);
             $booking = $reservation->needExtra('booking');
-            $bookingStatusColor = $this->bookingStatusService->getStatusColor($booking->getBillingStatus());
+            $statusBillingOverride = $reservation->getMeta('status_billing_override');
+            $statusBilling = $statusBillingOverride ?: $booking->get('status_billing');
+            $bookingStatusColor = $this->bookingStatusService->getStatusColor($statusBilling);
 
             if ($bookingStatusColor) {
                 $cellStyle = 'outline: solid 3px ' . $bookingStatusColor;
@@ -39,7 +41,7 @@ class OccupiedForPrivileged extends AbstractHelper
 
             $style = 'cc-single';
 
-            if ($booking->get('status_billing') == 'pending') {
+            if ($statusBilling == 'pending') {
                 if (! $cellLabel) {
                     $cellLabel = $view->t('temp blocked');
                 }
