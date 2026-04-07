@@ -1255,14 +1255,18 @@ class BookingController extends AbstractActionController
                 $oldBudget = (float) $booking->getMeta('budget');
                 $targetNewBudget = (float) $booking->getMeta('newbudget');
                 $deductAmount = $oldBudget - $targetNewBudget;
+                file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " INSIDE hasBudget block: uid=" . $booking->get('uid') . " oldBudget=$oldBudget targetNew=$targetNewBudget deductAmount=$deductAmount\n", FILE_APPEND);
                 if ($deductAmount > 0) {
                     $actualNewBudget = $userManager->deductBudgetAtomic($booking->get('uid'), $deductAmount);
+                    file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " deductBudgetAtomic result: " . var_export($actualNewBudget, true) . "\n", FILE_APPEND);
                     if ($actualNewBudget !== false) {
                         $notes = $notes . " payment with user budget (budget: " . $oldBudget . " -> " . $actualNewBudget . ") | ";
                     } else {
                         $notes = $notes . " budget deduction failed (insufficient funds) | ";
                     }
                 }
+            } else {
+                file_put_contents('/tmp/budget-debug.log', date('Y-m-d H:i:s') . " hasBudget check FAILED: value=[" . $booking->getMeta('hasBudget') . "]\n", FILE_APPEND);
             }
 
             if ($booking->getMeta('payLater') == 'true') {
