@@ -16,6 +16,7 @@
 - **Change History in Booking View** ([#104](https://github.com/zebinho20-belenus/ep3bs-payment/issues/104)): Collapsible audit trail per booking in edit dialog — shows who changed what, when (date + time of reservation included)
 - **Per-Reservation Overrides** ([#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101)): Individual subscription reservations can have own square, billing status, player count (stored as meta overrides). Calendar shows correct square, booking list shows override badge.
 - **Conflict Detection on Edit** ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100)): Pre-save conflict check when editing bookings (same logic as create). Considers sid_override for moved reservations. Extended conflict table with booking ID and subscription info.
+- **Booking ID Search**: Nr. column filter in booking list → type number + Enter for server-side search across all pages (ignores date range). Also available via `(bid = X)` in search field.
 
 ### Bug Fixes
 
