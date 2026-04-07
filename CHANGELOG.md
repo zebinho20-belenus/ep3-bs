@@ -16,6 +16,7 @@
 
 - **Partial budget payment not deducted (#102)**: `hasBudget` meta was stored as boolean instead of string `'true'`, causing the comparison in `doneAction()` to fail after DB round-trip. Budget is now correctly deducted for partial payments (budget + PayPal).
 - **CSP form-action blocking payments**: Added `form-action 'self' https://*.paypal.com https://*.stripe.com` to CSP header. Also added `object-src 'none'` and `base-uri 'self'`.
+- **Booking list count mismatch (#103)**: Backend booking list counted reservations instead of bookings. A subscription with 60 reservations was counted as 60 results but displayed as 1 row. Now uses `COUNT(DISTINCT bid)` and paginates by booking IDs.
 
 ### Cleanup
 
@@ -27,6 +28,8 @@
 **Audit-Log**: Neues System zur Nachvollziehbarkeit aller Aktionen (Buchungen, Zahlungen, Logins, Admin-Aktionen). DB-Tabelle + Logdatei + Backend-UI unter Konfiguration → Audit-Protokoll mit Filter und Pagination.
 
 **Bugfix #102**: Teilzahlung mit Budget — Budget wurde nach PayPal-Zahlung nicht abgezogen weil `hasBudget` als boolean statt String gespeichert wurde.
+
+**Bugfix #103**: Buchungsliste zaehlte Reservierungen statt Buchungen — Abo mit 60 Terminen zaehlte als 60 Ergebnisse. Jetzt korrekte Anzahl per `COUNT(DISTINCT bid)` und Pagination auf Booking-Ebene.
 
 **CSP**: `form-action` mit Payment-Gateway-Domains hinzugefuegt, verhindert Blockierung von PayPal/Stripe-Formularen.
 </details>
