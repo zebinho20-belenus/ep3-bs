@@ -110,7 +110,8 @@ class BookingController extends AbstractActionController
                 // Filter reservations to only include those within the requested date range
                 // (getByBookings fetches ALL reservations for matched bookings, which for
                 // subscription bookings includes reservations outside the date range)
-                if ($dateStart && $dateEnd) {
+                // Skip date filter for direct bid lookup — show all reservations
+                if ($dateStart && $dateEnd && !$hasBidFilter) {
                     $reservations = array_filter($reservations, function($reservation) use ($dateStart, $dateEnd) {
                         $resDate = new \DateTime($reservation->get('date'));
                         return $resDate >= $dateStart && $resDate <= $dateEnd;
