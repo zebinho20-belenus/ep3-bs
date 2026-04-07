@@ -24,6 +24,12 @@ var EP3_LABELS = {
     completeBooking: <?= json_encode($this->t('Complete booking'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
 };
 function showHide() {
+   var btn = document.getElementById('bf-submit');
+   if (btn && !btn.disabled) {
+     btn.disabled = true;
+   } else {
+     return false;
+   }
    var div = document.getElementById('hidden_div');
    if (div.style.display == 'none') {
      div.style = 'position:fixed; top:0; right:0; bottom:0; left:0; background-color: rgba(0,0,0,0.5); z-index: 9999; display:flex; align-items:center; justify-content:center;';
