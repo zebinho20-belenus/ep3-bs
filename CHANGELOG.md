@@ -18,6 +18,15 @@
 - **CSP form-action blocking payments**: Added `form-action 'self' https://*.paypal.com https://*.stripe.com` to CSP header. Also added `object-src 'none'` and `base-uri 'self'`.
 - **Booking list count mismatch (#103)**: Backend booking list counted reservations instead of bookings. A subscription with 60 reservations was counted as 60 results but displayed as 1 row. Now uses `COUNT(DISTINCT bid)` and paginates by booking IDs.
 
+### Performance
+
+- **N+1 query elimination**: Backend booking list used per-row DB queries for users and bills (~50 extra queries per page). Now uses bulk-loaded data from controller.
+- **UserManager buffer cache**: `get()` checks instance cache before querying DB, avoiding redundant lookups.
+- **MigrationManager APCu cache**: Schema version cached in APCu (5 min TTL) — skips DB query on every request.
+- **OPcache production mode**: `validate_timestamps=0` in production (re-enabled with Xdebug in dev).
+- **MariaDB tuning**: `table_open_cache` 400→2000, `sort_buffer_size` 512K→2M, `innodb_stats_on_metadata=0`, slow query log enabled.
+- **Configurable page size**: Booking list default reduced from 100 to 25, selectable via dropdown (25/50/100).
+
 ### Cleanup
 
 - Removed all temporary debug logging (`file_put_contents`, `error_log DEBUG`)
@@ -30,6 +39,8 @@
 **Bugfix #102**: Teilzahlung mit Budget — Budget wurde nach PayPal-Zahlung nicht abgezogen weil `hasBudget` als boolean statt String gespeichert wurde.
 
 **Bugfix #103**: Buchungsliste zaehlte Reservierungen statt Buchungen — Abo mit 60 Terminen zaehlte als 60 Ergebnisse. Jetzt korrekte Anzahl per `COUNT(DISTINCT bid)` und Pagination auf Booking-Ebene.
+
+**Performance**: N+1 Queries in Buchungsliste eliminiert (~50 Queries/Seite gespart), MigrationManager APCu-Cache, OPcache ohne Timestamp-Validierung in Prod, MariaDB Tuning + Slow Query Log.
 
 **CSP**: `form-action` mit Payment-Gateway-Domains hinzugefuegt, verhindert Blockierung von PayPal/Stripe-Formularen.
 </details>
