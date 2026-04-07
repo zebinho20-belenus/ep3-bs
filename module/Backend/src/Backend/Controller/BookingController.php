@@ -618,7 +618,7 @@ class BookingController extends AbstractActionController
                     if ($readableChanges) {
                         $auditMessage .= ' (' . implode(', ', $readableChanges) . ')';
                     }
-                    $this->audit('edit', $auditMessage, $savedBooking, $changes ?: []);
+                    $this->audit('edit', $auditMessage, $savedBooking, ['changes' => $changes ?: [], 'changes_readable' => $readableChanges ?: []]);
                     $this->flashMessenger()->addSuccessMessage('Booking has been saved');
 
                     if ($this->params()->fromPost('bf-edit-user')) {
