@@ -53,7 +53,7 @@ class OccupiedForPrivileged extends AbstractHelper
             if ($bookingUser->getMeta('member')) {
                 $extraClasses .= ' cc-member';
             }
-            if ($booking->getMeta('gp') == '1') {
+            if ($booking->getMeta('gp') == '1' || $booking->getMeta('guestPlayer') == '1') {
                 $extraClasses .= ' cc-guest';
             }
 
