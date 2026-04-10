@@ -327,10 +327,21 @@ class EventController extends AbstractActionController
                         $connection->commit();
 
                         try {
+                            $auditDateRange = ($repeat == 1 && $dateStart != $dateEnd)
+                                ? $dateStart->format('d.m.Y') . '–' . $dateEnd->format('d.m.Y')
+                                : $dateStart->format('d.m.Y');
+                            $auditTimeRange = $timeStart . '–' . $timeEnd;
                             $serviceManager->get('Base\Service\AuditService')->log('admin', 'create_event',
-                                sprintf('%s Veranstaltung(en) erstellt: %s', $count, $data['ef-name'] ?? ''),
+                                sprintf('%s Veranstaltung(en) erstellt: %s (%s, %s)', $count, $data['ef-name'] ?? '', $auditDateRange, $auditTimeRange),
                                 ['user_id' => $sessionUser->get('uid'), 'user_name' => $sessionUser->get('alias'),
-                                 'entity_type' => 'event', 'detail' => ['count' => $count, 'name' => $data['ef-name'] ?? '']]);
+                                 'entity_type' => 'event', 'detail' => [
+                                    'count' => $count,
+                                    'name' => $data['ef-name'] ?? '',
+                                    'date_start' => $dateStart->format('d.m.Y'),
+                                    'date_end' => $dateEnd->format('d.m.Y'),
+                                    'time_start' => $timeStart,
+                                    'time_end' => $timeEnd,
+                                ]]);
                         } catch (\Exception $e) { error_log('Audit error: ' . $e->getMessage()); }
 
                         $this->flashMessenger()->addSuccessMessage(sprintf(

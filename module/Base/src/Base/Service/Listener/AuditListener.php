@@ -150,8 +150,14 @@ class AuditListener extends AbstractListenerAggregate
         if (! $first) {
             return null;
         }
-        $date = date('d.m.Y', strtotime($first->get('date')));
         $time = substr($first->get('time_start'), 0, 5) . '-' . substr($first->get('time_end'), 0, 5);
+        if (count($reservations) > 1) {
+            $last = end($reservations);
+            $dateFrom = date('d.m.Y', strtotime($first->get('date')));
+            $dateTo = date('d.m.Y', strtotime($last->get('date')));
+            return $dateFrom . '–' . $dateTo . ' ' . $time;
+        }
+        $date = date('d.m.Y', strtotime($first->get('date')));
         return $date . ' ' . $time;
     }
 
