@@ -50,11 +50,16 @@ class OccupiedForPrivileged extends AbstractHelper
             }
 
             $extraClasses = '';
-            if ($bookingUser->getMeta('member')) {
+            $isMember = (bool) $bookingUser->getMeta('member');
+            $hasGuestPlayer = ($booking->getMeta('gp') == '1' || $booking->getMeta('guestPlayer') == '1');
+
+            if ($isMember) {
                 $extraClasses .= ' cc-member';
-            }
-            if ($booking->getMeta('gp') == '1' || $booking->getMeta('guestPlayer') == '1') {
-                $extraClasses .= ' cc-guest';
+                if ($hasGuestPlayer) {
+                    $extraClasses .= ' cc-guest'; // MG: Mitglied mit Gastspieler
+                }
+            } else {
+                $extraClasses .= ' cc-guest'; // G: Kein-Mitglied
             }
 
             switch ($booking->need('status')) {
