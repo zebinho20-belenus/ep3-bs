@@ -1172,6 +1172,25 @@ a.squarebox-primary-close-link:hover {
     .cts-label { font-size: 12px; }
 }
 
+/* ---------- Calendar landscape: show booking names ---------- */
+@media screen and (max-width: 767px) and (orientation: landscape) {
+    /* Override portrait hiding — show truncated names in landscape */
+    a.cc-single .cc-label,
+    a.cc-multiple .cc-label,
+    a.cc-try .cc-label,
+    a.cc-own .cc-label {
+        font-size: 9px !important;
+        visibility: visible !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 2px;
+    }
+    /* Name replaces symbol — avoid double display */
+    a.cc-own::after,
+    a.cc-try::after { content: none; }
+}
+
 /* ---------- Cookie Consent ---------- */
 
 #myCookieConsent {
