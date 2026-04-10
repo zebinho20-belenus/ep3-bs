@@ -327,12 +327,13 @@ class BookingController extends AbstractActionController
                         $currentReservation = $reservationManager->get($d['bf-rid']);
                         $currentBooking = $bookingManager->get($currentReservation->get('bid'));
 
-                        $checkDate = new \DateTime($d['bf-date-start']);
+                        $checkDateStart = new \DateTime($d['bf-date-start']);
+                        $checkDateEnd = new \DateTime($d['bf-date-end'] ?: $d['bf-date-start']);
                         list($h, $m) = explode(':', $d['bf-time-start']);
-                        $checkStart = clone $checkDate;
+                        $checkStart = clone $checkDateStart;
                         $checkStart->setTime((int)$h, (int)$m);
                         list($h, $m) = explode(':', $d['bf-time-end']);
-                        $checkEnd = clone $checkDate;
+                        $checkEnd = clone $checkDateEnd;
                         $checkEnd->setTime((int)$h, (int)$m);
 
                         $existingReservations = $reservationManager->getInRange($checkStart, $checkEnd);
@@ -346,8 +347,19 @@ class BookingController extends AbstractActionController
                             }
                         }
 
-                        // Exclude own reservation (not entire booking — other reservations of same subscription ARE potential conflicts)
-                        unset($existingReservations[$d['bf-rid']]);
+                        // Exclude own reservation(s) from conflict check
+                        if ($params['editMode'] == 'booking' && $currentBooking->get('status') == 'subscription') {
+                            // In booking edit mode for subscriptions, exclude ALL reservations of the same booking
+                            // because bf-date-start is the subscription start date, not the clicked reservation's date
+                            foreach ($existingReservations as $rid => $er) {
+                                if ($er->get('bid') == $currentBooking->get('bid')) {
+                                    unset($existingReservations[$rid]);
+                                }
+                            }
+                        } else {
+                            // For single bookings or reservation-level edits, only exclude the specific reservation
+                            unset($existingReservations[$d['bf-rid']]);
+                        }
 
                         if ($existingReservations) {
                             $existingBookings = $bookingManager->getByReservations($existingReservations);
@@ -356,12 +368,14 @@ class BookingController extends AbstractActionController
                                 if ($eb->get('status') != 'cancelled'
                                     && $eb->get('visibility') == 'public') {
                                     $hasActive = false;
+                                    $activeReservation = null;
                                     foreach ($existingReservations as $er) {
                                         if ($er->get('bid') == $eb->get('bid')
                                             && $er->get('status', 'confirmed') != 'cancelled') {
                                             $effectiveSid = $er->getMeta('sid_override') ?: $eb->get('sid');
                                             if ($effectiveSid == $d['bf-sid']) {
                                                 $hasActive = true;
+                                                $activeReservation = $er;
                                                 break;
                                             }
                                         }
@@ -373,11 +387,10 @@ class BookingController extends AbstractActionController
                                             $ebUser = null;
                                         }
                                         $ebSquare = $squareManager->get($eb->get('sid'));
-                                        $ebRes = current($reservationManager->getBy(['bid' => $eb->get('bid')], 'date ASC', 1));
                                         $conflictEntry = [
                                             'user' => $ebUser ? $ebUser->get('alias') : '?',
-                                            'date' => $ebRes ? date('d.m.Y', strtotime($ebRes->get('date'))) : '-',
-                                            'time' => $d['bf-time-start'] . ' - ' . $d['bf-time-end'],
+                                            'date' => date('d.m.Y', strtotime($activeReservation->get('date'))),
+                                            'time' => substr($activeReservation->get('time_start'), 0, 5) . ' - ' . substr($activeReservation->get('time_end'), 0, 5),
                                             'square' => $ebSquare->get('name'),
                                             'status' => $eb->get('status'),
                                             'bid' => $eb->get('bid'),
@@ -711,12 +724,14 @@ class BookingController extends AbstractActionController
                                     // Check for active (non-cancelled) reservations on the target square
                                     // Consider sid_override per reservation
                                     $hasActive = false;
+                                    $activeReservation = null;
                                     foreach ($existingReservations as $er) {
                                         if ($er->get('bid') == $eb->get('bid')
                                             && $er->get('status', 'confirmed') != 'cancelled') {
                                             $effectiveSid = $er->getMeta('sid_override') ?: $eb->get('sid');
                                             if ($effectiveSid == $d['bf-sid']) {
                                                 $hasActive = true;
+                                                $activeReservation = $er;
                                                 break;
                                             }
                                         }
@@ -728,11 +743,10 @@ class BookingController extends AbstractActionController
                                             $ebUser = null;
                                         }
                                         $ebSquare = $squareManager->get($eb->get('sid'));
-                                        $ebRes = current($reservationManager->getBy(['bid' => $eb->get('bid')], 'date ASC', 1));
                                         $conflictEntry = [
                                             'user' => $ebUser ? $ebUser->get('alias') : '?',
-                                            'date' => $ebRes ? date('d.m.Y', strtotime($ebRes->get('date'))) : '-',
-                                            'time' => $d['bf-time-start'] . ' - ' . $d['bf-time-end'],
+                                            'date' => date('d.m.Y', strtotime($activeReservation->get('date'))),
+                                            'time' => substr($activeReservation->get('time_start'), 0, 5) . ' - ' . substr($activeReservation->get('time_end'), 0, 5),
                                             'square' => $ebSquare->get('name'),
                                             'status' => $eb->get('status'),
                                             'bid' => $eb->get('bid'),

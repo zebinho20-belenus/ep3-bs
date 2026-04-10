@@ -52,7 +52,7 @@ class EventController extends AbstractActionController
 
     public function editAction()
     {
-        $this->authorize('admin.event');
+        $sessionUser = $this->authorize('admin.event');
 
         $serviceManager = @$this->getServiceLocator();
         $eventManager = $serviceManager->get('Event\Manager\EventManager');
@@ -424,7 +424,7 @@ class EventController extends AbstractActionController
 
     public function deleteAction()
     {
-        $this->authorize('admin.event');
+        $sessionUser = $this->authorize('admin.event');
 
         $serviceManager = @$this->getServiceLocator();
         $eventManager = $serviceManager->get('Event\Manager\EventManager');
