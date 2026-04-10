@@ -1,5 +1,5 @@
 // Use a cacheName for cache versioning
-var cacheName = 'ep3bs_v3.28:static';
+var cacheName = 'ep3bs_v3.29:static';
 
 // Static assets to pre-cache during installation
 var staticAssets = [

@@ -1173,13 +1173,17 @@ a.squarebox-primary-close-link:hover {
 }
 
 /* ---------- Calendar portrait: letter indicators for staff ---------- */
-/* Shows M/G/MG/A/T when booking names are hidden in portrait mode (≤499px). */
+/* Only visible inside .calendar-staff wrapper (users with calendar.see-data). */
 @media screen and (max-width: 499px) {
-    a.cc-single, a.cc-multiple, a.cc-event { position: relative; }
+    .calendar-staff a.cc-single,
+    .calendar-staff a.cc-multiple,
+    .calendar-staff a.cc-event { position: relative; }
 
     /* Common badge style — positioned bottom-right of cell */
-    a.cc-multiple::before, a.cc-event::before,
-    a.cc-member::before, a.cc-guest::before {
+    .calendar-staff a.cc-multiple::before,
+    .calendar-staff a.cc-event::before,
+    .calendar-staff a.cc-member::before,
+    .calendar-staff a.cc-guest::before {
         position: absolute;
         bottom: 1px;
         right: 2px;
@@ -1190,19 +1194,16 @@ a.squarebox-primary-close-link:hover {
         text-shadow: 0 0 2px rgba(0,0,0,0.5);
     }
 
-    /* ABO variations */
-    a.cc-multiple:not(.cc-member):not(.cc-guest)::before { content: 'A'; }
-    a.cc-multiple.cc-member:not(.cc-guest)::before       { content: 'AM'; }
-    a.cc-multiple.cc-guest:not(.cc-member)::before       { content: 'AG'; }
-    a.cc-multiple.cc-member.cc-guest::before             { content: 'AMG'; }
+    /* ABO — always A, regardless of member/guest */
+    .calendar-staff a.cc-multiple::before { content: 'A'; }
 
     /* Single booking with member/guest */
-    a.cc-member:not(.cc-multiple):not(.cc-guest)::before { content: 'M'; }
-    a.cc-guest:not(.cc-multiple):not(.cc-member)::before { content: 'G'; }
-    a.cc-member.cc-guest:not(.cc-multiple)::before       { content: 'MG'; }
+    .calendar-staff a.cc-member:not(.cc-multiple):not(.cc-guest)::before { content: 'M'; }
+    .calendar-staff a.cc-guest:not(.cc-multiple):not(.cc-member)::before { content: 'G'; }
+    .calendar-staff a.cc-member.cc-guest:not(.cc-multiple)::before       { content: 'MG'; }
 
     /* Training/Event */
-    a.cc-event::before { content: 'T'; }
+    .calendar-staff a.cc-event::before { content: 'T'; }
 }
 
 /* ---------- Calendar landscape: show booking names ---------- */

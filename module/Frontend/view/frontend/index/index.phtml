@@ -38,4 +38,6 @@ $this->headScript()->appendFile($this->basePath('js/controller/frontend/index.mi
     <?php endif; ?>
 </div>
 
-<?= $this->calendar ?>
+<div<?php if ($this->user && $this->user->can('calendar.see-data')): ?> class="calendar-staff"<?php endif; ?>>
+    <?= $this->calendar ?>
+</div>

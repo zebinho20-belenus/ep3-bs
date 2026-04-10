@@ -20,20 +20,12 @@ class Occupied extends AbstractHelper
                 $cellGroup = ' cc-group-' . $userBooking->need('bid');
                 $style = 'cc-own';
 
-                $extraClasses = '';
-                if ($user->getMeta('member')) {
-                    $extraClasses .= ' cc-member';
-                }
-                if ($userBooking->getMeta('gp') == '1') {
-                    $extraClasses .= ' cc-guest';
-                }
-
                 if ($userBooking->get('status_billing') == 'pending') {
                     $cellLabel = $view->t('Your Booking') . ' *';
                     $style = 'cc-try';
                 }
 
-                return $view->calendarCellLink($cellLabel, $view->url('square', [], $cellLinkParams), $style . $cellGroup . $extraClasses);
+                return $view->calendarCellLink($cellLabel, $view->url('square', [], $cellLinkParams), $style . $cellGroup);
             } else {
                 return $view->calendarCellRenderOccupiedForVisitors($reservations, $cellLinkParams, $square, $user);
             }
