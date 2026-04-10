@@ -36,7 +36,8 @@ class OccupiedForPrivileged extends AbstractHelper
                 $cellStyle = null;
             }
 
-            $cellLabel = $booking->needExtra('user')->need('alias');
+            $bookingUser = $booking->needExtra('user');
+            $cellLabel = $bookingUser->need('alias');
             $cellGroup = ' cc-group-' . $booking->need('bid');
 
             $style = 'cc-single';
@@ -48,11 +49,19 @@ class OccupiedForPrivileged extends AbstractHelper
                 $style = 'cc-try';
             }
 
+            $extraClasses = '';
+            if ($bookingUser->getMeta('member')) {
+                $extraClasses .= ' cc-member';
+            }
+            if ($booking->getMeta('gp') == '1') {
+                $extraClasses .= ' cc-guest';
+            }
+
             switch ($booking->need('status')) {
                 case 'single':
-                    return $view->calendarCellLink($view->escapeHtml($cellLabel), $view->url('backend/booking/edit', [], $cellLinkParams), $style . $cellGroup, null, $cellStyle);
+                    return $view->calendarCellLink($view->escapeHtml($cellLabel), $view->url('backend/booking/edit', [], $cellLinkParams), $style . $cellGroup . $extraClasses, null, $cellStyle);
                 case 'subscription':
-                    return $view->calendarCellLink($cellLabel, $view->url('backend/booking/edit', [], $cellLinkParams), 'cc-multiple' . $cellGroup, null, $cellStyle);
+                    return $view->calendarCellLink($cellLabel, $view->url('backend/booking/edit', [], $cellLinkParams), 'cc-multiple' . $cellGroup . $extraClasses, null, $cellStyle);
             }
         }
     }

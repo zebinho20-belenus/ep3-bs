@@ -1172,6 +1172,26 @@ a.squarebox-primary-close-link:hover {
     .cts-label { font-size: 12px; }
 }
 
+/* ---------- Calendar portrait: letter indicators for staff ---------- */
+/* Shows M/G/MG/A/T when booking names are hidden in portrait mode (≤499px). */
+@media screen and (max-width: 499px) {
+    a.cc-single, a.cc-multiple, a.cc-event { position: relative; }
+    a.cc-multiple::before, a.cc-event::before,
+    a.cc-member::before, a.cc-guest::before {
+        position: absolute; bottom: 1px; right: 2px;
+        font-size: 7px; font-weight: bold; line-height: 1;
+        color: rgba(255,255,255,0.9); text-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+    a.cc-multiple:not(.cc-member):not(.cc-guest)::before { content: 'A'; }
+    a.cc-multiple.cc-member:not(.cc-guest)::before       { content: 'AM'; }
+    a.cc-multiple.cc-guest:not(.cc-member)::before       { content: 'AG'; }
+    a.cc-multiple.cc-member.cc-guest::before             { content: 'AMG'; }
+    a.cc-member:not(.cc-multiple):not(.cc-guest)::before { content: 'M'; }
+    a.cc-guest:not(.cc-multiple):not(.cc-member)::before { content: 'G'; }
+    a.cc-member.cc-guest:not(.cc-multiple)::before       { content: 'MG'; }
+    a.cc-event::before { content: 'T'; }
+}
+
 /* ---------- Calendar landscape: show booking names ---------- */
 /* min-width: 500px catches phones in landscape (≥500px) but not portrait (≤430px).
    More reliable than orientation: landscape in DevTools simulations. */
@@ -1191,6 +1211,8 @@ a.squarebox-primary-close-link:hover {
     /* Name replaces symbol — avoid double display */
     a.cc-own::after,
     a.cc-try::after { content: none; }
+    /* Staff legend only relevant in portrait — hide in landscape */
+    .calendar-staff-legend { display: none; }
 }
 
 /* ---------- Cookie Consent ---------- */

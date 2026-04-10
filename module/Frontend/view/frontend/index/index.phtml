@@ -26,6 +26,16 @@ $this->headScript()->appendFile($this->basePath('js/controller/frontend/index.mi
     &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: #046bd2; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Subscription') ?>
     &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: #94A3B8; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Occupied') ?>
     &nbsp;<span style="display: inline-block; width: 10px; height: 10px; background: #DC2626; border-radius: 2px; vertical-align: middle;"></span> <?= $this->t('Event') ?>
+    <?php if ($this->user && $this->user->can('calendar.see-data')): ?>
+    <div class="calendar-staff-legend" style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #e5e7eb;">
+        <span style="font-weight: 600;">K&uuml;rzel:</span>
+        M&nbsp;=&nbsp;Mitglied &nbsp;
+        G&nbsp;=&nbsp;Gast &nbsp;
+        MG&nbsp;=&nbsp;Mitglied+Gast &nbsp;
+        A&nbsp;=&nbsp;Abo &nbsp;
+        T&nbsp;=&nbsp;Training
+    </div>
+    <?php endif; ?>
 </div>
 
 <?= $this->calendar ?>
