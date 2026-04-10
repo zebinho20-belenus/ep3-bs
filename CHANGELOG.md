@@ -1,5 +1,47 @@
 # Changelog
 
+## v2.2.8 (2026-04-10)
+
+### New Features
+
+- **Mobile Querformat: Buchungsnamen** ([#107](https://github.com/zebinho20-belenus/ep3bs-payment/issues/107)): Auf Smartphones im Querformat (≥500px Breite) werden Buchungsnamen in den Kalender-Zellen angezeigt (9px, truncated).
+- **Mobile Hochformat: Buchstaben-Indikatoren für Mitarbeiter** ([#107](https://github.com/zebinho20-belenus/ep3bs-payment/issues/107)): Mitarbeiter mit `calendar.see-data`-Berechtigung sehen im Hochformat (≤499px) Kürzel in den Kalender-Zellen:
+  - `G` = Gast (Kein-Mitglied-Buchung)
+  - `M` = Mitglied (ohne Gastspieler)
+  - `MG` = Mitglied mit Gastspieler-Checkbox
+  - `A` = Abo (Abonnement-Buchung)
+  - `T` = Training / Veranstaltung
+  - Mitarbeiter-Legende erscheint unterhalb der Farblegende (nur Hochformat, nur für Staff)
+  - Indikatoren als dunkles Badge (`rgba(0,0,0,0.45)`) mit weißem Text — auf allen Zellfarben lesbar
+- **Änderungshistorie: Links zu Audit-Log und Buchungsliste**: In der Buchungs-Änderungshistorie (Edit-Dialog) gibt es direkte Links zur gefilterten Ansicht im Audit-Log und in der Buchungsliste.
+- **Suchfilter ignorieren Datumsgrenzen**: Alle expliziten Suchfilter (BID, Name, UID, SID, Status) überspringen die Datumsbereichs-Einschränkung. "Alle Termine"-Toggle ersetzt den automatischen Bypass.
+- **Klickbare Status-Tags bei no-email Konfiguration** ([#99](https://github.com/zebinho20-belenus/ep3bs-payment/issues/99)): Status-Tags in der Konfiguration sind klickbar und öffnen den Bearbeiten-Dialog.
+
+### Bug Fixes
+
+- **Buchungskonflikt-Logik** ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100) / [#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101)): Drei Bugs in der Konfliktprüfung beim Bearbeiten behoben:
+  1. Falsches Datum/Uhrzeit in der Konflikttabelle (aktive Reservierung wird jetzt korrekt ermittelt)
+  2. Selbst-Konflikt bei Abo im Buchungs-Modus (eigene Reservierungen werden korrekt ausgeschlossen)
+  3. Konfliktprüfung verwendete nur das Startdatum statt den vollständigen Datumsbereich
+- **EventController Fatal Error** ([#106](https://github.com/zebinho20-belenus/ep3bs-payment/issues/106)): `$sessionUser` war undefined beim Speichern von Veranstaltungen nach Zeitänderung — `authorize()` Rückgabewert wird jetzt korrekt verwendet.
+- **"Meine Daten" Formulare nicht erreichbar** ([#105](https://github.com/zebinho20-belenus/ep3bs-payment/issues/105)): `settings.js` hat alle `.edit-panel`-Elemente beim Laden versteckt; fehlende `.edit-label`- und `.sandbox`-Klassen an den Kartenüberschriften ergänzt.
+- **Kalender Landscape: `orientation`-Query unzuverlässig** ([#107](https://github.com/zebinho20-belenus/ep3bs-payment/issues/107)): `@media (orientation: landscape)` wurde in Chrome DevTools nicht korrekt ausgelöst — ersetzt durch `min-width: 500px` (Hochformat-Phones ≤430px, Querformat ≥500px).
+- **Audit-Log Datum/Uhrzeit**: Veranstaltungen, Abos und Einzelbuchungen zeigten kein Datum/Uhrzeit in Audit-Log-Einträgen.
+- **Namenssuche ignoriert Datumsbereich**: Name-Suche und BID-Suche in der Buchungsliste respektieren jetzt die Date-Range-Einschränkung nicht mehr (wie Buchungsnummer-Suche).
+
+<details>
+<summary><b>Deutsche Zusammenfassung</b></summary>
+
+**Mobile Kalender-Verbesserungen** (#107): Querformat zeigt Buchungsnamen. Hochformat zeigt Buchstaben-Kürzel für Mitarbeiter (G/M/MG/A/T) — nur sichtbar für Benutzer mit Mitarbeiter-Berechtigung. Kürzel-Legende eingeblendet.
+
+**Konfliktprüfung** (#100/#101): Drei Bugs beim Bearbeiten von Buchungen/Abos behoben — falsches Datum in Konflikttabelle, Selbst-Konflikt bei Abos, unvollständiger Datums-Range.
+
+**EventController** (#106): Fatal Error beim Speichern von Veranstaltungen nach Zeitänderung behoben.
+
+**"Meine Daten"** (#105): Alle Formulare (Telefon, E-Mail, Passwort, etc.) waren versteckt und nicht erreichbar — behoben.
+
+</details>
+
 ## v2.2.7 (2026-04-07)
 
 ### New Features
