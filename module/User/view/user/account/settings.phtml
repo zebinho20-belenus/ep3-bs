@@ -84,8 +84,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/settings.min
         </div>
     </div>
 
-    <div class="card card-body bg-light mb-3">
-        <h6 class="mb-2"><span class="fa fa-phone me-2"></span><?= $this->t('Update phone number') ?></h6>
+    <div class="card card-body bg-light mb-3 sandbox">
+        <h6 class="mb-2 edit-label"><span class="fa fa-phone me-2"></span><?= $this->t('Update phone number') ?></h6>
 
         <div class="edit-panel">
             <?php
@@ -114,8 +114,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/settings.min
         </div>
     </div>
 
-    <div class="card card-body bg-light mb-3">
-        <h6 class="mb-2"><span class="fa fa-envelope me-2"></span><?= $this->t('Update email address') ?></h6>
+    <div class="card card-body bg-light mb-3 sandbox">
+        <h6 class="mb-2 edit-label"><span class="fa fa-envelope me-2"></span><?= $this->t('Update email address') ?></h6>
 
         <div class="edit-panel">
             <?php if ($this->option('service.user.activation') == 'email'): ?>
@@ -153,8 +153,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/settings.min
         </div>
     </div>
 
-    <div class="card card-body bg-light mb-3">
-        <h6 class="mb-2"><span class="fa fa-bell me-2"></span><?= $this->t('Update notifications') ?></h6>
+    <div class="card card-body bg-light mb-3 sandbox">
+        <h6 class="mb-2 edit-label"><span class="fa fa-bell me-2"></span><?= $this->t('Update notifications') ?></h6>
 
         <div class="edit-panel">
             <?php
@@ -184,8 +184,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/settings.min
         </div>
     </div>
 
-    <div class="card card-body bg-light mb-3">
-        <h6 class="mb-2"><span class="fa fa-lock me-2"></span><?= $this->t('Update password') ?></h6>
+    <div class="card card-body bg-light mb-3 sandbox">
+        <h6 class="mb-2 edit-label"><span class="fa fa-lock me-2"></span><?= $this->t('Update password') ?></h6>
 
         <div class="edit-panel">
             <?php
@@ -224,8 +224,8 @@ $this->headScript()->appendFile($this->basePath('js/controller/user/settings.min
         </div>
     </div>
 
-    <div class="card card-body bg-light mb-3">
-        <h6 class="mb-2 text-danger"><span class="fa fa-times me-2"></span><?= $this->t('Delete this account') ?></h6>
+    <div class="card card-body bg-light mb-3 sandbox">
+        <h6 class="mb-2 text-danger edit-label"><span class="fa fa-times me-2"></span><?= $this->t('Delete this account') ?></h6>
 
         <div class="edit-panel">
             <?php
