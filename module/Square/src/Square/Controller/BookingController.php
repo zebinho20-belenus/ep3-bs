@@ -1284,7 +1284,7 @@ class BookingController extends AbstractActionController
             if ($booking->getMeta('suppressEmail') == 'true') {
                 $booking->setMeta('suppressEmail', null);
                 $bookingManager->save($booking);
-                $bookingService->getEventManager()->trigger('create.single', $booking);
+                $bookingService->getEventManager()->trigger('notify.single', $booking);
             }
 	    }
 	    else

@@ -55,6 +55,7 @@ class NotificationListener extends AbstractListenerAggregate
     public function attach(EventManagerInterface $events)
     {
         $events->attach('create.single', array($this, 'onCreateSingle'));
+        $events->attach('notify.single', array($this, 'onCreateSingle')); // post-payment email re-trigger (no audit)
         $events->attach('cancel.single', array($this, 'onCancelSingle'));
     }
 
