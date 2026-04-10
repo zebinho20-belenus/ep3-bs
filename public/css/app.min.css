@@ -1173,7 +1173,9 @@ a.squarebox-primary-close-link:hover {
 }
 
 /* ---------- Calendar landscape: show booking names ---------- */
-@media screen and (max-width: 767px) and (orientation: landscape) {
+/* min-width: 500px catches phones in landscape (≥500px) but not portrait (≤430px).
+   More reliable than orientation: landscape in DevTools simulations. */
+@media screen and (min-width: 500px) and (max-width: 767px) {
     /* Override portrait hiding — show truncated names in landscape */
     a.cc-single .cc-label,
     a.cc-multiple .cc-label,
