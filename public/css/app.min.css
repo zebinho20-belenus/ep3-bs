@@ -1178,9 +1178,9 @@ a.squarebox-primary-close-link:hover {
     .calendar-staff a.cc-single,.calendar-staff a.cc-multiple,.calendar-staff a.cc-event { position: relative; }
     .calendar-staff a.cc-multiple::before,.calendar-staff a.cc-event::before,
     .calendar-staff a.cc-member::before,.calendar-staff a.cc-guest::before {
-        position: absolute; bottom: 1px; right: 2px;
-        font-size: 7px; font-weight: bold; line-height: 1;
-        color: rgba(255,255,255,0.9); text-shadow: 0 0 2px rgba(0,0,0,0.5);
+        position: absolute; bottom: 2px; right: 2px;
+        font-size: 7px; font-weight: 700; line-height: 1;
+        color: #fff; background: rgba(0,0,0,0.45); border-radius: 2px; padding: 1px 2px;
     }
     .calendar-staff a.cc-multiple::before { content: 'A'; }
     .calendar-staff a.cc-member:not(.cc-multiple):not(.cc-guest)::before { content: 'M'; }
