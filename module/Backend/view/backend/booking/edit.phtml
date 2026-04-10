@@ -55,8 +55,10 @@ $this->setup(array(
                     <td>
                         <?php if (isset($conflict['repeat']) && $conflict['repeat']): ?>
                             <?php
-                            $repeatLabels = ['1' => 'taeglich', '2' => 'woechentlich', '3' => '2-woechentlich', '4' => 'monatlich'];
-                            $repeatLabel = isset($repeatLabels[$conflict['repeat']]) ? $repeatLabels[$conflict['repeat']] : $conflict['repeat'];
+                            $repeatOpts = \Booking\Entity\Booking::$repeatOptions;
+                            $repeatLabel = isset($repeatOpts[$conflict['repeat']])
+                                ? $this->t($repeatOpts[$conflict['repeat']])
+                                : sprintf($this->t('Every %s days'), $conflict['repeat']);
                             $dateRange = '';
                             if (isset($conflict['date_start']) && isset($conflict['date_end'])) {
                                 $dateRange = date('d.m.', strtotime($conflict['date_start'])) . '-' . date('d.m.Y', strtotime($conflict['date_end']));
