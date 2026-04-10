@@ -19,10 +19,12 @@
 
 ### Bug Fixes
 
-- **Buchungskonflikt-Logik** ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100) / [#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101)): Drei Bugs in der Konfliktprüfung beim Bearbeiten behoben:
+- **Buchungskonflikt-Logik** ([#100](https://github.com/zebinho20-belenus/ep3bs-payment/issues/100) / [#101](https://github.com/zebinho20-belenus/ep3bs-payment/issues/101)): Vier Bugs in der Konfliktprüfung beim Bearbeiten behoben:
   1. Falsches Datum/Uhrzeit in der Konflikttabelle (aktive Reservierung wird jetzt korrekt ermittelt)
   2. Selbst-Konflikt bei Abo im Buchungs-Modus (eigene Reservierungen werden korrekt ausgeschlossen)
   3. Konfliktprüfung verwendete nur das Startdatum statt den vollständigen Datumsbereich
+  4. Konflikttabelle zeigte falsches Wiederholungs-Label — sequenzieller Index statt Tage-Anzahl. Jetzt aus `Booking::$repeatOptions` (1=täglich, 7=wöchentlich, 14=2-wöchentlich, 28=monatlich)
+- **Datumsvorgabe bei neuen Veranstaltungen** ([#108](https://github.com/zebinho20-belenus/ep3bs-payment/issues/108)): Beim Erstellen einer Veranstaltung aus dem Kalender wurde das Enddatum auf "heute" gesetzt statt auf das ausgewählte Startdatum. Fallback-Kette korrigiert: `$dateEndParam → $dateStartParam → 'now'`.
 - **EventController Fatal Error** ([#106](https://github.com/zebinho20-belenus/ep3bs-payment/issues/106)): `$sessionUser` war undefined beim Speichern von Veranstaltungen nach Zeitänderung — `authorize()` Rückgabewert wird jetzt korrekt verwendet.
 - **"Meine Daten" Formulare nicht erreichbar** ([#105](https://github.com/zebinho20-belenus/ep3bs-payment/issues/105)): `settings.js` hat alle `.edit-panel`-Elemente beim Laden versteckt; fehlende `.edit-label`- und `.sandbox`-Klassen an den Kartenüberschriften ergänzt.
 - **Kalender Landscape: `orientation`-Query unzuverlässig** ([#107](https://github.com/zebinho20-belenus/ep3bs-payment/issues/107)): `@media (orientation: landscape)` wurde in Chrome DevTools nicht korrekt ausgelöst — ersetzt durch `min-width: 500px` (Hochformat-Phones ≤430px, Querformat ≥500px).
@@ -34,9 +36,9 @@
 
 **Mobile Kalender-Verbesserungen** (#107): Querformat zeigt Buchungsnamen. Hochformat zeigt Buchstaben-Kürzel für Mitarbeiter (G/M/MG/A/T) — nur sichtbar für Benutzer mit Mitarbeiter-Berechtigung. Kürzel-Legende eingeblendet.
 
-**Konfliktprüfung** (#100/#101): Drei Bugs beim Bearbeiten von Buchungen/Abos behoben — falsches Datum in Konflikttabelle, Selbst-Konflikt bei Abos, unvollständiger Datums-Range.
+**Konfliktprüfung** (#100/#101): Vier Bugs beim Bearbeiten von Buchungen/Abos behoben — falsches Datum in Konflikttabelle, Selbst-Konflikt bei Abos, unvollständiger Datums-Range, falsches Wiederholungs-Label.
 
-**EventController** (#106): Fatal Error beim Speichern von Veranstaltungen nach Zeitänderung behoben.
+**EventController** (#106/#108): Fatal Error beim Speichern von Veranstaltungen behoben. Enddatum bei Neuanlage aus Kalender korrigiert (zeigte "heute" statt gewähltes Datum).
 
 **"Meine Daten"** (#105): Alle Formulare (Telefon, E-Mail, Passwort, etc.) waren versteckt und nicht erreichbar — behoben.
 

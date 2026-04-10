@@ -657,6 +657,10 @@ e| Subscription reactivation set single (#101) | Fixed Apr 2026 | Cancelled subs
 | Cancelled abo-reservation not identifiable | Improved Apr 2026 | Dual badge `[A][S]` in booking list for cancelled reservations within active subscriptions |
 | Long subscription UI overflow | Fixed Apr 2026 | Edit-mode dialog, edit table, and email bills now compact for 50-120+ reservations |
 | Billing status in cancelled emails | Fixed Apr 2026 | Showed "Ausstehend" instead of "Storniert" for cancelled bookings |
+| "Meine Daten" forms hidden (#105) | Fixed Apr 2026 | `settings.js` requires `.edit-label` on triggers + `.sandbox` on containers — both missing after BS5 migration |
+| Calendar portrait indicators (#107) | Added Apr 2026 | Staff (`calendar.see-data`) see G/M/MG/A/T letter badges on calendar cells in portrait mode (≤499px). Non-staff see nothing |
+| Event end date wrong from calendar (#108) | Fixed Apr 2026 | New event created from calendar had end date "today" instead of selected start date |
+| Wrong repeat label in conflict table (#100) | Fixed Apr 2026 | Conflict table showed wrong Wiederholung label (sequential index instead of day-count keys from `Booking::$repeatOptions`) |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---
@@ -671,6 +675,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.2.6** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.2.8** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>
