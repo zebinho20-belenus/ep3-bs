@@ -378,7 +378,7 @@ class EventController extends AbstractActionController
                 $squareParam = $this->params()->fromQuery('s');
 
                 $dateTimeStart = new \DateTime($dateStartParam ?: 'now');
-                $dateTimeEnd = new \DateTime($dateEndParam ?: 'now');
+                $dateTimeEnd = new \DateTime($dateEndParam ?: ($dateStartParam ?: 'now'));
 
                 if ($timeStartParam && preg_match('/^[0-9]?[0-9]:[0-9][0-9]$/', $timeStartParam)) {
                     $tsParts = explode(':', $timeStartParam);
