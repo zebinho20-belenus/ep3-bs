@@ -184,10 +184,61 @@
 
     <script type="text/javascript">
     if ('serviceWorker' in navigator) {
+        // Guard: only reload on controllerchange if a SW was already active (not first load)
+        var hadController = !!navigator.serviceWorker.controller;
+
         navigator.serviceWorker.register('<?= $this->basePath('js/sw.js') ?>').then(function(reg) {
-            console.log('Successfully registered service worker', reg);
+            // (a) Update already waiting (e.g. app opened offline, then came online)
+            if (reg.waiting) {
+                showPwaUpdateBanner(reg.waiting);
+            }
+
+            // (b) New SW found and installed -> show banner
+            reg.addEventListener('updatefound', function() {
+                var newWorker = reg.installing;
+                newWorker.addEventListener('statechange', function() {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        showPwaUpdateBanner(newWorker);
+                    }
+                });
+            });
+
+            // (c) iOS fix: check for updates when app comes back to foreground
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    reg.update();
+                }
+            });
+
+            // (d) Hourly fallback check
+            setInterval(function() { reg.update(); }, 60 * 60 * 1000);
         }).catch(function(err) {
             console.warn('Error whilst registering service worker', err);
+        });
+
+        // (e) Reload when new SW takes control - guarded against first-load reload
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (hadController) {
+                window.location.reload();
+            }
+            hadController = true;
+        });
+    }
+
+    function showPwaUpdateBanner(worker) {
+        if (document.getElementById('pwa-update-banner')) return;
+        var banner = document.createElement('div');
+        banner.id = 'pwa-update-banner';
+        banner.innerHTML =
+            '<span>App-Update verfügbar</span>' +
+            '<button id="pwa-update-btn">Aktualisieren</button>' +
+            '<button id="pwa-update-dismiss" aria-label="Schließen">&#x2715;</button>';
+        document.body.appendChild(banner);
+        document.getElementById('pwa-update-btn').addEventListener('click', function() {
+            worker.postMessage({ type: 'SKIP_WAITING' });
+        });
+        document.getElementById('pwa-update-dismiss').addEventListener('click', function() {
+            banner.remove();
         });
     }
     </script>

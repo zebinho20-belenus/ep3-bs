@@ -1,5 +1,5 @@
 // Use a cacheName for cache versioning
-var cacheName = 'ep3bs_v3.30:static';
+var cacheName = 'ep3bs_v3.31:static';
 
 // Static assets to pre-cache during installation
 var staticAssets = [
@@ -32,11 +32,16 @@ var staticAssets = [
 self.addEventListener('install', function(e) {
     e.waitUntil(
         caches.open(cacheName).then(function(cache) {
-            return cache.addAll(staticAssets).then(function() {
-                self.skipWaiting();
-            });
+            return cache.addAll(staticAssets);
         })
     );
+});
+
+// Allow the page to trigger activation via postMessage({ type: 'SKIP_WAITING' })
+self.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 // Clean up old caches on activation

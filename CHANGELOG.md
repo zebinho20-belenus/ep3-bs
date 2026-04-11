@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.2.9 (2026-04-11)
+
+### Improvements
+
+- **PWA-Update auf iOS verbessert**: Service Worker aktualisiert sich jetzt zuverlässig, ohne die App neu zum Homescreen hinzufügen zu müssen.
+  - Update-Check wird beim Wechsel in den Vordergrund ausgelöst (`visibilitychange`) — behebt fehlende Checks bei iOS Home-Screen-PWAs
+  - Stündlicher Hintergrund-Check als Fallback
+  - Neues Update-Banner (unten fixiert): "App-Update verfügbar" mit "Aktualisieren"- und Schließen-Button — kein unerwarteter Auto-Reload mehr
+  - Guard verhindert Reload-Loop beim ersten Seitenaufruf
+  - SW-Cache: `v3.31`
+
 ## v2.2.8 (2026-04-10)
 
 ### New Features
