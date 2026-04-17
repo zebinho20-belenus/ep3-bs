@@ -277,15 +277,28 @@ class SquareValidator extends AbstractService
 
         $bookingsFromUser = array();
 
+        // Collect bids that have at least one non-cancelled reservation in range.
+        // Prevents cancelled single reservations of an active subscription from
+        // blocking the slot (bug: calendar showed "Frei" but booking said "occupied").
+        $activeBidsInRange = array();
+        foreach ($possibleReservations as $reservation) {
+            if ($reservation->get('status', 'confirmed') == 'cancelled') {
+                continue;
+            }
+            $activeBidsInRange[$reservation->need('bid')] = true;
+        }
+
         foreach ($possibleBookings as $bid => $booking) {
             if ($booking->need('sid') == $square->need('sid')) {
                 if ($booking->need('visibility') == 'public') {
                     if ($booking->need('status') != 'cancelled') {
-                        $bookings[$bid] = $booking;
-                        $quantity += $booking->need('quantity');
+                        if (isset($activeBidsInRange[$bid])) {
+                            $bookings[$bid] = $booking;
+                            $quantity += $booking->need('quantity');
 
-                        if ($user && $user->need('uid') == $booking->need('uid')) {
-                            $bookingsFromUser[$bid] = $booking;
+                            if ($user && $user->need('uid') == $booking->need('uid')) {
+                                $bookingsFromUser[$bid] = $booking;
+                            }
                         }
                     }
                 }
