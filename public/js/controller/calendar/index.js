@@ -327,7 +327,7 @@
                 overlay.addClass("calendar-event-overlay");
                 overlay.removeClass(function(i, c) { return (c.match(/cc-group-\d+/) || []).join(' '); });
                 overlay.css({
-                    "position": "absolute", "z-index": 256,
+                    "position": "absolute", "z-index": 128,
                     "display": "block",
                     "left": Math.round(x), "top": Math.round(y),
                     "width": Math.round(w), "height": Math.round(h),

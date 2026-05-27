@@ -891,7 +891,7 @@ a.cc-multiple:hover { background-color: #045cb4; }
 a.cc-conflict:link,
 a.cc-conflict:visited { opacity: 1.0; color: #fff; background-color: #045cb4; }
 a.cc-conflict:hover { background-color: #045cb4; }
-a.cc-conflict { position: relative; z-index: 256; }
+a.cc-conflict { position: relative; z-index: 512; }
 
 a.cc-try:link,
 a.cc-try:visited { opacity: 1.0; color: #664d03; background-color: #ffda6a; }
