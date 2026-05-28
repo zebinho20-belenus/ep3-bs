@@ -393,6 +393,9 @@ Single `Dockerfile` (PHP 8.4-apache) for DEV and PROD. Includes **OPcache** (128
 | `docker-compose.override.yml` | Local dev (Traefik service, self-signed HTTPS, auto-loaded) |
 | `docker-compose.dev-server.yml` | DEV on server alongside production |
 
+**Production Traefik:** On the production server, Traefik runs as a standalone container (not inside this compose project), using an external Docker network `traefik_web`. The `court` container joins this network via the compose labels.  
+⚠️ **Router name conflict:** Dev (`docker-compose.dev-server.yml`) uses router names `court-dev` / `court-dev-redirect`. If it accidentally uses `court`, Traefik v3 drops **both** routers → production 404.
+
 ### Services
 
 | Service | Port | Purpose |
@@ -661,6 +664,7 @@ e| Subscription reactivation set single (#101) | Fixed Apr 2026 | Cancelled subs
 | Calendar portrait indicators (#107) | Added Apr 2026 | Staff (`calendar.see-data`) see G/M/MG/A/T letter badges on calendar cells in portrait mode (≤499px). Non-staff see nothing |
 | Event end date wrong from calendar (#108) | Fixed Apr 2026 | New event created from calendar had end date "today" instead of selected start date |
 | Wrong repeat label in conflict table (#100) | Fixed Apr 2026 | Conflict table showed wrong Wiederholung label (sequential index instead of day-count keys from `Booking::$repeatOptions`) |
+| Event conflict hidden by overlay (#110) | Fixed May 2026 | Multi-column event overlay (z-index 256) covered `cc-conflict` cells — overlay lowered to z-index 128, `cc-conflict` raised to 512 |
 | `composer update` broken | Known | `payum/payum-module` conflicts with forked ZF2 packages |
 
 ---

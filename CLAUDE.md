@@ -188,6 +188,7 @@ Overrides only stored when value differs from booking. Calendar `ReservationsFor
 | Audit listener | `module/Base/src/Base/Service/Listener/AuditListener.php` |
 | Audit controller | `module/Backend/src/Backend/Controller/AuditController.php` |
 | Migrations | `data/db/migrations.php` (registry), `data/db/migrations/*.sql` |
+| App version | `VERSION` (file), `config/init.php` → `EP3_BS_VERSION` constant, footer in `layout.phtml` |
 
 ## Docker
 
@@ -203,11 +204,15 @@ Services: `traefik` (80/443/8080), `court` (PHP via Traefik), `mariadb` (3306), 
 
 macOS: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't reach Docker socket.
 
+**Production server (tcnkail-server):** Traefik runs **standalone** (not in compose project), external Docker network `traefik_web` must exist. `docker-compose.yml` attaches `court` to both `courtnet` + `traefik_web`. Dev-server at `/opt/ep3-bs-8-dev/` uses `docker-compose.dev-server.yml`. After `git pull` on server: `git pull` from `master` branch.
+
 ## Gotchas
 
 - **JS/CSS sync**: `.js` + `.min.js` and `app.css` + `app.min.css` always kept in sync — no build tool.
 - **SW cache bump required** after CSS/JS changes: `cacheName` in `public/js/sw.js` (`ep3bs_vX.XX:static`). Current: **v3.32**.
 - **Event overlay**: use `.calendar-event-overlay` class for hide/remove — `[id$='-overlay-']` never matches (IDs end with `-overlay-0`).
+- **Traefik router name conflict**: If production (`court`) and dev (`court-dev`) containers both define a Traefik router named `court`, Traefik v3 drops both → production returns 404. Dev container in `docker-compose.dev-server.yml` MUST use router names `court-dev` / `court-dev-redirect`.
+- **`init.php` no text before `<?php`**: Any characters before the opening PHP tag are output directly to the browser — e.g. stray `co` becomes visible garbage at the top of every page.
 - **`composer update` broken**: `payum/payum-module` conflicts with our forked ZF packages. Vendor changes manual only. Use `--ignore-platform-reqs` if needed.
 - **Translation file scope**: key must be in correct module file (e.g. `booking.php` for NotificationListener). `$this->t(ucfirst($slug))` works for status slugs.
 - **jQuery UI z-index**: set `appendTo` on datepicker/autocomplete to avoid rendering behind squarebox.
