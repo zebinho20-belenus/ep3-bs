@@ -1,4 +1,4 @@
-co<?php
+<?php
 
 /**
  * Testing and development mode
