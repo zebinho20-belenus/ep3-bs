@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.2.10 (2026-05-28)
+
+### Bug Fixes
+
+- **Kalender: Konflikt-Indikatoren unter Veranstaltungs-Overlay verborgen** ([#110](https://github.com/zebinho20-belenus/ep3bs-payment/issues/110)): Bei Multi-Platz-Veranstaltungen überdeckte das absolut-positionierte Event-Overlay (`z-index: 256`) die `cc-conflict`-Zellen — da beide denselben Z-Index hatten und der Overlay im DOM nach der Tabelle eingefügt wird, war der Konflikt-Indikator visuell nicht sichtbar (nur beim Scrollen/Zoomen kurz erkennbar). Fix: Overlay-Z-Index auf `128` gesenkt, `cc-conflict`-Z-Index auf `512` erhöht.
+
+### Improvements
+
+- **Versionsnummer im Footer**: App-Version wird im Footer der Seite als dezenter Hinweis angezeigt (`v2.2.10`). Version wird aus der `VERSION`-Datei geladen (Konstante `EP3_BS_VERSION` in `config/init.php`).
+
 ## v2.2.9 (2026-04-11)
 
 ### Improvements

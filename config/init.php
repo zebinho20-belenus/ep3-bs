@@ -1,4 +1,4 @@
-<?php
+co<?php
 
 /**
  * Testing and development mode
@@ -11,6 +11,11 @@
  * Should be true during initial testing and false when actually using the system.
  */
 define('EP3_BS_DEV_TAG', true);
+
+/**
+ * Application version (read from VERSION file)
+ */
+define('EP3_BS_VERSION', trim(file_get_contents(__DIR__ . '/../VERSION')));
 
 /**
  * Timezone of the people using the system
