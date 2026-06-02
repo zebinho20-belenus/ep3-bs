@@ -89,6 +89,16 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 - Member: member price (0=free). Non-member: full price.
 - Member + guest (gp=1): **50% of non-member price**. Non-member + guest: full price.
 
+### Calendar Name Display (non-staff)
+
+`OccupiedForVisitors.php` (non-staff path) reveals the booker's alias **only** for bookings with effective billing status `training` (`status_billing_override ?: booking.status_billing === 'training'`):
+- **Logged-in user**: training names shown automatically on all squares (no per-square config).
+- **Visitor (not logged in)**: training names shown only if the square meta `public_names = true`.
+- All other billing statuses stay anonymous (`Belegt`/`Abo`) — no name leakage.
+- `CalendarController` loads booking users whenever `$user` is set (so `needExtra('user')` is available).
+- Staff (`calendar.see-data`) use `OccupiedForPrivileged` and always see all names — unchanged.
+- The square `private_names` meta + `hasOneWithPrivateNames()` are now effectively unused (only `public_names` matters). The Backend "Sichtbarkeit von Namen" field governs visitor visibility only.
+
 ### Email Notifications
 
 `BookingService::createSingle()` → `create.single` event → `NotificationListener::onCreateSingle()`.
