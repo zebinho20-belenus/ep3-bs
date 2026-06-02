@@ -20,27 +20,20 @@ class OccupiedForVisitors extends AbstractHelper
             $reservation = current($reservations);
             $booking = $reservation->needExtra('booking');
 
-            if ($square->getMeta('public_names', 'false') == 'true') {
-                $cellLabel = $booking->needExtra('user')->need('alias');
-            } else if ($square->getMeta('private_names', 'false') == 'true' && $user) {
-                $cellLabel = $booking->needExtra('user')->need('alias');
-            } else {
-                $cellLabel = null;
-            }
+            // Names are only revealed for subscription bookings, never for
+            // regular single bookings (per request: "nur Abos, nicht normale Spieler").
+            $showNames = $square->getMeta('public_names', 'false') == 'true'
+                || ($square->getMeta('private_names', 'false') == 'true' && $user);
 
             $cellGroup = ' cc-group-' . $booking->need('bid');
 
-            $style = 'cc-single';
-
             switch ($booking->need('status')) {
                 case 'single':
-                    if (! $cellLabel) {
-                        $cellLabel = $this->view->t('Occupied');
-                    }
-
-                    return $view->calendarCellLink($view->escapeHtml($cellLabel), $view->url('square', [], $cellLinkParams), $style . $cellGroup);
+                    return $view->calendarCellLink($view->escapeHtml($this->view->t('Occupied')), $view->url('square', [], $cellLinkParams), 'cc-single' . $cellGroup);
                 case 'subscription':
-                    if (! $cellLabel) {
+                    if ($showNames) {
+                        $cellLabel = $booking->needExtra('user')->need('alias');
+                    } else {
                         $cellLabel = $this->view->t('Subscription');
                     }
 
