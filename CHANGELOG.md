@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.2.11 (2026-06-02)
+
+### Improvements
+
+- **Kalender-Namen nur bei Abo-Buchungen** ([#114](https://github.com/zebinho20-belenus/ep3bs-payment/issues/114)): Die Namensanzeige im Kalender (Platz-Einstellung "Sichtbarkeit von Namen") gilt jetzt ausschließlich für Abo-Buchungen. Normale Einzelbuchungen zeigen unverändert "Belegt", auch wenn die Einstellung aktiv ist. Mitarbeiter (`calendar.see-data`) sehen weiterhin alle Namen. Hilfetext des Backend-Felds entsprechend präzisiert.
+
 ## v2.2.10 (2026-05-28)
 
 ### Bug Fixes
