@@ -20,22 +20,25 @@ class OccupiedForVisitors extends AbstractHelper
             $reservation = current($reservations);
             $booking = $reservation->needExtra('booking');
 
-            // Names are only revealed for subscription bookings, never for
-            // regular single bookings (per request: "nur Abos, nicht normale Spieler").
-            $showNames = $square->getMeta('public_names', 'false') == 'true'
-                || ($square->getMeta('private_names', 'false') == 'true' && $user);
+            // Effective billing status (per-reservation override wins over booking).
+            $statusBilling = $reservation->getMeta('status_billing_override') ?: $booking->need('status_billing');
+
+            // The real name is revealed only for training bookings: automatically
+            // to any logged-in user, and to visitors only if the square is
+            // configured for public names. All other bookings stay anonymous
+            // ("Belegt"/"Abo") so regular players' names are never leaked.
+            $showNames = ($statusBilling === 'training')
+                && ($user || $square->getMeta('public_names', 'false') == 'true');
 
             $cellGroup = ' cc-group-' . $booking->need('bid');
 
             switch ($booking->need('status')) {
                 case 'single':
-                    return $view->calendarCellLink($view->escapeHtml($this->view->t('Occupied')), $view->url('square', [], $cellLinkParams), 'cc-single' . $cellGroup);
+                    $cellLabel = $showNames ? $booking->needExtra('user')->need('alias') : $this->view->t('Occupied');
+
+                    return $view->calendarCellLink($view->escapeHtml($cellLabel), $view->url('square', [], $cellLinkParams), 'cc-single' . $cellGroup);
                 case 'subscription':
-                    if ($showNames) {
-                        $cellLabel = $booking->needExtra('user')->need('alias');
-                    } else {
-                        $cellLabel = $this->view->t('Subscription');
-                    }
+                    $cellLabel = $showNames ? $booking->needExtra('user')->need('alias') : $this->view->t('Subscription');
 
                     return $view->calendarCellLink($view->escapeHtml($cellLabel), $view->url('square', [], $cellLinkParams), 'cc-multiple' . $cellGroup);
             }

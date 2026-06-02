@@ -156,7 +156,9 @@ class CalendarController extends AbstractActionController
             $dateNow->setTime(0, 0, 0);
         }
 
-        if ($user && $squareManager->hasOneWithPrivateNames()) {
+        // Logged-in users may see the names of training bookings (any square),
+        // so the booking users have to be loaded whenever someone is logged in.
+        if ($user) {
             $getBookingUsers = true;
         }
 

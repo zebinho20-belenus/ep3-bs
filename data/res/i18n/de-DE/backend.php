@@ -366,7 +366,7 @@ return array(
     'For other users that are logged in' => 'Für andere angemeldete Benutzer',
     'Publicly for everyone' => 'Für alle Besucher öffentlich',
     'Who should see the names of the booking users in the calendar?'
-        => 'Wer darf die Namen der Buchenden im Kalender sehen? (nur bei Abo-Buchungen, nicht bei Einzelbuchungen)',
+        => 'Steuert, ob auch nicht angemeldete Besucher die Namen von Training-Buchungen sehen. Angemeldete Nutzer sehen die Namen von Training-Buchungen immer. Normale Spielerbuchungen bleiben stets anonym.',
     'Time block' => 'Zeitblock',
     'Time block (min. bookable)' => 'Zeitblock (min. buchbar)',
     'Allow min. bookable time block for admins only' => 'Erlaube min. buchbaren Zeitblock nur für die Verwaltung',

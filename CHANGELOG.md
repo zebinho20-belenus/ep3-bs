@@ -1,10 +1,12 @@
 # Changelog
 
-## v2.2.11 (2026-06-02)
+## v2.2.12 (2026-06-02)
 
 ### Improvements
 
-- **Kalender-Namen nur bei Abo-Buchungen** ([#114](https://github.com/zebinho20-belenus/ep3bs-payment/issues/114)): Die Namensanzeige im Kalender (Platz-Einstellung "Sichtbarkeit von Namen") gilt jetzt ausschließlich für Abo-Buchungen. Normale Einzelbuchungen zeigen unverändert "Belegt", auch wenn die Einstellung aktiv ist. Mitarbeiter (`calendar.see-data`) sehen weiterhin alle Namen. Hilfetext des Backend-Felds entsprechend präzisiert.
+- **Kalender-Namen bei Training-Buchungen** ([#114](https://github.com/zebinho20-belenus/ep3bs-payment/issues/114)): Buchungen mit Rechnungsstatus **"Training"** zeigen angemeldeten Nutzern jetzt den echten Namen des Buchenden im Kalender — automatisch auf allen Plätzen, ohne zusätzliche Konfiguration. Normale Spielerbuchungen bleiben anonym ("Belegt"/"Abo"). Nicht angemeldete Besucher sehen Training-Namen nur, wenn beim Platz "Sichtbarkeit von Namen" auf "Für alle Besucher öffentlich" steht. Mitarbeiter (`calendar.see-data`) sehen weiterhin alle Namen.
+  - Maßgeblich ist der effektive Rechnungsstatus (`status_billing_override ?: status_billing`), sodass auch per-Reservierung-Overrides berücksichtigt werden.
+  - Ersetzt das in v2.2.11 eingeführte (auf Abo-Status basierende) Verhalten.
 
 ## v2.2.10 (2026-05-28)
 
