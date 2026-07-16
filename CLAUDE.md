@@ -187,8 +187,9 @@ docker compose exec court php scripts/diagnose.php scan [<von> <bis>] [--checks=
 - **Checks**: `module/Booking/src/Booking/Service/Diagnostic/Check/*.php` — each implements `DiagnosticCheckInterface` (or extends `AbstractCheck`) and returns `Finding[]`. **To add a new anomaly**: create one check class, register it in `BookingDiagnosticServiceFactory`. Key format `category.name`; `--checks` matches a full key or a category.
 - Range-dependent checks (`occupancy`, `time.*`, `user.missing-email`) use `--from`/`--to` (default `today .. +42d`); the rest are whole-DB. A check that throws is logged and skipped (scan never aborts).
 - Exit codes: `0` clean, `1` findings present, `2` usage/runtime error — usable in cron/monitoring.
-- **Scheduled scan** (host cron on tcnkail-server, after audit cleanup):
-  `15 3 * * * cd /opt/ep3-bs-8-prod && docker compose exec -T court php scripts/diagnose.php scan --all --alert >> /var/log/ep3bs-diagnose.log 2>&1`
+- **Scheduled scan** (host cron on tcnkail-server, after audit cleanup): drop-in `/etc/cron.d/ep3bs-diagnose`
+  `15 3 * * * root docker exec ep3-bs-8-prod-court-1 php scripts/diagnose.php scan --all --severity=warning --alert >> /var/log/ep3bs-diagnose.log 2>&1`
+  `--severity=warning` filters both log and alert mail to warning+critical (INFO checks like `payment.paid-without-evidence` / `status.cancelled-with-active` are expected noise for this club).
 
 ## Coding Standards
 
