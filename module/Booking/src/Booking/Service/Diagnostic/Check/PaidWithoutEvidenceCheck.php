@@ -8,9 +8,11 @@ use Booking\Service\Diagnostic\Finding;
 
 /**
  * Bookings marked status_billing='paid' with neither a directpay nor a
- * budgetpayment marker. Often a legitimate manual/cash payment marked by an
- * admin, but also the fingerprint of a payment flow that set 'paid' without a
- * recorded transaction — hence flagged for review (warning, not critical).
+ * budgetpayment marker. For clubs settling most bookings manually (cash,
+ * subscriptions, member accounts) this is the NORMAL case, not an anomaly —
+ * so it is reported at INFO level. It stays useful as a forensic cross-check
+ * (e.g. reconciling an unexpected 'paid' on a booking that was meant to run
+ * through a gateway), but must not dominate the warning-level alert mail.
  */
 class PaidWithoutEvidenceCheck extends AbstractCheck
 {
@@ -33,7 +35,7 @@ class PaidWithoutEvidenceCheck extends AbstractCheck
         foreach ($rows as $row) {
             $bid = (int) $row['bid'];
             $findings[] = $this->finding(
-                Finding::SEVERITY_WARNING,
+                Finding::SEVERITY_INFO,
                 sprintf('Buchung #%d ist "bezahlt" ohne directpay-/budgetpayment-Nachweis (evtl. manuell/bar).', $bid),
                 array('entityType' => 'booking', 'entityId' => $bid, 'bids' => array($bid))
             );
