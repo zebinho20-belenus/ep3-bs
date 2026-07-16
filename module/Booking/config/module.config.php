@@ -9,6 +9,7 @@ return array(
 
             'Booking\Service\BookingService' => 'Booking\Service\BookingServiceFactory',
             'Booking\Service\BookingStatusService' => 'Booking\Service\BookingStatusServiceFactory',
+            'Booking\Service\BookingDiagnosticService' => 'Booking\Service\BookingDiagnosticServiceFactory',
 
             'Booking\Table\BookingMetaTable' => 'Booking\Table\BookingMetaTableFactory',
             'Booking\Table\BookingTable' => 'Booking\Table\BookingTableFactory',
