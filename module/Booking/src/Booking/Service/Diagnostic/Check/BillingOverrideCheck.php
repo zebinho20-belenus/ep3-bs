@@ -13,13 +13,13 @@ use Booking\Service\Diagnostic\Finding;
 class BillingOverrideCheck extends AbstractCheck
 {
 
-    protected static $allowed = array('pending', 'paid', 'cancelled', 'uncollectable', 'member', 'training', 'free');
-
     public function getKey()         { return 'override.billing-invalid'; }
     public function getDescription() { return 'status_billing_override mit unbekanntem Wert.'; }
 
     public function run(DiagnosticContext $context)
     {
+        $allowed = $context->validBillingStatuses();
+
         $rows = $context->fetchAll(
             'SELECT m.rid, r.bid, r.date, m.value AS v FROM bs_reservations_meta m '
             . 'JOIN bs_reservations r ON r.rid = m.rid '
@@ -29,7 +29,7 @@ class BillingOverrideCheck extends AbstractCheck
         $findings = array();
 
         foreach ($rows as $row) {
-            if (! in_array($row['v'], self::$allowed, true)) {
+            if (! in_array($row['v'], $allowed, true)) {
                 $rid = (int) $row['rid'];
                 $findings[] = $this->finding(
                     Finding::SEVERITY_WARNING,

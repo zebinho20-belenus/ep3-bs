@@ -5,6 +5,7 @@ namespace Booking\Service\Diagnostic;
 use Base\Manager\OptionManager;
 use Booking\Manager\BookingManager;
 use Booking\Manager\ReservationManager;
+use Booking\Service\BookingStatusService;
 use DateTime;
 use Square\Manager\SquareManager;
 use Square\Manager\SquareOpeningTimesManager;
@@ -38,9 +39,13 @@ class DiagnosticContext
     protected $openingTimesManager;
     protected $pricingManager;
     protected $optionManager;
+    protected $bookingStatusService;
 
     /** @var array|null cache: sid => Square */
     protected $squaresCache = null;
+
+    /** @var array|null cache: valid billing status slugs (base ∪ configured) */
+    protected $validBillingStatusesCache = null;
 
     /** @var array|null cache: reservations in [from,to] with 'booking' extra attached */
     protected $reservationsInRangeCache = null;
@@ -57,6 +62,7 @@ class DiagnosticContext
         SquareOpeningTimesManager $openingTimesManager,
         SquarePricingManager $pricingManager,
         OptionManager $optionManager,
+        BookingStatusService $bookingStatusService,
         ?DateTime $from = null,
         ?DateTime $to = null
     ) {
@@ -68,6 +74,7 @@ class DiagnosticContext
         $this->openingTimesManager = $openingTimesManager;
         $this->pricingManager      = $pricingManager;
         $this->optionManager       = $optionManager;
+        $this->bookingStatusService = $bookingStatusService;
         $this->from                = $from;
         $this->to                  = $to;
     }
@@ -83,6 +90,35 @@ class DiagnosticContext
     public function openingTimesManager() { return $this->openingTimesManager; }
     public function pricingManager()      { return $this->pricingManager; }
     public function optionManager()       { return $this->optionManager; }
+    public function bookingStatusService() { return $this->bookingStatusService; }
+
+    /* ------------------------------------------------------------------ */
+    /* Domain helpers                                                      */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * The set of valid billing-status slugs for this installation.
+     *
+     * Billing statuses are configurable (bs_options key
+     * 'service.status-values.billing', see BookingStatusService), so the
+     * domain is NOT a fixed enum. The valid set is the union of the club's
+     * configured statuses and the framework's built-in specials (which some
+     * code paths set regardless of the status-colour config).
+     *
+     * @return string[] lower-case slugs
+     */
+    public function validBillingStatuses()
+    {
+        if ($this->validBillingStatusesCache === null) {
+            $base = array('pending', 'paid', 'cancelled', 'uncollectable', 'member', 'training', 'free');
+
+            $configured = array_keys($this->bookingStatusService->getStatusColors());
+
+            $this->validBillingStatusesCache = array_values(array_unique(array_merge($base, $configured)));
+        }
+
+        return $this->validBillingStatusesCache;
+    }
 
     /* ------------------------------------------------------------------ */
     /* Query helper                                                        */

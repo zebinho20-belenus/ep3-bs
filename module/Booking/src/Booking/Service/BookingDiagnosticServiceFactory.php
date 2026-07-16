@@ -46,6 +46,7 @@ class BookingDiagnosticServiceFactory implements FactoryInterface
             $sm->get('Square\Manager\SquareOpeningTimesManager'),
             $sm->get('Square\Manager\SquarePricingManager'),
             $sm->get('Base\Manager\OptionManager'),
+            $sm->get('Booking\Service\BookingStatusService'),
             $sm->get('Base\Service\AuditService'),
             $sm->get('Backend\Service\MailService'),
             $this->resolveLatestSchemaVersion()

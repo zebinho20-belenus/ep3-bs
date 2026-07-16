@@ -37,6 +37,7 @@ class BookingDiagnosticService
     protected $openingTimesManager;
     protected $pricingManager;
     protected $optionManager;
+    protected $bookingStatusService;
     protected $auditService;
     protected $backendMailService;
     protected $latestSchemaVersion;
@@ -51,6 +52,7 @@ class BookingDiagnosticService
         SquareOpeningTimesManager $openingTimesManager,
         SquarePricingManager $pricingManager,
         OptionManager $optionManager,
+        BookingStatusService $bookingStatusService,
         AuditService $auditService,
         BackendMailService $backendMailService,
         $latestSchemaVersion = null
@@ -64,6 +66,7 @@ class BookingDiagnosticService
         $this->openingTimesManager = $openingTimesManager;
         $this->pricingManager      = $pricingManager;
         $this->optionManager       = $optionManager;
+        $this->bookingStatusService = $bookingStatusService;
         $this->auditService        = $auditService;
         $this->backendMailService  = $backendMailService;
         $this->latestSchemaVersion = $latestSchemaVersion;
@@ -93,6 +96,7 @@ class BookingDiagnosticService
             $this->openingTimesManager,
             $this->pricingManager,
             $this->optionManager,
+            $this->bookingStatusService,
             $from,
             $to
         );

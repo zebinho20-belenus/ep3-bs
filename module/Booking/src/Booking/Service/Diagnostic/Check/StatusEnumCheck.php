@@ -19,9 +19,15 @@ class StatusEnumCheck extends AbstractCheck
     {
         $findings = array();
 
+        /* Billing statuses are configurable, not a fixed enum → build the
+         * allowed IN-list from the installation's valid status set. */
+        $billingAllowed = implode(',', array_map(function ($slug) {
+            return "'" . str_replace("'", "''", $slug) . "'";
+        }, $context->validBillingStatuses()));
+
         $specs = array(
             array('bs_bookings', 'bid', 'status', "'single','subscription','cancelled'", false),
-            array('bs_bookings', 'bid', 'status_billing', "'pending','paid','cancelled','uncollectable','member','training','free'", false),
+            array('bs_bookings', 'bid', 'status_billing', $billingAllowed, false),
             array('bs_bookings', 'bid', 'visibility', "'public','private'", false),
             array('bs_reservations', 'rid', 'status', "'confirmed','cancelled'", true),
             array('bs_squares', 'sid', 'status', "'enabled','readonly','disabled'", false),
