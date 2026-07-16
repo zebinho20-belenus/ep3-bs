@@ -285,6 +285,35 @@ class BookingDiagnosticService
     }
 
     /**
+     * Reconstructs the booking a reservation belongs to, flagging that
+     * reservation as the focus. Several checks (time.*, override.*,
+     * orphan-reservation) report a reservation id (rid), not a booking id —
+     * this resolves the rid to its booking and renders the full context.
+     *
+     * @param int $rid
+     * @return array|null the inspectBooking() payload plus 'focusRid', or null
+     */
+    public function inspectReservation($rid)
+    {
+        $context = $this->buildContext();
+        $rid = (int) $rid;
+
+        $rows = $context->fetchAll('SELECT bid FROM bs_reservations WHERE rid = ?', array($rid));
+
+        if (! $rows) {
+            return null;
+        }
+
+        $result = $this->inspectBooking((int) $rows[0]['bid']);
+
+        if ($result !== null) {
+            $result['focusRid'] = $rid;
+        }
+
+        return $result;
+    }
+
+    /**
      * Reconstructs everything occupying an (effective) square on a date, with
      * an audit timeline per involved booking.
      *

@@ -7,6 +7,7 @@
  *
  * Usage:
  *   php scripts/diagnose.php inspect-booking <bid> [--json]
+ *   php scripts/diagnose.php inspect-reservation <rid> [--json]
  *   php scripts/diagnose.php inspect-slot <YYYY-MM-DD> <sid> [HH:MM] [HH:MM] [--json]
  *   php scripts/diagnose.php scan [<from> <to>] [--checks=a,b|--all] [--severity=critical|warning|info] [--json] [--alert]
  *   php scripts/diagnose.php list-checks [--json]
@@ -134,6 +135,23 @@ switch ($command) {
         print_inspect_booking($result);
         exit(0);
 
+    case 'inspect-reservation':
+        if (! isset($positional[0])) {
+            fwrite(STDERR, "Usage: inspect-reservation <rid>\n");
+            exit(2);
+        }
+        $result = $service->inspectReservation((int) $positional[0]);
+        if ($result === null) {
+            fwrite(STDERR, "Reservation #{$positional[0]} not found.\n");
+            exit(2);
+        }
+        if ($json) {
+            out_json($result);
+            exit(0);
+        }
+        print_inspect_booking($result);
+        exit(0);
+
     case 'inspect-slot':
         if (! isset($positional[0], $positional[1])) {
             fwrite(STDERR, "Usage: inspect-slot <YYYY-MM-DD> <sid> [HH:MM] [HH:MM]\n");
@@ -186,6 +204,7 @@ switch ($command) {
 ep3-bs Diagnose-Tool
 
   inspect-booking <bid> [--json]
+  inspect-reservation <rid> [--json]
   inspect-slot <YYYY-MM-DD> <sid> [HH:MM] [HH:MM] [--json]
   scan [<from> <to>] [--checks=a,b|--all] [--severity=critical|warning|info] [--json] [--alert]
   list-checks [--json]
@@ -216,14 +235,17 @@ function print_inspect_booking(array $r)
 
     echo "\n  Reservierungen:\n";
     printf("    %-6s %-10s %-13s %-18s %-12s %-10s %s\n", 'rid', 'Datum', 'Zeit', 'Platz (eff.)', 'Res-Status', 'Rechnung', 'verschoben');
+    $focusRid = isset($r['focusRid']) ? (int) $r['focusRid'] : null;
     foreach ($r['reservations'] as $res) {
-        printf("    %-6s %-10s %-13s %-18s %-12s %-10s %s\n",
+        $marker = ($focusRid !== null && (int) $res['rid'] === $focusRid) ? '  <== geprüfte Reservierung' : '';
+        printf("    %-6s %-10s %-13s %-18s %-12s %-10s %s%s\n",
             $res['rid'], $res['date'],
             substr($res['time_start'], 0, 5) . '-' . substr($res['time_end'], 0, 5),
             $res['effective_name'],
             $res['status'] !== null && $res['status'] !== '' ? $res['status'] : 'confirmed',
             $res['effective_billing'],
-            $res['moved'] ? 'JA (Basis sid ' . (int) $b['sid'] . ')' : '-');
+            $res['moved'] ? 'JA (Basis sid ' . (int) $b['sid'] . ')' : '-',
+            $marker);
     }
 
     if ($r['bills']) {

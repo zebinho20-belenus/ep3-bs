@@ -177,6 +177,7 @@ Read-only forensic + integrity scanner. Run inside the `court` container:
 ```bash
 docker compose exec court php scripts/diagnose.php list-checks
 docker compose exec court php scripts/diagnose.php inspect-booking <bid>
+docker compose exec court php scripts/diagnose.php inspect-reservation <rid>   # resolves rid → booking (findings report rids)
 docker compose exec court php scripts/diagnose.php inspect-slot 2026-07-16 1 18:00
 docker compose exec court php scripts/diagnose.php scan [<von> <bis>] [--checks=occupancy,payment] [--severity=warning] [--json] [--alert]
 ```
