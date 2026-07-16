@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.3.0 (2026-07-16)
+
+### New Features
+
+- **Buchungs-Diagnose-Tool (CLI)**: Neues read-only Werkzeug `scripts/diagnose.php` zur forensischen Analyse und Integritätsprüfung des Buchungsbestands.
+  - **Forensik-Inspektor**: `inspect-booking <bid>` und `inspect-slot <datum> <sid> [zeit]` zeigen alle Reservierungen (Basis- vs. effektive `sid`, Overrides, Rechnungsstatus), Rechnungspositionen und die komplette Audit-Timeline (wer/wann/was) — rekonstruiert automatisch, was zuvor manuell per SQL nötig war.
+  - **Anomalie-Scanner**: `scan [von bis]` prüft gegen einen erweiterbaren Katalog von 21 Prüfungen in 8 Kategorien (Belegung/Doppelbuchung, Referenz-Integrität, Override-Konsistenz, Status-Enums, Zeit/Öffnungszeiten, Zahlung/Budget, Preis-Abdeckung, System/Config) mit Schweregraden (critical/warning/info). `list-checks` listet den Katalog.
+  - **Alarm & Cron**: `scan --alert` protokolliert Treffer im Audit-Log (`system`/`anomaly_*`) und sendet eine Sammel-E-Mail an die Admin-Adresse. Als täglicher Host-Cron einsetzbar.
+  - Architektur: Prüf-Registry mit einheitlicher `DiagnosticCheckInterface` — neue Anomalie = eine kleine Check-Klasse. Strikt read-only (Bootstrap ohne MVC-Event, daher keine Auto-Migrationen); graceful degradation (fehlschlagende Prüfung bricht den Scan nicht ab).
+
 ## v2.2.13 (2026-07-16)
 
 ### Bug Fixes

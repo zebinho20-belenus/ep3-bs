@@ -170,6 +170,25 @@ Subscription reservations can have individual overrides stored in `bs_reservatio
 
 Overrides only stored when value differs from booking. Calendar `ReservationsForCell` checks `sid_override`. `BookingFormat` shows `≠` badge. Conflict detection considers `sid_override`.
 
+### Diagnostic Tool (CLI)
+
+Read-only forensic + integrity scanner. Run inside the `court` container:
+
+```bash
+docker compose exec court php scripts/diagnose.php list-checks
+docker compose exec court php scripts/diagnose.php inspect-booking <bid>
+docker compose exec court php scripts/diagnose.php inspect-slot 2026-07-16 1 18:00
+docker compose exec court php scripts/diagnose.php scan [<von> <bis>] [--checks=occupancy,payment] [--severity=warning] [--json] [--alert]
+```
+
+- **Entrypoint**: `scripts/diagnose.php` (NOT under `public/` DocumentRoot → not web-reachable). Bootstraps the ServiceManager **without** `Application::bootstrap()`, so auto-migrations never run — the tool is read-only except `scan --alert` (writes audit-log entries + admin e-mail).
+- **Service**: `Booking\Service\BookingDiagnosticService` (`inspectBooking`, `inspectSlot`, `scan`, `recordAlerts`). Factory builds the `CheckRegistry`.
+- **Checks**: `module/Booking/src/Booking/Service/Diagnostic/Check/*.php` — each implements `DiagnosticCheckInterface` (or extends `AbstractCheck`) and returns `Finding[]`. **To add a new anomaly**: create one check class, register it in `BookingDiagnosticServiceFactory`. Key format `category.name`; `--checks` matches a full key or a category.
+- Range-dependent checks (`occupancy`, `time.*`, `user.missing-email`) use `--from`/`--to` (default `today .. +42d`); the rest are whole-DB. A check that throws is logged and skipped (scan never aborts).
+- Exit codes: `0` clean, `1` findings present, `2` usage/runtime error — usable in cron/monitoring.
+- **Scheduled scan** (host cron on tcnkail-server, after audit cleanup):
+  `15 3 * * * cd /opt/ep3-bs-8-prod && docker compose exec -T court php scripts/diagnose.php scan --all --alert >> /var/log/ep3bs-diagnose.log 2>&1`
+
 ## Coding Standards
 
 - **PSR-4**: `\{Module}\{Class}` → `module/{Module}/src/{Module}/{Class}.php`
@@ -197,6 +216,8 @@ Overrides only stored when value differs from booking. Calendar `ReservationsFor
 | Audit service | `module/Base/src/Base/Service/AuditService.php` |
 | Audit listener | `module/Base/src/Base/Service/Listener/AuditListener.php` |
 | Audit controller | `module/Backend/src/Backend/Controller/AuditController.php` |
+| Diagnostic CLI | `scripts/diagnose.php` |
+| Diagnostic service | `module/Booking/src/Booking/Service/BookingDiagnosticService.php` (+ `Diagnostic/Check/*.php`) |
 | Migrations | `data/db/migrations.php` (registry), `data/db/migrations/*.sql` |
 | App version | `VERSION` (file), `config/init.php` → `EP3_BS_VERSION` constant, footer in `layout.phtml` |
 
