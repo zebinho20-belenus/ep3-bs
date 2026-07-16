@@ -7,6 +7,7 @@
 - **Doppelbuchung über verschobene Abo-Reservierungen möglich**: Die Verfügbarkeitsprüfung der Buchungs-Squarebox (`SquareValidator::isBookable()`) berücksichtigte das per-Reservierung-Meta `sid_override` nicht (Regression aus den Per-Reservierung-Overrides, #101). Eine Abo-Reservierung, die vom Admin auf einen anderen Platz verschoben wurde, wurde im Kalender korrekt als "Abo" angezeigt, der Slot war aber trotzdem buchbar ("Dieser Platz ist noch frei") — Doppelbuchung möglich. Umgekehrt blockierte eine wegverschobene Reservierung weiterhin ihren ursprünglichen Platz. Fix: Matching auf effektive Platz-ID (`sid_override ?: sid`), analog zu Kalender und Backend-Konfliktprüfung.
   - Gleiche Korrektur im Alternativ-Zeitraum-Dropdown (`TimeBlockChoice`), dort zusätzlich: stornierte Einzelreservierungen aktiver Abos blockieren nicht mehr (fehlender #112-Fix).
   - Kapazitätsprüfung nutzt jetzt `quantity_override` (per-Reservierung-Spielerzahl), falls gesetzt.
+  - **Root-Cause (per Audit-Log bestätigt)**: Trainer-Abo #3329 wurde per Einzel-Reservierungs-Edit von Platz 4 auf Platz 1 verschoben (u.a. für den 16./23./30.07.2026), gespeichert als `sid_override`. Der Kalender zeigte "Abo", die Squarebox jedoch "frei". Es war noch keine echte Doppelbuchung entstanden; Fix auf Prod verifiziert (Platz 1, 23.07.).
 
 ## v2.2.12 (2026-06-02)
 
