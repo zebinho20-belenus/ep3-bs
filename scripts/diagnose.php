@@ -27,6 +27,13 @@ chdir(dirname(__DIR__));
 require 'vendor/autoload.php';
 require 'config/init.php';
 
+/* Keep stdout clean for report/JSON output: HTML error formatting makes no
+ * sense on the CLI, deprecation notices from vendored ZF2 are noise, and any
+ * warning must go to stderr so it never corrupts --json output. */
+ini_set('html_errors', '0');
+ini_set('display_errors', 'stderr');
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 /* ---- Bootstrap service manager without running the MVC bootstrap ---- */
 
 $configuration  = require 'config/application.php';
@@ -281,16 +288,24 @@ function print_scan(array $findings, DateTime $from, DateTime $to)
         return;
     }
 
-    $counts = array('critical' => 0, 'warning' => 0, 'info' => 0);
+    $grouped = array('critical' => array(), 'warning' => array(), 'info' => array());
     foreach ($findings as $f) {
-        if (isset($counts[$f->severity])) {
-            $counts[$f->severity]++;
+        if (isset($grouped[$f->severity])) {
+            $grouped[$f->severity][] = $f;
         }
     }
-    printf("Gefunden: %d (kritisch %d, Warnung %d, Info %d)\n\n",
-        count($findings), $counts['critical'], $counts['warning'], $counts['info']);
+    printf("Gefunden: %d (kritisch %d, Warnung %d, Info %d)\n",
+        count($findings), count($grouped['critical']), count($grouped['warning']), count($grouped['info']));
+    echo "Tipp: mit --severity=critical|warning eingrenzen, --json für maschinenlesbare Ausgabe.\n";
 
-    foreach ($findings as $f) {
-        printf("[%-8s] %-30s %s\n", strtoupper($f->severity), $f->key, $f->title);
+    $labels = array('critical' => 'KRITISCH', 'warning' => 'WARNUNG', 'info' => 'INFO');
+    foreach ($grouped as $severity => $items) {
+        if (! $items) {
+            continue;
+        }
+        printf("\n[%s] (%d)\n", $labels[$severity], count($items));
+        foreach ($items as $f) {
+            printf("  %-30s %s\n", $f->key, $f->title);
+        }
     }
 }
