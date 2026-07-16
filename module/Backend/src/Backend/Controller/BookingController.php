@@ -407,7 +407,10 @@ class BookingController extends AbstractActionController
                         }
                     }
 
-                    if ($conflicts) {
+                    if (! $this->isValidBookingTimeRange($d['bf-time-start'], $d['bf-time-end'])) {
+                        $this->flashMessenger()->addErrorMessage('Die Endzeit muss nach der Startzeit liegen.');
+                        // Fall through to form rendering; form data is preserved
+                    } elseif ($conflicts) {
                         $editForm->get('bf-force-create')->setValue('1');
                         // Fall through to form rendering with conflicts
                     } else {
@@ -765,7 +768,11 @@ class BookingController extends AbstractActionController
                         }
                     }
 
-                    if ($conflicts) {
+                    if (! $this->isValidBookingTimeRange($d['bf-time-start'], $d['bf-time-end'])) {
+                        $this->flashMessenger()->addErrorMessage('Die Endzeit muss nach der Startzeit liegen.');
+                        /* Fall through to form rendering; form data is preserved */
+
+                    } elseif ($conflicts) {
                         /* Conflict found — set force-create flag and fall through to form rendering */
                         $editForm->get('bf-force-create')->setValue('1');
 
@@ -3685,5 +3692,32 @@ class BookingController extends AbstractActionController
         } catch (\Exception $e) {
             error_log('Audit error: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Validates that a booking time range is well-formed: end strictly after
+     * start. Times are 'HH:MM'. An end of '00:00' means end-of-day (midnight,
+     * 86400s) — matching ReservationManager::getSecondsPerDay — so a late slot
+     * like 22:00–00:00 stays valid. Zero-length (start == end) and reversed
+     * (end < start) ranges are rejected.
+     *
+     * @param string $start HH:MM
+     * @param string $end HH:MM
+     * @return boolean
+     */
+    protected function isValidBookingTimeRange($start, $end)
+    {
+        $toSeconds = function ($time, $isEnd) {
+            $parts = explode(':', (string) $time);
+            $seconds = ((int) $parts[0]) * 3600 + (isset($parts[1]) ? ((int) $parts[1]) * 60 : 0);
+
+            if ($isEnd && $seconds === 0) {
+                return 86400; // '00:00' as end = end of day (midnight)
+            }
+
+            return $seconds;
+        };
+
+        return $toSeconds($start, false) < $toSeconds($end, true);
     }
 }
