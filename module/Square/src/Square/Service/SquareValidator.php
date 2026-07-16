@@ -277,41 +277,42 @@ class SquareValidator extends AbstractService
 
         $bookingsFromUser = array();
 
-        // Collect bids that have at least one non-cancelled reservation in range.
-        // Prevents cancelled single reservations of an active subscription from
-        // blocking the slot (bug: calendar showed "Frei" but booking said "occupied").
-        $activeBidsInRange = array();
-        foreach ($possibleReservations as $reservation) {
+        // Match reservations to the square by their effective sid: a reservation
+        // may be moved to another square via the sid_override meta, so the base
+        // booking sid alone is not authoritative (same pattern as the calendar's
+        // ReservationsForCell and the backend conflict check). Cancelled single
+        // reservations of an active subscription never block the slot.
+        foreach ($possibleReservations as $rid => $reservation) {
             if ($reservation->get('status', 'confirmed') == 'cancelled') {
                 continue;
             }
-            $activeBidsInRange[$reservation->need('bid')] = true;
-        }
 
-        foreach ($possibleBookings as $bid => $booking) {
-            if ($booking->need('sid') == $square->need('sid')) {
-                if ($booking->need('visibility') == 'public') {
-                    if ($booking->need('status') != 'cancelled') {
-                        if (isset($activeBidsInRange[$bid])) {
-                            $bookings[$bid] = $booking;
-                            $quantity += $booking->need('quantity');
+            $bid = $reservation->need('bid');
 
-                            if ($user && $user->need('uid') == $booking->need('uid')) {
-                                $bookingsFromUser[$bid] = $booking;
-                            }
-                        }
-                    }
-                }
+            if (! isset($possibleBookings[$bid])) {
+                continue;
             }
-        }
 
-        if ($bookings) {
-            foreach ($possibleReservations as $rid => $reservation) {
-                if ($reservation->get('status', 'confirmed') == 'cancelled') {
-                    continue;
-                }
-                if (isset($bookings[$reservation->need('bid')])) {
-                    $reservations[$rid] = $reservation;
+            $booking = $possibleBookings[$bid];
+
+            $effectiveSid = $reservation->getMeta('sid_override') ?: $booking->need('sid');
+
+            if ($effectiveSid != $square->need('sid')) {
+                continue;
+            }
+
+            if ($booking->need('visibility') != 'public' || $booking->need('status') == 'cancelled') {
+                continue;
+            }
+
+            $reservations[$rid] = $reservation;
+
+            if (! isset($bookings[$bid])) {
+                $bookings[$bid] = $booking;
+                $quantity += (int) ($reservation->getMeta('quantity_override') ?: $booking->need('quantity'));
+
+                if ($user && $user->need('uid') == $booking->need('uid')) {
+                    $bookingsFromUser[$bid] = $booking;
                 }
             }
         }

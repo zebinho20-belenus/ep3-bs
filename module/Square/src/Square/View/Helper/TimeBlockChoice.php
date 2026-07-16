@@ -108,13 +108,19 @@ class TimeBlockChoice extends AbstractHelper
 
             # check for existing reservations
             foreach ($reservations as $reservation) {
+                if ($reservation->get('status', 'confirmed') == 'cancelled') {
+                    continue;
+                }
+
                 $booking = $reservation->needExtra('booking');
 
                 if ($booking->need('status') != 'cancelled' && $booking->need('visibility') == 'public') {
-                    if ($booking->need('sid') == $square->need('sid')) {
+                    $effectiveSid = $reservation->getMeta('sid_override') ?: $booking->need('sid');
+
+                    if ($effectiveSid == $square->need('sid')) {
                         if ($reservation->needExtra('time_start_sec') < $walkingTimeEnd &&
                             $reservation->needExtra('time_end_sec') > $walkingTimeStart) {
-                            $quantity += $booking->need('quantity');
+                            $quantity += (int) ($reservation->getMeta('quantity_override') ?: $booking->need('quantity'));
                         }
                     }
                 }
