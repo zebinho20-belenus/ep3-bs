@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.3.1 (2026-07-16)
+
+### Bug Fixes
+
+- **Buchungszeit-Validierung im Backend**: Backend Create/Update ließen `time_start >= time_end` zu — Ursache für kaputte Reservierungen (Null-Dauer wie `14:00–14:00` oder Ende vor Start wie `17:00–12:00`, alle über den Backend-Buchungsdialog entstanden). Neue Guard `BookingController::isValidBookingTimeRange()` vor beiden Plugin-Aufrufen mit Fehler-Flash + Formular-Fall-through. Behandelt `00:00` als Ende = Tagesende (86400s, analog `ReservationManager::getSecondsPerDay`), sodass legitime Spät-Slots wie `22:00–00:00` gültig bleiben; prüft nur die neuen Formularwerte, bestehende Reservierungen bleiben editierbar.
+- **Diagnose: `status.enum` / `override.billing-invalid` meldeten konfigurierte Rechnungsstatus als ungültig**: Beide Checks hatten eine hardcodierte Allowlist für `status_billing` und schlugen bei jedem vereinsspezifisch konfigurierten Status (z.B. `guest`, `guestabo`, `tennislehrer`) an — hunderte False Positives, die `scan --alert` unbrauchbar machten. Rechnungsstatus sind konfigurierbar (`bs_options` Key `service.status-values.billing`); neuer Helper `DiagnosticContext::validBillingStatuses()` liefert die Union aus konfigurierten Status und Framework-Basiswerten, beide Checks lesen daraus.
+
+### Improvements
+
+- **Diagnose: `inspect-reservation <rid>`**: Neuer CLI-Befehl, der eine Reservierungs-ID zur zugehörigen Buchung auflöst und den vollen Kontext mit hervorgehobener Ziel-Reservierung rendert. Mehrere Checks (`time.*`, `override.*`, `orphan-reservation`) melden rids statt bids — bisher gab es keinen direkten Weg, eine Reservierung per rid zu inspizieren.
+- **Diagnose: `payment.paid-without-evidence` auf INFO herabgestuft**: Für Vereine mit überwiegend manueller Zahlung (Bar, Abo, Mitgliederkonten) ist „bezahlt ohne elektronischen Nachweis" der Normalfall, keine Anomalie. Als Warnung dominierte der Check die Alert-Mail und übertönte echte kritische Findings; bleibt als forensischer Cross-Check auf INFO-Level erhalten.
+- **Diagnose-Cron dokumentiert** mit `--severity=warning` (Log und Alert-Mail konsistent auf Warning+Critical gefiltert) als `/etc/cron.d`-Drop-in.
+
 ## v2.3.0 (2026-07-16)
 
 ### New Features
