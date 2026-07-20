@@ -1149,6 +1149,10 @@ class BookingController extends AbstractActionController
         $paypalPayerId = null;
         $paypalCorrelationId = null;
         $paypalTransactionId = null;
+        $paypalPendingReason = null;
+        $paypalErrorCode = null;
+        $paypalErrorShortMessage = null;
+        $paypalErrorLongMessage = null;
 #paypal
         if ($token->getGatewayName() == 'paypal_ec') {
             $bid = $payment['PAYMENTREQUEST_0_BID'];
@@ -1156,6 +1160,12 @@ class BookingController extends AbstractActionController
             $paypalPayerId = isset($payment['PAYERID']) ? $payment['PAYERID'] : null;
             $paypalCorrelationId = isset($payment['CORRELATIONID']) ? $payment['CORRELATIONID'] : null;
             $paypalTransactionId = isset($payment['PAYMENTINFO_0_TRANSACTIONID']) ? $payment['PAYMENTINFO_0_TRANSACTIONID'] : null;
+            // PENDINGREASON explains *why* PAYMENTSTATUS=Pending (e.g. "paymentreview", "echeck", "verify")
+            $paypalPendingReason = isset($payment['PAYMENTINFO_0_PENDINGREASON']) ? $payment['PAYMENTINFO_0_PENDINGREASON'] : null;
+            // Only present when ACK=Failure/FailureWithWarning — PayPal's own error detail for aborted/rejected payments
+            $paypalErrorCode = isset($payment['L_ERRORCODE0']) ? $payment['L_ERRORCODE0'] : null;
+            $paypalErrorShortMessage = isset($payment['L_SHORTMESSAGE0']) ? $payment['L_SHORTMESSAGE0'] : null;
+            $paypalErrorLongMessage = isset($payment['L_LONGMESSAGE0']) ? $payment['L_LONGMESSAGE0'] : null;
         }
 #paypal
 #stripe
@@ -1280,6 +1290,7 @@ class BookingController extends AbstractActionController
                 if ($paypalTransactionId) { $booking->setMeta('paypalTransactionId', $paypalTransactionId); }
                 if ($paypalPayerId) { $booking->setMeta('paypalPayerId', $paypalPayerId); }
                 if ($paypalCorrelationId) { $booking->setMeta('paypalCorrelationId', $paypalCorrelationId); }
+                if ($paypalPendingReason && strtolower($paypalPendingReason) != 'none') { $booking->setMeta('paypalPendingReason', $paypalPendingReason); }
             }
 
             $bookingService->updatePaymentSingle($booking);
@@ -1288,6 +1299,7 @@ class BookingController extends AbstractActionController
                 'paypalPayerId' => $paypalPayerId,
                 'paypalCorrelationId' => $paypalCorrelationId,
                 'paypalTransactionId' => $paypalTransactionId,
+                'paypalPendingReason' => $paypalPendingReason,
             ] : [];
 
             $paymentUserName = $sessionUser ? trim($sessionUser->getMeta('firstname') . ' ' . $sessionUser->getMeta('lastname')) ?: $sessionUser->get('alias') : 'uid=' . $booking->get('uid');
@@ -1315,6 +1327,10 @@ class BookingController extends AbstractActionController
                 'paypalPayerId' => $paypalPayerId,
                 'paypalCorrelationId' => $paypalCorrelationId,
                 'paypalTransactionId' => $paypalTransactionId,
+                'paypalPendingReason' => $paypalPendingReason,
+                'paypalErrorCode' => $paypalErrorCode,
+                'paypalErrorShortMessage' => $paypalErrorShortMessage,
+                'paypalErrorLongMessage' => $paypalErrorLongMessage,
             ] : [];
 
             $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_failed',

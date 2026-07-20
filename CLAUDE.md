@@ -74,6 +74,8 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 
 **PayPal transaction traceability**: Gateway is legacy PayPal Express Checkout NVP (`payum/paypal-express-checkout-nvp`), not the modern REST/Checkout SDK. `doneAction()` extracts `PAYERID`/`CORRELATIONID`/`PAYMENTINFO_0_TRANSACTIONID` from the NVP response and stores them as booking meta (`paypalPayerId`, `paypalCorrelationId`, `paypalTransactionId`) plus in the `payment_success`/`payment_failed` audit-log detail. Raw full NVP response is also persisted by Payum itself in `data/payum/` (`FilesystemStorage`, opaque hashed filenames, no cleanup — grep contents for `PAYMENTREQUEST_0_BID` to find a specific booking).
 
+**PayPal pending/error diagnosis**: `PAYMENTINFO_0_PENDINGREASON` (why PAYMENTSTATUS=Pending — `paymentreview`=PayPal fraud hold, `echeck`=bank clearance, `verify`=unverified account, `multi-currency`, `unilateral`, `regulatoryreview`, `intl`) is captured as booking meta `paypalPendingReason` + audit detail on success. `L_ERRORCODE0`/`L_SHORTMESSAGE0`/`L_LONGMESSAGE0` (PayPal's own error detail, only present when ACK=Failure/FailureWithWarning) go into the `payment_failed` audit detail only, not booking meta.
+
 ### Budget System
 
 `bs_users_meta` key `budget` (EUR). Flow in `BookingController.php`:
