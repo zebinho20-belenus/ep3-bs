@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.3.4 (2026-07-20)
+
+### Improvements
+
+- **PayPal-Zahlungen mit Prüfbedarf besser eingrenzbar**: `PAYMENTINFO_0_PENDINGREASON` (erklärt, warum PayPal eine Zahlung als "Pending" markiert — z.B. `paymentreview` = PayPal-Betrugsprüfung, `echeck` = Bankeinzug in Klärung, `verify` = unverifizierter PayPal-Account) wird bei erfolgreichen Zahlungen jetzt als Buchungs-Meta `paypalPendingReason` sowie im Audit-Log-Detail gespeichert. Bei fehlgeschlagenen/abgebrochenen Zahlungen (`ACK=Failure`) werden zusätzlich PayPals eigene Fehlerdetails (`L_ERRORCODE0`, `L_SHORTMESSAGE0`, `L_LONGMESSAGE0`) im Audit-Log-Detail erfasst. Erleichtert die Ursachenforschung bei wiederkehrenden "muss von PayPal geprüft werden"-Fällen einzelner Nutzer, ohne auf den PayPal-Support warten zu müssen.
+
 ## v2.3.3 (2026-07-20)
 
 ### Bug Fixes
