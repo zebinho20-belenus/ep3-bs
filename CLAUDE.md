@@ -91,6 +91,16 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 - Member: member price (0=free). Non-member: full price.
 - Member + guest (gp=1): **50% of non-member price**. Non-member + guest: full price.
 
+### Auto-Registration with Member Recognition
+
+`User\Controller\AccountController::registrationAction()` — "Ich bin Vereinsmitglied" checkbox (`rf-member`) on the registration form.
+
+- Email is checked against `bs_member_emails` (`Backend\Manager\MemberEmailManager::getByEmail()`) **before** deciding member status — never set `member=1`/`status=enabled` first and check after.
+- Match found → `meta['member']=1`, `status=enabled`. No match → falls through to the normal flow per `service.user.activation` (immediate/manual/manual-email/email); user is **not** marked as member.
+- No match also triggers: flash message on the registration-confirmation page (`flashMessenger()->addInfoMessage()`, survives the redirect via `Base\View\Helper\Messages`), plus an extra paragraph in the activation email (only sent when `service.user.activation == 'email'`).
+- Admin notification email always includes member status + verification result (`MITGLIED: Ja` + `E-Mail-Prüfung: ...`), regardless of match — this block is intentionally unaffected by the above.
+- Backend UI `/backend/config/member-emails` manages the list (CSV import, single add/delete). Migration `data/db/migrations/002-member-emails.sql` creates `bs_member_emails`.
+
 ### Calendar Name Display (non-staff)
 
 `OccupiedForVisitors.php` (non-staff path) reveals the booker's alias **only** for bookings with effective billing status `training` (`status_billing_override ?: booking.status_billing === 'training'`):

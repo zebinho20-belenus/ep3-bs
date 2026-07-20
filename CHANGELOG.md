@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.3.3 (2026-07-20)
+
+### Bug Fixes
+
+- **Mitglieds-Selbstauskunft bei Registrierung wurde nicht gegen die Mitgliederliste geprüft** ([#17](https://github.com/zebinho20-belenus/ep3bs-payment/issues/17)): Nutzer, die beim Registrieren "Ich bin Vereinsmitglied" ankreuzten, wurden **immer** sofort als Mitglied aktiviert (`member=1`, `status=enabled`) — unabhängig davon, ob ihre E-Mail-Adresse in `bs_member_emails` gelistet war. Das Ergebnis der Listen-Prüfung floss bisher nur in den Text der Admin-Benachrichtigung ein, nicht in die eigentliche Aktivierungsentscheidung. Dadurch konnten nicht-Mitglieder vor manueller Admin-Korrektur bereits zum Mitgliedspreis buchen. Fix: Die Prüfung gegen die Mitgliederliste läuft jetzt **vor** der Status-Entscheidung; ohne Treffer greift der normale Registrierungsablauf (`service.user.activation`). Der Nutzer sieht auf der Bestätigungsseite eine Flash-Meldung und – bei Aktivierungsmodus `email` – einen zusätzlichen Hinweis in der Aktivierungsmail, dass die E-Mail nicht in der Mitgliederliste gefunden wurde. Die Admin-Benachrichtigung bleibt unverändert.
+- **`text/plain` als sichtbarer Text in der Admin-Registrierungsmail**: Der `sendCustomEmail()`-Aufruf übergab versehentlich den String `'text/plain'` als `$addendum`-Parameter (keine Content-Type-Angabe), wodurch er direkt vor der Grußformel im Mailtext erschien. Parameter entfernt.
+
 ## v2.3.2 (2026-07-20)
 
 ### Improvements

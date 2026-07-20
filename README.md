@@ -247,10 +247,11 @@ Key files: `module/Service/Module.php` (enforcement), `module/Service/src/Servic
 
 ### Auto-Registration with Member Recognition
 
-New "I am a club member" checkbox on registration form:
-- When checked: user is auto-activated (`status=enabled`, `member=1`)
-- Email checked against `bs_member_emails` table for verification
-- Admin notification includes member status and email verification result
+"I am a club member" checkbox on registration form:
+- Email is checked against `bs_member_emails` table **before** deciding member status
+- Match found: user is auto-activated as member (`status=enabled`, `member=1`)
+- No match: normal registration flow applies (per `service.user.activation`) — user is **not** marked as member; user sees a flash message and (if activation mode is `email`) an additional note in the activation email that their email wasn't found on the member list
+- Admin notification always includes member status and email verification result, regardless of outcome
 - Backend UI at `/backend/config/member-emails` for managing member email list (CSV import supported)
 
 **Migration required:** Run `data/db/migrations/002-member-emails.sql` to create `bs_member_emails` table.
@@ -679,6 +680,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.3.2** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.3.3** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>

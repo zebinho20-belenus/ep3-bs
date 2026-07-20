@@ -196,10 +196,7 @@ class AccountController extends AbstractActionController
                 $emailVerified = false;
 
                 if ($claimsMember) {
-                    $meta['member'] = '1';
-                    $status = 'enabled';
-
-                    // Check email against member list
+                    // Check email against member list before deciding member status
                     try {
                         $memberEmailManager = $serviceManager->get('Backend\Manager\MemberEmailManager');
                         $memberMatch = $memberEmailManager->getByEmail($registrationData['rf-email1']);
@@ -207,6 +204,11 @@ class AccountController extends AbstractActionController
                     } catch (\Exception $e) {
                         // Member email table may not exist yet
                     }
+                }
+
+                if ($claimsMember && $emailVerified) {
+                    $meta['member'] = '1';
+                    $status = 'enabled';
                 } elseif ($this->option('service.user.activation') == 'immediate') {
                     $status = 'enabled';
                 } else {
@@ -310,7 +312,7 @@ class AccountController extends AbstractActionController
                             $adminEmail,
                             'Administrator',
                             [],
-                            'text/plain',
+                            null,
                             true
                         );
                     }
@@ -331,8 +333,16 @@ class AccountController extends AbstractActionController
                     $text = sprintf($this->t("welcome to the %s %s!\r\n\r\nThank you for your registration to our service.\r\n\r\nBefore you can completely use your new user account to book spare %s online, you have to activate it by simply clicking the following link. That's all!\r\n\r\n%s"),
                         $this->option('client.name.full', false), $this->option('service.name.full', false), $this->option('subject.square.type.plural', false), $activationLink);
 
+                    if ($claimsMember && !$emailVerified) {
+                        $text .= "\r\n\r\n" . $this->t('Please note: You indicated during registration that you are a club member, but your email address could not be found in our member list. Your account has therefore not been activated as a member. If this is an error, please contact us.');
+                    }
+
                     $userMailService = $serviceManager->get('User\Service\MailService');
                     $userMailService->send($user, $subject, $text);
+                }
+
+                if ($claimsMember && !$emailVerified) {
+                    $this->flashMessenger()->addInfoMessage($this->t('Your email address was not found in our member list, so your account has not been registered as a member.'));
                 }
 
                 return $this->redirect()->toRoute('user/registration-confirmation');

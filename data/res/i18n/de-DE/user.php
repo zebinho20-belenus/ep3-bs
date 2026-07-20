@@ -36,6 +36,12 @@ return array(
     "welcome to the %s %s!\r\n\r\nThank you for your registration to our service.\r\n\r\nBefore you can completely use your new user account to book spare %s online, you have to activate it by simply clicking the following link. That's all!\r\n\r\n%s"
         => "herzlich Willkommen zum %s %s!\r\n\r\nVielen Dank für Ihre Registrierung für unser Angebot.\r\n\r\nBevor Sie nun freie %s online buchen können, müssen Sie nur noch folgendem Link folgen um Ihr Benutzerkonto zu aktivieren und schon können Sie loslegen!\r\n\r\n%s",
 
+    'Please note: You indicated during registration that you are a club member, but your email address could not be found in our member list. Your account has therefore not been activated as a member. If this is an error, please contact us.'
+        => 'Bitte beachten Sie: Sie haben bei der Registrierung angegeben, Vereinsmitglied zu sein. Ihre E-Mail-Adresse konnte jedoch nicht in unserer Mitgliederliste gefunden werden. Ihr Benutzerkonto wurde daher nicht als Mitglied aktiviert. Sollte dies ein Irrtum sein, kontaktieren Sie uns bitte.',
+
+    'Your email address was not found in our member list, so your account has not been registered as a member.'
+        => 'Ihre E-Mail-Adresse wurde nicht in unserer Mitgliederliste gefunden, daher wurde Ihr Konto nicht als Mitglied registriert.',
+
     'Your activation code seems invalid. Please try again.' => 'Ihr Aktivierungs-Code scheint ungültig zu sein. Bitte versuchen Sie es erneut.',
 
     'You cannot manually activate your account currently' => 'Sie können Ihr Benutzerkonto derzeit nicht selbst aktivieren',
