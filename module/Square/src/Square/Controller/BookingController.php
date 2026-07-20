@@ -1146,10 +1146,16 @@ class BookingController extends AbstractActionController
 
         $bid = -1;
         $paymentNotes = '';
+        $paypalPayerId = null;
+        $paypalCorrelationId = null;
+        $paypalTransactionId = null;
 #paypal
         if ($token->getGatewayName() == 'paypal_ec') {
             $bid = $payment['PAYMENTREQUEST_0_BID'];
             $paymentNotes = ' direct pay with paypal - ';
+            $paypalPayerId = isset($payment['PAYERID']) ? $payment['PAYERID'] : null;
+            $paypalCorrelationId = isset($payment['CORRELATIONID']) ? $payment['CORRELATIONID'] : null;
+            $paypalTransactionId = isset($payment['PAYMENTINFO_0_TRANSACTIONID']) ? $payment['PAYMENTINFO_0_TRANSACTIONID'] : null;
         }
 #paypal
 #stripe
@@ -1269,16 +1275,30 @@ class BookingController extends AbstractActionController
             $actualPaymentStatus = $paypalCompleted ? 'captured' : ($paymentStatus === 'succeeded' ? 'succeeded' : ($status->isCaptured() ? 'captured' : $status->getValue()));
             $notes = $notes . " paymentMethod: " . $booking->getMeta('paymentMethod') . " | payment_status: " . $actualPaymentStatus;
             $booking->setMeta('notes', $notes);
+
+            if ($token->getGatewayName() == 'paypal_ec') {
+                if ($paypalTransactionId) { $booking->setMeta('paypalTransactionId', $paypalTransactionId); }
+                if ($paypalPayerId) { $booking->setMeta('paypalPayerId', $paypalPayerId); }
+                if ($paypalCorrelationId) { $booking->setMeta('paypalCorrelationId', $paypalCorrelationId); }
+            }
+
             $bookingService->updatePaymentSingle($booking);
+
+            $paypalAuditDetail = ($token->getGatewayName() == 'paypal_ec') ? [
+                'paypalPayerId' => $paypalPayerId,
+                'paypalCorrelationId' => $paypalCorrelationId,
+                'paypalTransactionId' => $paypalTransactionId,
+            ] : [];
 
             $paymentUserName = $sessionUser ? trim($sessionUser->getMeta('firstname') . ' ' . $sessionUser->getMeta('lastname')) ?: $sessionUser->get('alias') : 'uid=' . $booking->get('uid');
             $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_success',
                 sprintf('Zahlung erfolgreich: Buchung #%s, %s von %s auf Platz %s', $bid, $booking->getMeta('paymentMethod'), $paymentUserName, $square->get('name')),
                 ['user_id' => $booking->get('uid'), 'user_name' => $paymentUserName, 'entity_type' => 'booking', 'entity_id' => $bid,
-                 'detail' => ['paymentMethod' => $booking->getMeta('paymentMethod'), 'payment_status' => $actualPaymentStatus,
+                 'detail' => array_merge([
+                              'paymentMethod' => $booking->getMeta('paymentMethod'), 'payment_status' => $actualPaymentStatus,
                               'square_name' => 'Platz ' . $square->get('name'), 'user_name_full' => $paymentUserName,
                               'status_billing' => $booking->get('status_billing'), 'hasBudget' => $booking->getMeta('hasBudget'),
-                              'budget' => $booking->getMeta('budget'), 'newbudget' => $booking->getMeta('newbudget')]]);
+                              'budget' => $booking->getMeta('budget'), 'newbudget' => $booking->getMeta('newbudget')], $paypalAuditDetail)]);
 
             // Send confirmation email now that payment is confirmed
             if ($booking->getMeta('suppressEmail') == 'true') {
@@ -1291,10 +1311,16 @@ class BookingController extends AbstractActionController
         {
             $paymentResult = 'failed';
 
+            $paypalAuditDetail = ($token->getGatewayName() == 'paypal_ec') ? [
+                'paypalPayerId' => $paypalPayerId,
+                'paypalCorrelationId' => $paypalCorrelationId,
+                'paypalTransactionId' => $paypalTransactionId,
+            ] : [];
+
             $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_failed',
                 sprintf('Zahlung fehlgeschlagen: Buchung #%s, %s', $bid, $booking->getMeta('paymentMethod')),
                 ['user_id' => $booking->get('uid'), 'entity_type' => 'booking', 'entity_id' => $bid,
-                 'detail' => ['paymentMethod' => $booking->getMeta('paymentMethod'), 'paymentStatus' => $paymentStatus]]);
+                 'detail' => array_merge(['paymentMethod' => $booking->getMeta('paymentMethod'), 'paymentStatus' => $paymentStatus], $paypalAuditDetail)]);
 
             if ($booking->getMeta('payLater') == 'true') {
                 if(isset($payment['error']['message'])) {
