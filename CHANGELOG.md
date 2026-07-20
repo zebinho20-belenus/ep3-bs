@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.3.2 (2026-07-20)
+
+### Improvements
+
+- **PayPal-Transaktionsdaten nachträglich zuordenbar**: Bisher wurde die vollständige PayPal-Checkout-Antwort nur ephemer von Payum verarbeitet und war nach `doneAction()` nur noch über opake Storage-Dateien in `data/payum/` (Dateiname = Hash, kein Bezug zur Buchung) auffindbar. `PAYERID`, `CORRELATIONID` und `PAYMENTINFO_0_TRANSACTIONID` werden jetzt als Buchungs-Meta (`paypalPayerId`, `paypalCorrelationId`, `paypalTransactionId`) gespeichert und zusätzlich im `payment_success`/`payment_failed` Audit-Log-Detail mitgeführt — Transaktionen sind damit direkt über die Buchung bzw. `/backend/audit` nachvollziehbar, ohne Payum-Storage-Dateien durchsuchen zu müssen.
+
 ## v2.3.1 (2026-07-16)
 
 ### Bug Fixes

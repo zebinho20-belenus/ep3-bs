@@ -72,6 +72,8 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 
 **PayPal F&F instructions**: Config `paypalEmail` in `project.php`. Used via `sprintf()` in `NotificationListener`, `Square\BookingController`, `Backend\BookingController`.
 
+**PayPal transaction traceability**: Gateway is legacy PayPal Express Checkout NVP (`payum/paypal-express-checkout-nvp`), not the modern REST/Checkout SDK. `doneAction()` extracts `PAYERID`/`CORRELATIONID`/`PAYMENTINFO_0_TRANSACTIONID` from the NVP response and stores them as booking meta (`paypalPayerId`, `paypalCorrelationId`, `paypalTransactionId`) plus in the `payment_success`/`payment_failed` audit-log detail. Raw full NVP response is also persisted by Payum itself in `data/payum/` (`FilesystemStorage`, opaque hashed filenames, no cleanup — grep contents for `PAYMENTREQUEST_0_BID` to find a specific booking).
+
 ### Budget System
 
 `bs_users_meta` key `budget` (EUR). Flow in `BookingController.php`:
