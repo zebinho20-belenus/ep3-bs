@@ -345,6 +345,11 @@ class AccountController extends AbstractActionController
                     $this->flashMessenger()->addInfoMessage($this->t('Your email address was not found in our member list, so your account has not been registered as a member.'));
                 }
 
+                /* Carry the actual resulting status to the confirmation page (#17):
+                   a verified member is auto-enabled regardless of service.user.activation,
+                   so the confirmation text must reflect that instead of the global setting. */
+                $this->flashMessenger()->setNamespace('registrationStatus')->addMessage($status);
+
                 return $this->redirect()->toRoute('user/registration-confirmation');
             }
         }
@@ -361,8 +366,19 @@ class AccountController extends AbstractActionController
 
     public function registrationConfirmationAction()
     {
+        $activation = $this->option('service.user.activation', false);
+
+        /* Auto-enabled member registration (#17) bypasses the configured activation
+           mode entirely, so the confirmation text must reflect the actual status
+           instead of always showing the global service.user.activation setting. */
+        $statusMessages = $this->flashMessenger()->setNamespace('registrationStatus')->getMessages();
+
+        if ($statusMessages && end($statusMessages) === 'enabled') {
+            $activation = 'immediate';
+        }
+
         return array(
-            'activation' => $this->option('service.user.activation', false),
+            'activation' => $activation,
         );
     }
 
