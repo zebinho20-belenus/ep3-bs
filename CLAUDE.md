@@ -97,6 +97,20 @@ Cron on tcnkail-server (`/etc/cron.d/ep3bs-payments`):
 17 */6 * * * root docker exec ep3-bs-8-prod-court-1 php scripts/payments.php reconcile >> /var/log/ep3bs-payments.log 2>&1
 ```
 
+`remind` logs one summary line per run (~290 lines/day), so both cron logs need rotation — `/etc/logrotate.d/ep3bs`. The `su root syslog` line is required: `/var/log` is `root:syslog` and group-writable, and logrotate refuses to touch files in a group-writable directory without it.
+```
+/var/log/ep3bs-payments.log /var/log/ep3bs-diagnose.log {
+    su root syslog
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 root adm
+}
+```
+
 ### Budget System
 
 `bs_users_meta` key `budget` (EUR). Flow in `BookingController.php`:
