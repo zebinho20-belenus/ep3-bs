@@ -23,6 +23,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: >
+      --event-scheduler=ON
     volumes:
       - ./tmp/db:/var/lib/mysql
     healthcheck:

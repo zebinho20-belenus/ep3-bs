@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.4.1 (2026-07-26)
+
+### Bug Fixes
+
+- **MySQL Event-Scheduler war auf Produktion nie aktiv**: `docker-compose.yml` startete MariaDB ohne `--event-scheduler=ON`, und MariaDBs Default ist `OFF`. Beide Events (`remove_unpaid_bookings`, `cleanup_audit_log`) existierten also, haben aber **nie** gefeuert — Ursache dafür, dass unbezahlte Buchungen aus abgebrochenen Zahlungen dauerhaft stehen blieben (der Platz blieb belegt und musste manuell nachverfolgt werden) und dass die Audit-Tabelle nie aufgeräumt wurde. `--event-scheduler=ON` in `docker-compose.yml` + `docker-compose.dev-server.yml` ergänzt. Erkennbar am fehlenden `Event Scheduler: Loaded 2 events` im MariaDB-Log; der neue Diagnose-Check `payment.cleanup-event` meldet den Zustand ab jetzt als CRITICAL.
+- **Cleanup löschte auch bereits gespielte, unbezahlte Termine** (Migration 013): Zweck des Events ist es, einen durch einen abgebrochenen Checkout blockierten Platz freizugeben — bei einem Termin in der Vergangenheit ist nichts mehr freizugeben, gelöscht würde nur der Beleg, mit dem der Verein das Geld einfordern kann (`DELETE` cascadet auf `bs_reservations`, `bs_bookings_bills`, `bs_bookings_meta`). Das Event löscht jetzt nur noch Buchungen ohne Termin in der Vergangenheit; vergangene bleiben auf „Ausstehend" und werden von `diagnose.php` (`payment.stuck-pending`) gemeldet. Aufgefallen beim erstmaligen Aktivieren des Schedulers auf Prod: in der Pending-Warteschlange lagen fünf unbezahlte Buchungen ab Februar 2025 (102 € gesamt), die das ungeschützte Event im ersten Lauf gelöscht hätte.
+
 ## v2.4.0 (2026-07-25)
 
 ### Bug Fixes

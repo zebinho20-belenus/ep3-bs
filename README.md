@@ -680,6 +680,6 @@ Based on [tkrebs/ep3-bs](https://github.com/tkrebs/ep3-bs) (see upstream LICENSE
 
 <div align="center">
 
-**v2.4.0** — Production-ready ZF2 | **Next:** Laravel 11 Migration
+**v2.4.1** — Production-ready ZF2 | **Next:** Laravel 11 Migration
 
 </div>

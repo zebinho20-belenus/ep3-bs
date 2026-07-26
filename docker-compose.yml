@@ -16,6 +16,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     command: >
+      --event-scheduler=ON
       --innodb-buffer-pool-size=256M
       --innodb-log-file-size=64M
       --innodb-flush-log-at-trx-commit=2

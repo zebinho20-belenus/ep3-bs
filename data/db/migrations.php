@@ -72,4 +72,9 @@ return [
         'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'remove_unpaid_bookings' AND INTERVAL_VALUE = '5' AND INTERVAL_FIELD = 'MINUTE' AND EVENT_SCHEMA = DATABASE()",
         'file' => 'data/db/migrations/012-cleanup-interval-30min.sql',
     ],
+    13 => [
+        'name' => 'cleanup-future-only',
+        'check' => "SELECT * FROM information_schema.EVENTS WHERE EVENT_NAME = 'remove_unpaid_bookings' AND EVENT_DEFINITION LIKE '%r.date < CURDATE()%' AND EVENT_SCHEMA = DATABASE()",
+        'file' => 'data/db/migrations/013-cleanup-future-only.sql',
+    ],
 ];
