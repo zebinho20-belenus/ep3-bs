@@ -94,9 +94,22 @@ $this->setup(array(
     $hasPaymentOption = !empty($paymentConfig['paypal']) || !empty($paymentConfig['stripe']) || !empty($paymentConfig['klarna']);
     $isPending = ($this->bookingBillingStatusSlug == 'pending');
     $isNotCancelled = ($this->booking->get('status') != 'cancelled');
+    // PayPal accepted the money but still reviews it — paying again would double-charge
+    $isUnderReview = ($this->booking->getMeta('directpay_pending') == 'true');
+    $reviewSince = $this->booking->getMeta('paypalReviewSince');
     ?>
 
-    <?php if ($isPending && $isNotCancelled && $total > 0 && $hasPaymentOption): ?>
+    <?php if ($isPending && $isNotCancelled && $isUnderReview): ?>
+
+    <div class="alert alert-info mt-4" role="status">
+        <strong><?= $this->t('Payment already received.') ?></strong>
+        <?= $this->t('PayPal is still reviewing it — please do not pay again. We will notify you as soon as it is released.') ?>
+        <?php if ($reviewSince): ?>
+            <br><small><?= sprintf($this->t('Under review since %s'), (new \DateTime($reviewSince))->format('d.m.Y H:i')) ?></small>
+        <?php endif; ?>
+    </div>
+
+    <?php elseif ($isPending && $isNotCancelled && $total > 0 && $hasPaymentOption): ?>
 
     <div class="mt-4">
         <form method="post" action="<?= $this->url('square/booking/payment_pay', ['bid' => $this->booking->need('bid')]) ?>">

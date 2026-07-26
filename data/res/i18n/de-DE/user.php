@@ -294,4 +294,10 @@ return array(
     '1 upcoming booking' => '1 anstehende Buchung',
     '%s upcoming bookings' => '%s anstehende Buchungen',
 
+    /* Bills page: payment under review by PayPal */
+    'Payment already received.' => 'Zahlung ist bereits eingegangen.',
+    'PayPal is still reviewing it — please do not pay again. We will notify you as soon as it is released.'
+        => 'PayPal prüft sie noch — bitte zahlen Sie nicht erneut. Wir informieren Sie, sobald sie freigegeben ist.',
+    'Under review since %s' => 'In Prüfung seit %s',
+
 );

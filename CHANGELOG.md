@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.4.0 (2026-07-25)
+
+### Bug Fixes
+
+- **PayPal-Zahlungen in Prüfung wurden storniert und als "fehlgeschlagen" gemeldet** (Buchung #5324, Lei Zhang, 11 €): Hält PayPal eine akzeptierte Zahlung zur Sicherheitsprüfung zurück (`PAYMENTINFO_0_PAYMENTSTATUS=Pending`, `PAYMENTINFO_0_PENDINGREASON=paymentreview`), mappt Payum das auf `markPending()` — genau wie einen Abbruch am PayPal-Checkout. `doneAction()` unterschied beide Fälle über `PAYMENTREQUEST_0_PAYMENTSTATUS == 'Completed'`, ein Feld, das `DoExpressCheckoutPayment`/`GetExpressCheckoutDetails` nie liefert (es wird ausschließlich von `GetTransactionDetails`/`Sync` gesetzt, was nicht aufgerufen wurde). Damit war die Bedingung immer falsch: jede Pending-Zahlung landete im Fehlerzweig → `cancelSingle()` + „Zahlung fehlgeschlagen"-Mail, obwohl das Geld bei PayPal gebucht war. Regression aus `b19dee72` (#85), dort war die Absicht richtig, das Unterscheidungsmerkmal falsch.
+  Neu entscheidet `evaluatePaypalOutcome()` anhand von `PAYMENTINFO_0_PAYMENTSTATUS`/`PENDINGREASON` zwischen `paid` / `review` / `abort` / `failed`; die Statuszuordnung selbst liegt zentral in `PaymentReconciliationService::classifyPaypalStatus()` (eine Wahrheitsquelle für Web-Flow und CLI). Regressionsnetz: `scripts/tests/paypal-outcome-test.php` (25 Fälle gegen die echten Klassen).
+- **Abbruch einer "Später zahlen"-Zahlung konnte die Buchung löschen**: `payAction()` setzte `directpay='true'` auf eine bestehende offene Rechnung. Da das Cleanup-Event alle `pending`-Buchungen mit diesem Flag nach Ablauf der Karenzzeit löscht und die Buchung beliebig alt sein kann, wurde eine legitime offene Rechnung beim Abbrechen der Zahlung gelöscht. Flag wird dort nicht mehr gesetzt.
+
+### New Features
+
+- **PayPal-Prüfung wird nicht mehr als Fehler behandelt, sondern nachverfolgt**:
+  - Buchung bleibt bestehen (`status_billing=pending`, `directpay='false'` → vom Cleanup ausgenommen), Meta `directpay_pending`, `paypalReviewSince`, `paypalPendingReason`, `paypalTransactionId`; Audit-Eintrag `payment_pending`.
+  - Mitglied erhält eine eigene Mail „Ihre Zahlung wird von PayPal geprüft" mit explizitem „bitte nicht erneut zahlen", die Vereinsverwaltung eine separate Info-Mail mit Transaktions-ID und Prüfgrund.
+  - Zahlen-Button auf der Rechnungsseite ist während der Prüfung ausgeblendet (Hinweisbox statt Formular), `payAction()` blockt zusätzlich serverseitig — verhindert die Doppelzahlung, die bisher manuell zurückgebucht werden musste.
+  - Backend-Buchungsliste zeigt das Badge `PP?` neben dem Rechnungsstatus, damit „Ausstehend in PayPal-Prüfung" nicht wie eine unbezahlte Buchung aussieht.
+- **`scripts/payments.php` (CLI, für Cron)**: `reconcile` fragt PayPal per `GetTransactionDetails` (bestehende NVP-Zugangsdaten, keine PayPal-seitige Konfiguration nötig) den Ausgang jeder Prüfung ab — `Completed` → Buchung auf `paid` + Mail „Zahlung bestätigt"; `Denied`/`Failed`/`Expired` → bei zukünftigem Termin Storno inkl. Budget-Rückbuchung und Mail, bei bereits vergangenem Termin bleibt die Buchung auf „Ausstehend" + Admin-Alert (Geld manuell einfordern); ungelöst nach 10 Tagen → einmaliger Admin-Alert. `remind` verschickt vor dem automatischen Löschen eine Zahlungserinnerung mit Link auf die Rechnungsseite. Beide mit `--dry-run` und `--json`, Exit-Code 1 bei durchgeführten Aktionen.
+- **Zwei neue Diagnose-Checks**: `payment.paypal-review-open` (Prüfung > 7 Tage offen oder ohne Transaktions-ID → nicht automatisch auflösbar) und `payment.cleanup-event` (MySQL `event_scheduler` aus oder Cleanup-Events fehlen/deaktiviert — genau die Ursache der ~50 hängengebliebenen `pending`-Buchungen auf Prod).
+
+### Improvements
+
+- **Cleanup unbezahlter Buchungen: 3 h → 30 Min, Prüfintervall 15 → 5 Min** (Migration 012): Ein abgebrochener Checkout blockierte den Platz bisher drei Stunden — lang genug, um bespielt und nie bezahlt zu werden. Neue `bs_options`-Keys `service.payment.unpaid-grace-minutes` (30), `service.payment.reminder-after-minutes` (10), `service.payment.review-alert-days` (10).
+- `payment.stuck-pending` ignoriert Buchungen in PayPal-Prüfung (werden von `payment.paypal-review-open` abgedeckt) — keine doppelten Findings.
+
 ## v2.3.4 (2026-07-20)
 
 ### Improvements

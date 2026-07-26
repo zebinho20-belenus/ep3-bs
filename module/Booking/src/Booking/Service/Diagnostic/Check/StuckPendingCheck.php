@@ -9,8 +9,9 @@ use Booking\Service\Diagnostic\Finding;
 /**
  * Unpaid single bookings older than 3h that the auto-cleanup MySQL event will
  * never remove, because that event only deletes bookings with directpay='true'.
- * Async gateway bookings (directpay='false', directpay_pending='true') and any
- * pending single booking lacking directpay='true' get stuck forever.
+ *
+ * Payments under review (directpay_pending='true') are excluded — those are tracked
+ * and settled by scripts/payments.php reconcile and reported by payment.paypal-review-open.
  */
 class StuckPendingCheck extends AbstractCheck
 {
@@ -25,6 +26,7 @@ class StuckPendingCheck extends AbstractCheck
             . "WHERE b.status = 'single' AND b.status_billing = 'pending' "
             . "AND b.created < (NOW() - INTERVAL 3 HOUR) "
             . "AND b.bid NOT IN (SELECT bid FROM bs_bookings_meta WHERE `key` = 'directpay' AND value = 'true') "
+            . "AND b.bid NOT IN (SELECT bid FROM bs_bookings_meta WHERE `key` = 'directpay_pending' AND value = 'true') "
             . "LIMIT 1000"
         );
 

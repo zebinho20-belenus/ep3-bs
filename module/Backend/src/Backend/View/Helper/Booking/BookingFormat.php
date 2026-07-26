@@ -202,7 +202,20 @@ class BookingFormat extends AbstractHelper
                 $statusTitle = $view->t($this->bookingStatusService->getStatusTitle($statusBilling));
             }
 
-            $html .= sprintf('<td class="responsive-pass-2"><span class="billing-badge %s">%s</span></td>', $cssClass, $statusTitle);
+            /* PayPal accepted the money but still reviews it — staff must see that this
+             * "pending" is not an unpaid booking to chase (settled by payments.php reconcile). */
+            $reviewMarker = '';
+
+            if ($booking->getMeta('directpay_pending') == 'true') {
+                $reviewSince = $booking->getMeta('paypalReviewSince');
+                $reviewMarker = sprintf(' <span class="badge bg-warning text-dark" style="font-size:0.6rem;" title="%s">PP?</span>',
+                    $view->escapeHtmlAttr(sprintf('%s%s',
+                        $view->t('PayPal is reviewing this payment'),
+                        $reviewSince ? ' (' . $reviewSince . ')' : '')));
+            }
+
+            $html .= sprintf('<td class="responsive-pass-2"><span class="billing-badge %s">%s</span>%s</td>',
+                $cssClass, $statusTitle, $reviewMarker);
         } else {
             $html .= '<td class="responsive-pass-2">-</td>';
         }

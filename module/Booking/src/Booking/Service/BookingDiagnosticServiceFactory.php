@@ -28,6 +28,8 @@ class BookingDiagnosticServiceFactory implements FactoryInterface
             new Check\DayExceptionCheck(),
             new Check\DisabledSquareReservationCheck(),
             new Check\StuckPendingCheck(),
+            new Check\PaypalReviewOpenCheck(),
+            new Check\CleanupEventCheck(),
             new Check\PaidWithoutEvidenceCheck(),
             new Check\BudgetConsistencyCheck(),
             new Check\PricingCoverageGapCheck(),

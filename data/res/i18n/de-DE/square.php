@@ -159,4 +159,23 @@ return array(
     'Too many payment attempts. Please try again later.' => 'Zu viele Zahlungsversuche. Bitte versuchen Sie es später erneut.',
     'Insufficient budget. Please try again.' => 'Unzureichendes Guthaben. Bitte versuchen Sie es erneut.',
     'Please enter first and last name (min. 2 characters each)' => 'Bitte Vor- und Nachname eingeben (je min. 2 Zeichen)',
+
+    /* PayPal payment review (PAYMENTSTATUS=Pending, e.g. PENDINGREASON=paymentreview) */
+    '%sYour booking is confirmed.%s PayPal is still reviewing the payment — we will notify you as soon as it is released. Please do not pay again.'
+        => '%sIhre Buchung ist bestätigt.%s PayPal prüft die Zahlung noch — wir informieren Sie, sobald sie freigegeben ist. Bitte zahlen Sie nicht erneut.',
+    '%sPayment already received.%s PayPal is still reviewing it — please do not pay again. We will notify you as soon as it is released.'
+        => '%sZahlung ist bereits eingegangen.%s PayPal prüft sie noch — bitte zahlen Sie nicht erneut. Wir informieren Sie, sobald sie freigegeben ist.',
+    'Your payment is being reviewed by PayPal' => 'Ihre Zahlung wird von PayPal geprüft',
+    'your booking is confirmed — PayPal has accepted your payment but is still reviewing it. This is a routine PayPal security check and usually takes a few hours to a few days.'
+        => 'Ihre Buchung ist bestätigt — PayPal hat Ihre Zahlung angenommen, prüft sie aber noch. Das ist eine routinemäßige PayPal-Sicherheitsprüfung und dauert üblicherweise einige Stunden bis wenige Tage.',
+    'Reason given by PayPal: %s' => 'Von PayPal angegebener Grund: %s',
+    'Please do NOT pay again — your court is reserved. We will inform you automatically as soon as PayPal releases the payment.'
+        => 'Bitte zahlen Sie NICHT erneut — Ihr Platz ist reserviert. Wir informieren Sie automatisch, sobald PayPal die Zahlung freigibt.',
+    'PayPal payment under review — booking #%s' => 'PayPal-Zahlung in Prüfung — Buchung #%s',
+    'PayPal is reviewing the payment for booking #%s — the booking was NOT cancelled.'
+        => 'PayPal prüft die Zahlung für Buchung #%s — die Buchung wurde NICHT storniert.',
+    'Customer: %s' => 'Mitglied: %s',
+    'PayPal transaction: %s' => 'PayPal-Transaktion: %s',
+    'The system checks the transaction automatically and sets the booking to paid as soon as PayPal releases it. No action required for now.'
+        => 'Das System prüft die Transaktion automatisch und setzt die Buchung auf bezahlt, sobald PayPal sie freigibt. Aktuell ist nichts zu tun.',
 );

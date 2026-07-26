@@ -15,6 +15,7 @@ use Payum\Core\Reply\HttpResponse;
 use Payum\Core\Reply\HttpRedirect;
 use Payum\Core\Reply\ReplyInterface;
 use Payum\Stripe\Request\Confirm;
+use Payum\Paypal\ExpressCheckout\Nvp\Api as PaypalApi;
 use Stripe;
 use GuzzleHttp\Client; 
 
@@ -867,6 +868,151 @@ class BookingController extends AbstractActionController
         }
     }
 
+    /**
+     * Structured booking details block shared by the payment notification mails.
+     *
+     * @param object $booking
+     * @return string|null null when the booking has no reservation
+     */
+    private function paymentEmailBookingDetails($booking)
+    {
+        $serviceManager = $this->getServiceLocator();
+        $square = $serviceManager->get('Square\Manager\SquareManager')->get($booking->need('sid'));
+        $reservations = $serviceManager->get('Booking\Manager\ReservationManager')
+            ->getBy(['bid' => $booking->need('bid')], 'date ASC', 1);
+        $reservation = current($reservations);
+
+        if (! $reservation) {
+            return null;
+        }
+
+        return sprintf(
+            $this->t("Booking details:\n\n- Court: %s\n- Date: %s\n- Time: %s - %s\n- Booking ID: %s"),
+            $square->need('name'),
+            (new \DateTime($reservation->need('date')))->format('d.m.Y'),
+            substr($reservation->need('time_start'), 0, 5),
+            substr($reservation->need('time_end'), 0, 5),
+            $booking->get('bid')
+        );
+    }
+
+    /**
+     * Salutation used by all payment mails: "Hallo Vorname Nachname" (fallback alias).
+     *
+     * @param object $user
+     * @return string
+     */
+    private function paymentEmailSalutation($user)
+    {
+        $firstname = $user->getMeta('firstname');
+        $lastname = $user->getMeta('lastname');
+
+        if ($firstname && $lastname) {
+            return 'Hallo ' . $firstname . ' ' . $lastname;
+        }
+
+        if ($lastname) {
+            return 'Hallo ' . $lastname;
+        }
+
+        return 'Hallo ' . $user->need('alias');
+    }
+
+    /**
+     * Notifies the customer that PayPal accepted the payment but still reviews it.
+     * The booking stays valid — the important part is "do not pay a second time".
+     *
+     * @param object $booking
+     * @param object $user
+     * @param string|null $pendingReason PayPal PENDINGREASON
+     */
+    public function sendPaymentReviewEmail($booking, $user, $pendingReason = null)
+    {
+        try {
+            $email = $user ? $user->get('email') : null;
+
+            if (! $email) {
+                return;
+            }
+
+            $details = $this->paymentEmailBookingDetails($booking);
+
+            if (! $details) {
+                return;
+            }
+
+            $emailText = sprintf(
+                "%s,\n\n%s\n\n%s\n\n%s\n\n%s",
+                $this->paymentEmailSalutation($user),
+                $this->t('your booking is confirmed — PayPal has accepted your payment but is still reviewing it. This is a routine PayPal security check and usually takes a few hours to a few days.'),
+                $details,
+                sprintf($this->t('Reason given by PayPal: %s'),
+                    \Booking\Service\PaymentReconciliationService::describePendingReason($pendingReason)),
+                $this->t('Please do NOT pay again — your court is reserved. We will inform you automatically as soon as PayPal releases the payment.')
+            );
+
+            $serviceManager = $this->getServiceLocator();
+
+            if ($serviceManager->has('Backend\Service\MailService')) {
+                $serviceManager->get('Backend\Service\MailService')->sendCustomEmail(
+                    $this->t('Your payment is being reviewed by PayPal'),
+                    $emailText,
+                    $email,
+                    $user->need('alias'),
+                    [],
+                    null,
+                    true // administration gets the dedicated review mail instead of a copy
+                );
+            }
+        } catch (\Exception $e) {
+            error_log('sendPaymentReviewEmail error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifies the club administration (client.contact.email) about a payment under review,
+     * so an open PayPal case is never invisible to the staff.
+     *
+     * @param object $booking
+     * @param object $user
+     * @param string|null $pendingReason
+     * @param string|null $transactionId
+     */
+    public function sendAdminPaymentReviewEmail($booking, $user, $pendingReason = null, $transactionId = null)
+    {
+        try {
+            $serviceManager = $this->getServiceLocator();
+
+            if (! $serviceManager->has('Backend\Service\MailService')) {
+                return;
+            }
+
+            $details = $this->paymentEmailBookingDetails($booking);
+            $userName = $user
+                ? (trim($user->getMeta('firstname') . ' ' . $user->getMeta('lastname')) ?: $user->get('alias'))
+                : 'uid=' . $booking->get('uid');
+
+            $text = sprintf(
+                "%s\n\n%s\n\n%s\n%s\n%s\n\n%s",
+                sprintf($this->t('PayPal is reviewing the payment for booking #%s — the booking was NOT cancelled.'),
+                    $booking->get('bid')),
+                $details,
+                sprintf($this->t('Customer: %s'), $userName),
+                sprintf($this->t('Reason given by PayPal: %s'),
+                    \Booking\Service\PaymentReconciliationService::describePendingReason($pendingReason)),
+                sprintf($this->t('PayPal transaction: %s'), $transactionId ?: '-'),
+                $this->t('The system checks the transaction automatically and sets the booking to paid as soon as PayPal releases it. No action required for now.')
+            );
+
+            $serviceManager->get('Backend\Service\MailService')->send(
+                sprintf($this->t('PayPal payment under review — booking #%s'), $booking->get('bid')),
+                $text
+            );
+        } catch (\Exception $e) {
+            error_log('sendAdminPaymentReviewEmail error: ' . $e->getMessage());
+        }
+    }
+
     public function confirmAction()
     {
 
@@ -1062,6 +1208,15 @@ class BookingController extends AbstractActionController
             throw new RuntimeException('This booking has already been paid');
         }
 
+        /* A PayPal payment under review is already committed money — paying again would
+         * double-charge the member and force a manual refund. */
+        if ($booking->getMeta('directpay_pending') == 'true') {
+            $this->flashMessenger()->addInfoMessage(sprintf($this->t('%sPayment already received.%s PayPal is still reviewing it — please do not pay again. We will notify you as soon as it is released.'),
+                '<b>', '</b>'));
+
+            return $this->redirect()->toRoute('user/bookings/bills', ['bid' => $bid]);
+        }
+
         // Rate limit: max 5 payment attempts per booking per hour
         $payAttempts = (int) $booking->getMeta('payAttempts', 0);
         $payAttemptsReset = $booking->getMeta('payAttemptsReset', '');
@@ -1099,7 +1254,9 @@ class BookingController extends AbstractActionController
 
         $booking->setMeta('payLater', 'true');
         $booking->setMeta('paymentMethod', $payservice);
-        $booking->setMeta('directpay', 'true');
+        /* Never set directpay='true' here: the unpaid-cleanup MySQL event deletes pending
+         * bookings with that flag once they are older than the grace period, which would
+         * destroy a legitimate open bill as soon as the member aborts the payment. */
 
         // Add PP tag to existing notes (#85)
         $existingNotes = $booking->getMeta('notes', '');
@@ -1119,6 +1276,52 @@ class BookingController extends AbstractActionController
         }
 
         return $this->createPaymentAndRedirect($payservice, $booking, $user, $total, $description);
+    }
+
+    /**
+     * Classify a PayPal Express Checkout NVP result into an actionable outcome.
+     *
+     * Payum's PaymentDetailsStatusAction maps both "user aborted at PayPal" and
+     * "PayPal accepted the money but still reviews it" to markPending(), so the human
+     * status alone must never decide whether a booking gets cancelled.
+     * PAYMENTINFO_0_PAYMENTSTATUS is the authoritative field — it only exists once
+     * DoExpressCheckoutPayment has actually moved money.
+     *
+     * @param mixed $payment Payum payment details (ArrayAccess)
+     * @param \Payum\Core\Request\GetHumanStatus $status
+     * @return string 'paid' | 'review' | 'abort' | 'failed'
+     */
+    private function evaluatePaypalOutcome($payment, $status)
+    {
+        $paymentStatus = isset($payment['PAYMENTINFO_0_PAYMENTSTATUS']) ? (string) $payment['PAYMENTINFO_0_PAYMENTSTATUS'] : '';
+        $pendingReason = isset($payment['PAYMENTINFO_0_PENDINGREASON']) ? strtolower((string) $payment['PAYMENTINFO_0_PENDINGREASON']) : '';
+        $checkoutStatus = isset($payment['CHECKOUTSTATUS']) ? (string) $payment['CHECKOUTSTATUS'] : '';
+
+        /* Reconciled models (GetTransactionDetails / Sync) carry PAYMENTREQUEST_0_* instead. */
+        if ($paymentStatus === '' && isset($payment['PAYMENTREQUEST_0_PAYMENTSTATUS'])) {
+            $paymentStatus = (string) $payment['PAYMENTREQUEST_0_PAYMENTSTATUS'];
+            $pendingReason = isset($payment['PAYMENTREQUEST_0_PENDINGREASON'])
+                ? strtolower((string) $payment['PAYMENTREQUEST_0_PENDINGREASON']) : $pendingReason;
+        }
+
+        /* Single source of truth, shared with scripts/payments.php reconcile */
+        $classified = \Booking\Service\PaymentReconciliationService::classifyPaypalStatus($paymentStatus, $pendingReason);
+
+        if ($classified !== 'unknown') {
+            return $classified;
+        }
+
+        /* No PAYMENTINFO at all: money never moved. Zero-amount/agreement flows can still be
+         * captured or authorized, so trust the human status before declaring an abort. */
+        if ($status->isCaptured() || $status->isAuthorized()) {
+            return 'paid';
+        }
+
+        if ($checkoutStatus === '' || $checkoutStatus === PaypalApi::CHECKOUTSTATUS_PAYMENT_ACTION_NOT_INITIATED) {
+            return 'abort';
+        }
+
+        return 'failed';
     }
 
     public function doneAction()
@@ -1202,20 +1405,22 @@ class BookingController extends AbstractActionController
 
         $paymentStatus = isset($payment['status']) ? $payment['status'] : '';
 
-        // For PayPal: isPending() alone is not reliable — sandbox returns "Pending" even on abort.
-        // Only treat PayPal pending as success if PAYMENTREQUEST_0_PAYMENTSTATUS confirms "Completed".
-        $paypalCompleted = ($token->getGatewayName() == 'paypal_ec'
-            && isset($payment['PAYMENTREQUEST_0_PAYMENTSTATUS'])
-            && $payment['PAYMENTREQUEST_0_PAYMENTSTATUS'] == 'Completed');
+        // For PayPal: isPending() alone is not reliable — an abort ("PaymentActionNotInitiated")
+        // and a payment PayPal has accepted but still reviews ("paymentreview") both map to
+        // markPending(). evaluatePaypalOutcome() tells them apart via PAYMENTINFO_0_*.
+        $paypalOutcome = ($token->getGatewayName() == 'paypal_ec')
+            ? $this->evaluatePaypalOutcome($payment, $status)
+            : null;
 
-        $isPaypalPending = ($status->isPending() && $token->getGatewayName() == 'paypal_ec');
+        $paypalCompleted = ($paypalOutcome === 'paid');
+        $isPaypalReview = ($paypalOutcome === 'review');
+
         $isNonPaypalPending = ($status->isPending() && $token->getGatewayName() != 'paypal_ec');
 
-        // PayPal pending only counts as success if PAYMENTREQUEST_0_PAYMENTSTATUS == 'Completed'
         $isSuccess = $status->isCaptured()
             || $status->isAuthorized()
             || $isNonPaypalPending
-            || ($isPaypalPending && $paypalCompleted)
+            || $paypalCompleted
             || ($status->isUnknown() && $paymentStatus == 'processing')
             || $status->getValue() === "success"
             || $paymentStatus === "succeeded";
@@ -1223,7 +1428,94 @@ class BookingController extends AbstractActionController
         // Determine redirect query parameter for session-independent messages
         $paymentResult = null;
 
-        if ($isSuccess) {
+        if ($isPaypalReview) {
+
+            /* PayPal accepted the payment but holds it for review (PAYMENTSTATUS=Pending,
+             * PENDINGREASON=paymentreview/echeck/...). The money is committed — the booking
+             * stays valid and must NOT be cancelled. It is resolved later by
+             * scripts/payments.php reconcile (GetTransactionDetails). */
+            $paymentResult = 'review';
+
+            /* Re-entry guard: the done URL is a plain GET the member can reload. Without this,
+             * a refresh would deduct the budget twice and re-send both mails. */
+            $alreadyUnderReview = ($booking->getMeta('directpay_pending') == 'true'
+                && $booking->getMeta('paypalReviewSince'));
+
+            if ($alreadyUnderReview) {
+                $originUrl = $this->redirectBack()->getOriginAsUrl();
+                if (! $originUrl) {
+                    $originUrl = $this->url()->fromRoute('frontend');
+                }
+                $separator = strpos($originUrl, '?') !== false ? '&' : '?';
+
+                return $this->redirect()->toUrl($originUrl . $separator . 'payment_result=review');
+            }
+
+            $booking->set('status_billing', 'pending');
+            // directpay='false' keeps the booking out of the unpaid-cleanup MySQL event
+            $booking->setMeta('directpay', 'false');
+            $booking->setMeta('directpay_pending', 'true');
+            $booking->setMeta('paypalReviewSince', date('Y-m-d H:i:s'));
+
+            if ($paypalTransactionId) { $booking->setMeta('paypalTransactionId', $paypalTransactionId); }
+            if ($paypalPayerId) { $booking->setMeta('paypalPayerId', $paypalPayerId); }
+            if ($paypalCorrelationId) { $booking->setMeta('paypalCorrelationId', $paypalCorrelationId); }
+            if ($paypalPendingReason) { $booking->setMeta('paypalPendingReason', $paypalPendingReason); }
+
+            # redefine user budget (atomic to prevent double-spend race condition)
+            if ($booking->getMeta('hasBudget') == 'true') {
+                $userManager = $serviceManager->get('User\Manager\UserManager');
+                $oldBudget = (float) $booking->getMeta('budget');
+                $targetNewBudget = (float) $booking->getMeta('newbudget');
+                $deductAmount = $oldBudget - $targetNewBudget;
+                if ($deductAmount > 0) {
+                    $actualNewBudget = $userManager->deductBudgetAtomic($booking->get('uid'), $deductAmount);
+                    if ($actualNewBudget !== false) {
+                        $notes = $notes . " payment with user budget (budget: " . $oldBudget . " -> " . $actualNewBudget . ") | ";
+                    } else {
+                        $notes = $notes . " budget deduction failed (insufficient funds) | ";
+                    }
+                }
+            }
+
+            if ($booking->getMeta('payLater') == 'true') {
+                $booking->setMeta('payLater', null);
+                $notes = $notes . "(payLater) ";
+            }
+
+            $notes = $notes . " paymentMethod: " . $booking->getMeta('paymentMethod')
+                . " | payment_status: paypal-review (" . ($paypalPendingReason ?: 'unknown') . ")";
+            $booking->setMeta('notes', $notes);
+
+            $bookingManager->save($booking);
+
+            $paymentUserName = $sessionUser ? trim($sessionUser->getMeta('firstname') . ' ' . $sessionUser->getMeta('lastname')) ?: $sessionUser->get('alias') : 'uid=' . $booking->get('uid');
+            $serviceManager->get('Base\Service\AuditService')->log('payment', 'payment_pending',
+                sprintf('Zahlung in Pruefung: Buchung #%s, %s von %s auf Platz %s (Grund: %s)', $bid,
+                    $booking->getMeta('paymentMethod'), $paymentUserName, $square->get('name'), $paypalPendingReason ?: 'unknown'),
+                ['user_id' => $booking->get('uid'), 'user_name' => $paymentUserName, 'entity_type' => 'booking', 'entity_id' => $bid,
+                 'detail' => ['paymentMethod' => $booking->getMeta('paymentMethod'), 'payment_status' => 'paypal-review',
+                              'square_name' => 'Platz ' . $square->get('name'), 'user_name_full' => $paymentUserName,
+                              'status_billing' => $booking->get('status_billing'),
+                              'paypalPayerId' => $paypalPayerId, 'paypalCorrelationId' => $paypalCorrelationId,
+                              'paypalTransactionId' => $paypalTransactionId, 'paypalPendingReason' => $paypalPendingReason]]);
+
+            $this->flashMessenger()->addInfoMessage(sprintf($this->t('%sYour booking is confirmed.%s PayPal is still reviewing the payment — we will notify you as soon as it is released. Please do not pay again.'),
+                '<b>', '</b>'));
+
+            // Release the suppressed booking confirmation, then send the dedicated review notice
+            if ($booking->getMeta('suppressEmail') == 'true') {
+                $booking->setMeta('suppressEmail', null);
+                $bookingManager->save($booking);
+                $bookingService->getEventManager()->trigger('notify.single', $booking);
+            }
+
+            $userManager = $serviceManager->get('User\Manager\UserManager');
+            $reviewUser = $userManager->get($booking->get('uid'));
+            $this->sendPaymentReviewEmail($booking, $reviewUser, $paypalPendingReason);
+            $this->sendAdminPaymentReviewEmail($booking, $reviewUser, $paypalPendingReason, $paypalTransactionId);
+
+        } elseif ($isSuccess) {
 
             // syslog(LOG_EMERG, 'doneAction - success');
             $paymentResult = 'success';

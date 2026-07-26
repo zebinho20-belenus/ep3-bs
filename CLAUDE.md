@@ -66,15 +66,35 @@ DB schema: `data/db/ep3-bs.sql`. Migrations in `data/db/migrations/` run auto on
 - **`$payment['status']`** is Stripe-specific (`succeeded`/`processing`/`requires_action`). PayPal has no this key — always `isset()` guard.
 - Payment buttons only shown when `$payable == true` (`$total > 0` from `SquarePricingManager::getFinalPricingInRange()`).
 - `gp` guest player flag: passed as `$guestPlayer` from controller — never use `$_GET['gp']` in views/services.
-- Unpaid bookings auto-removed by MySQL event (every 15 min, > 3h old, `directpay=true`, `status_billing=pending`).
+- Unpaid bookings auto-removed by MySQL event `remove_unpaid_bookings` (every 5 min, > 30 min old, `directpay=true`, `status_billing=pending`). Grace period configurable via `bs_options` `service.payment.unpaid-grace-minutes` — the event itself is recreated by a migration, so changing the option alone does not change the deletion time.
 
-**Pay Later** (`/user/bookings/bills/:bid`): `payAction()` sets `payLater=true` meta → gateway → `doneAction()`. With `payLater`: failure = flash only (no `cancelSingle()`), success = `status_billing=paid` + meta cleared.
+**Pay Later** (`/user/bookings/bills/:bid`): `payAction()` sets `payLater=true` meta → gateway → `doneAction()`. With `payLater`: failure = flash only (no `cancelSingle()`), success = `status_billing=paid` + meta cleared. `payAction()` must **never** set `directpay='true'` — the cleanup event would delete the (arbitrarily old) open bill as soon as the member aborts the payment.
 
 **PayPal F&F instructions**: Config `paypalEmail` in `project.php`. Used via `sprintf()` in `NotificationListener`, `Square\BookingController`, `Backend\BookingController`.
 
 **PayPal transaction traceability**: Gateway is legacy PayPal Express Checkout NVP (`payum/paypal-express-checkout-nvp`), not the modern REST/Checkout SDK. `doneAction()` extracts `PAYERID`/`CORRELATIONID`/`PAYMENTINFO_0_TRANSACTIONID` from the NVP response and stores them as booking meta (`paypalPayerId`, `paypalCorrelationId`, `paypalTransactionId`) plus in the `payment_success`/`payment_failed` audit-log detail. Raw full NVP response is also persisted by Payum itself in `data/payum/` (`FilesystemStorage`, opaque hashed filenames, no cleanup — grep contents for `PAYMENTREQUEST_0_BID` to find a specific booking).
 
 **PayPal pending/error diagnosis**: `PAYMENTINFO_0_PENDINGREASON` (why PAYMENTSTATUS=Pending — `paymentreview`=PayPal fraud hold, `echeck`=bank clearance, `verify`=unverified account, `multi-currency`, `unilateral`, `regulatoryreview`, `intl`) is captured as booking meta `paypalPendingReason` + audit detail on success. `L_ERRORCODE0`/`L_SHORTMESSAGE0`/`L_LONGMESSAGE0` (PayPal's own error detail, only present when ACK=Failure/FailureWithWarning) go into the `payment_failed` audit detail only, not booking meta.
+
+**PayPal review vs. abort — never confuse them** (v2.4.0): Payum's `PaymentDetailsStatusAction` maps *both* "member aborted at PayPal" and "PayPal accepted the money but holds it for review" to `markPending()`. The deciding field is `PAYMENTINFO_0_PAYMENTSTATUS` — it only exists once `DoExpressCheckoutPayment` moved money. `PAYMENTREQUEST_0_PAYMENTSTATUS` is **never** in the checkout response (only `GetTransactionDetails`/`Sync` write it) — checking it silently treats every review as a failure (the v2.4.0 bug).
+
+- `BookingController::evaluatePaypalOutcome($payment, $status)` → `paid` | `review` | `abort` | `failed`; status mapping itself lives in `PaymentReconciliationService::classifyPaypalStatus()` (single source of truth for web flow + CLI).
+- `review` path: booking kept, `status_billing=pending`, `directpay='false'` (exempt from cleanup), meta `directpay_pending='true'`, `paypalReviewSince`, audit `payment_pending`, own member mail + admin mail, no `cancelSingle()`.
+- Never offer a second payment while `directpay_pending == 'true'` (bills view + `payAction()` guard) — the money is already committed.
+- Regression test: `docker compose exec court php scripts/tests/paypal-outcome-test.php` (25 cases, real classes). Extend it when a new NVP response shape appears in `data/payum/`.
+
+**Payment reconciliation (CLI)**: `scripts/payments.php` — `reconcile` resolves reviews via `GetTransactionDetails` (existing NVP credentials, no PayPal-side config): `Completed` → paid + member mail; `Denied/Failed/Expired` → future reservation: cancel + budget refund + mails, past reservation: keep `pending` + admin alert (collect manually); unresolved after `service.payment.review-alert-days` (10) → one-time admin alert. `remind` mails one payment reminder for abandoned checkouts before the cleanup event deletes them. Service: `Booking\Service\PaymentReconciliationService` (does **not** extend `AbstractService` — no translator in CLI, mail texts are German literals like in `diagnose.php`).
+
+```bash
+docker compose exec court php scripts/payments.php reconcile [--dry-run] [--json]
+docker compose exec court php scripts/payments.php remind    [--dry-run] [--json]
+```
+
+Cron on tcnkail-server (`/etc/cron.d/ep3bs-payments`):
+```
+*/5 * * * * root docker exec ep3-bs-8-prod-court-1 php scripts/payments.php remind    >> /var/log/ep3bs-payments.log 2>&1
+17 */6 * * * root docker exec ep3-bs-8-prod-court-1 php scripts/payments.php reconcile >> /var/log/ep3bs-payments.log 2>&1
+```
 
 ### Budget System
 
@@ -234,6 +254,8 @@ docker compose exec court php scripts/diagnose.php scan [<von> <bis>] [--checks=
 | Audit controller | `module/Backend/src/Backend/Controller/AuditController.php` |
 | Diagnostic CLI | `scripts/diagnose.php` |
 | Diagnostic service | `module/Booking/src/Booking/Service/BookingDiagnosticService.php` (+ `Diagnostic/Check/*.php`) |
+| Payment CLI | `scripts/payments.php` (+ `scripts/tests/paypal-outcome-test.php`) |
+| Payment reconciliation | `module/Booking/src/Booking/Service/PaymentReconciliationService.php` |
 | Migrations | `data/db/migrations.php` (registry), `data/db/migrations/*.sql` |
 | App version | `VERSION` (file), `config/init.php` → `EP3_BS_VERSION` constant, footer in `layout.phtml` |
 
@@ -265,7 +287,8 @@ macOS: set `DOCKER_SOCKET=~/.docker/run/docker.sock` in `.env` if Traefik can't 
 - **jQuery UI z-index**: set `appendTo` on datepicker/autocomplete to avoid rendering behind squarebox.
 - **Email meta timing**: all meta must be in `$meta` BEFORE `createSingle()` — meta set after won't appear in email.
 - **Stripe payment key**: `$payment['status']` Stripe-only. Always `isset()` guard for PayPal.
-- **Budget refund**: always via `BookingService::refundBudget()` — never inline.
+- **PayPal `PAYMENTREQUEST_0_PAYMENTSTATUS` does not exist in the checkout response** — only `GetTransactionDetails`/`Sync` set it. Reading it to detect a successful payment yields `false` for every payment; use `PAYMENTINFO_0_PAYMENTSTATUS` (see "PayPal review vs. abort").
+- **Budget refund**: `BookingService::refundBudget()` for paid bookings; a payment that fails while still `pending` (PayPal review declined) is refunded by `PaymentReconciliationService::refundDeductedBudget()` — `refundBudget()` returns 0 for non-paid bookings.
 - **Booking limit**: counts time slots, not reservations. Per-user override: `bs_users_meta` key `maxActiveBookings`.
 - **Availability checks need effective sid**: any occupied/free decision must match reservations via `$reservation->getMeta('sid_override') ?: $booking->need('sid')` — never the base booking `sid` alone (per-reservation overrides move reservations between squares). Correct pattern in `ReservationsForCell`, `SquareValidator::isBookable()`, `TimeBlockChoice`, Backend `DetermineParams`. Missing this caused double bookings over moved subscription reservations (v2.2.13).
 - **Hammer.js swipe**: touch-only + suppressed when `.squarebox` open — in `layout.phtml`.

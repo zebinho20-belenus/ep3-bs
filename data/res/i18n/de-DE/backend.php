@@ -586,4 +586,5 @@ return array(
     'Has overrides' => 'Hat Abweichungen',
     'All entries in audit log' => 'Alle Eintraege im Audit-Log',
     'Show in booking list' => 'In Buchungsliste anzeigen',
+    'PayPal is reviewing this payment' => 'PayPal prüft diese Zahlung',
 );
